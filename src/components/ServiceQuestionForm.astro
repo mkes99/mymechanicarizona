@@ -1,0 +1,216 @@
+---
+/**
+ * ServiceQuestionForm.astro
+ * - Formidable markup preserved (Form ID: 6).
+ * - Option A: HTML5 validation + data-validated gate (no Formidable JS validation).
+ */
+const FORM_ID = "form_question";
+---
+
+<div class="frm_forms with_frm_style frm_style_formidable-style" id="frm_form_6_container">
+  <form
+    enctype="multipart/form-data"
+    method="post"
+    class="frm-show-form frm_pro_form"
+    id={FORM_ID}
+   
+  >
+    <div class="frm_form_fields">
+      <fieldset>
+        <legend class="frm_screen_reader">Have A Question?</legend>
+
+        <div class="frm_fields_container">
+          <input type="hidden" name="frm_action" value="create" />
+          <input type="hidden" name="form_id" value="6" />
+          <input type="hidden" name="frm_hide_fields_6" id="frm_hide_fields_6" value="" />
+          <input type="hidden" name="form_key" value="question" />
+          <input type="hidden" name="item_meta[0]" value="" />
+          <input type="hidden" id="frm_submit_entry_6" name="frm_submit_entry_6" value="cb96dd78bf" />
+          <input type="hidden" name="_wp_http_referer" value="/services/" />
+
+          <div id="frm_field_124_container" class="frm_form_field form-field frm_hidden_container frm_required_field">
+            <label for="field_hcfdj" id="field_hcfdj_label" class="frm_primary_label">
+              Name <span class="frm_required" aria-hidden="true">*</span>
+            </label>
+            <input
+              type="text"
+              id="field_hcfdj"
+              name="item_meta[124]"
+              placeholder="Your Name"
+             
+             
+              data-reqmsg="Name cannot be blank."
+              data-invmsg="Name is invalid"
+            />
+          </div>
+
+          <div id="frm_field_125_container" class="frm_form_field form-field frm_hidden_container frm_required_field">
+            <label for="field_7lpue" id="field_7lpue_label" class="frm_primary_label">
+              Email <span class="frm_required" aria-hidden="true">*</span>
+            </label>
+            <input
+              type="email"
+              id="field_7lpue"
+              name="item_meta[125]"
+              placeholder="Email"
+             
+             
+              data-reqmsg="Email cannot be blank."
+              data-invmsg="Please enter a valid email address"
+            />
+          </div>
+
+          <div id="frm_field_127_container" class="frm_form_field form-field frm_hidden_container">
+            <label for="field_7bpq6" id="field_7bpq6_label" class="frm_primary_label">
+              Phone Number
+            </label>
+            <input
+              type="tel"
+              id="field_7bpq6"
+              name="item_meta[127]"
+              placeholder="Phone Number"
+              pattern="\(\d\d\d\)-\d\d\d-\d\d\d\d$"
+              data-frmmask="(999)-999-9999"
+              data-invmsg="Phone Number is invalid"
+            />
+          </div>
+
+          <div id="frm_field_126_container" class="frm_form_field form-field frm_hidden_container frm_required_field">
+            <label for="field_gqjvc" id="field_gqjvc_label" class="frm_primary_label">
+              Message <span class="frm_required" aria-hidden="true">*</span>
+            </label>
+            <textarea
+              name="item_meta[126]"
+              id="field_gqjvc"
+              rows="5"
+              placeholder="Message"
+             
+             
+              data-reqmsg="Message cannot be blank."
+              data-invmsg="Message is invalid"
+            ></textarea>
+          </div>
+
+          <div id="frm_field_128_container" class="frm_form_field form-field frm_none_container frm12 frm_first">
+            <label for="g-recaptcha-response" id="field_z3yfr_label" class="frm_primary_label">Captcha</label>
+            <div
+              id="field_z3yfr"
+              class="frm-g-recaptcha"
+              data-sitekey="6LeVPnMpAAAAAHPVd9LuF8-I8BfxrJSCeEs_Uv9q"
+              data-size="invisible"
+              data-theme="light"
+            ></div>
+          </div>
+
+          <input type="hidden" name="item_key" value="" />
+
+          <div id="frm_field_107_container">
+            <label for="field_yx6b6">If you are human, leave this field blank.</label>
+            <input id="field_yx6b6" type="text" class="frm_form_field form-field frm_verify" name="item_meta[107]" value="" />
+          </div>
+
+          <input name="frm_state" type="hidden" value="XfUFndT6UkQijiZ5aADjw30SmzFsm/usicV//HFKN5E=" />
+
+          <div class="frm_submit">
+            <button class="frm_button_submit frm_final_submit btn btn-border btn-invert" type="submit">
+              <span>Ask Question</span>
+            </button>
+          </div>
+        </div>
+      </fieldset>
+    </div>
+  </form>
+</div>
+
+<style>
+  /* Suppress Formidable's global :invalid styling until the user actually tries to submit */
+  :global(#form_question[data-validated="false"] .frm_form_field :invalid),
+  :global(#form_question[data-validated="false"] input:invalid),
+  :global(#form_question[data-validated="false"] textarea:invalid),
+  :global(#form_question[data-validated="false"] select:invalid) {
+    border-color: inherit !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+</style>
+
+<script is:inline>
+(() => {
+  const form = document.getElementById("form_question");
+  if (!form) return;
+
+  const REQUIRED_SELECTOR = ".frm_form_field.frm_required_field";
+  const requiredContainers = Array.from(form.querySelectorAll(REQUIRED_SELECTOR));
+
+  const getField = (container) => container.querySelector("input, textarea, select");
+  const isEmpty = (el) => (el.value ?? "").trim() === "";
+
+  const validateContainer = (container) => {
+    const el = getField(container);
+    if (!el) return true;
+
+    let valid = true;
+
+    if (el.type === "checkbox" || el.type === "radio") {
+      valid = !!form.querySelector(`[name="${el.name}"]:checked`);
+    } else if (el.type === "file") {
+      valid = el.files && el.files.length > 0;
+    } else {
+      valid = !isEmpty(el);
+
+      if (valid && el.type === "email") {
+        valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value.trim());
+      }
+
+      const pattern = el.getAttribute("pattern");
+      if (valid && pattern) {
+        try {
+          valid = new RegExp(`^${pattern}$`).test(el.value);
+        } catch (_) {}
+      }
+    }
+
+    container.classList.toggle("frm_blank_field", !valid);
+    el.setAttribute("aria-invalid", (!valid).toString());
+    return valid;
+  };
+
+  const validateForm = () => {
+    let ok = true;
+    requiredContainers.forEach((c) => {
+      if (!validateContainer(c)) ok = false;
+    });
+    return ok;
+  };
+
+  form.addEventListener(
+    "submit",
+    (e) => {
+      const ok = validateForm();
+      if (!ok) {
+        e.preventDefault();
+        e.stopPropagation();
+        const first = form.querySelector(".frm_blank_field");
+        if (first && first.scrollIntoView) {
+          first.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+    },
+    true,
+  );
+
+  requiredContainers.forEach((c) => {
+    const el = getField(c);
+    if (!el) return;
+    ["input", "change", "blur"].forEach((evt) => {
+      el.addEventListener(
+        evt,
+        () => {
+          if (c.classList.contains("frm_blank_field")) validateContainer(c);
+        },
+        { passive: true },
+      );
+    });
+  });
+})();
+</script>

@@ -1,0 +1,261 @@
+---
+/**
+ * JoinOurTeamForm.astro
+ * - POSTs to /api/forms via forms-recaptcha-v3.js.
+ * - No native HTML5 constraints to avoid `:invalid` styling on load.
+ * - Uses Formidable's `.frm_blank_field` class for the existing error styling.
+ * - Implements a lightweight Dropzone-like UX for the single file upload.
+ */
+
+const FORM_ID = "form_application";
+// Match backend routing expectations (used for email subject / routing).
+const FORM_NAME = "Join Our Team";
+const MAX_UPLOAD_BYTES = 20 * 1024 * 1024; // 20MB (Cloudflare request limits are lower than WP)
+const ACCEPT = ".pdf,.doc,.docx";
+---
+
+<div class="frm_forms with_frm_style frm_center_submit frm_style_formidable-style" id="frm_form_5_container">
+  <form
+    id={FORM_ID}
+    class="frm-show-form frm_pro_form"
+    data-form-name={FORM_NAME}
+    method="post"
+    action="/api/forms"
+    enctype="multipart/form-data"
+    novalidate
+  >
+    <div class="frm_form_fields">
+      <fieldset>
+        <legend class="frm_screen_reader">Application</legend>
+        <div class="frm_fields_container">
+
+          <div id="frm_field_80_container" class="frm_form_field form-field frm_required_field frm_hidden_container frm_first frm_half">
+            <label class="frm_primary_label" for="field_qwwsm" id="field_qwwsm_label">First Name <span aria-hidden="true" class="frm_required">*</span></label>
+            <input id="field_qwwsm" name="first_name" placeholder="First Name" type="text" value="" />
+          </div>
+
+          <div id="frm_field_81_container" class="frm_form_field form-field frm_required_field frm_hidden_container frm_half">
+            <label class="frm_primary_label" for="field_1auqw" id="field_1auqw_label">Last Name <span aria-hidden="true" class="frm_required">*</span></label>
+            <input id="field_1auqw" name="last_name" placeholder="Last Name" type="text" value="" />
+          </div>
+
+          <div id="frm_field_82_container" class="frm_form_field form-field frm_required_field frm_hidden_container">
+            <label class="frm_primary_label" for="field_wlhyu" id="field_wlhyu_label">Phone Number <span aria-hidden="true" class="frm_required">*</span></label>
+            <input id="field_wlhyu" name="phone" placeholder="Phone Number" type="tel" value="" data-validate="phone" />
+          </div>
+
+          <div id="frm_field_88_container" class="frm_form_field form-field frm_required_field frm_hidden_container">
+            <label class="frm_primary_label" for="field_pqkwz" id="field_pqkwz_label">Email <span aria-hidden="true" class="frm_required">*</span></label>
+            <input id="field_pqkwz" name="email" placeholder="Email" type="text" value="" data-validate="email" />
+          </div>
+
+          <div id="frm_field_89_container" class="frm_form_field form-field frm_required_field frm_hidden_container frm_full_upload">
+            <label class="frm_primary_label" for="field_n3sjm" id="field_n3sjm_label">Attach Resume <span aria-hidden="true" class="frm_required">*</span></label>
+
+            <!-- real file input (Formidable-style naming is not needed; our /api/forms handler reads multipart fields) -->
+            <input
+              id="field_n3sjm"
+              name="resume"
+              type="file"
+              accept={ACCEPT}
+              data-max-bytes={MAX_UPLOAD_BYTES}
+              style="position:absolute;left:-9999px;width:1px;height:1px;"
+            />
+
+            <div class="frm_dropzone frm_single_upload frm_clearfix dz-clickable" id="file89_dropzone" role="group" aria-label="Resume upload">
+              <div class="dz-message needsclick">
+                <span class="frm_icon_font frm_upload_icon"></span>
+                <span class="frm_upload_text"><button type="button">Drop your resume here or click to upload</button></span>
+                <span class="frm_compact_text"><button type="button">Choose File</button></span>
+                <div class="frm_small_text">Maximum upload size: 20MB</div>
+                <div class="frm_small_text" id="resume_filename" aria-live="polite"></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="frm_field_recaptcha_container" class="frm_form_field form-field frm_none_container">
+            <label class="frm_primary_label">Captcha</label>
+            <!-- recaptcha token injected by public/js/forms-recaptcha-v3.js -->
+            <input type="hidden" name="recaptcha_token" value="" />
+          </div>
+
+          <div id="frm_field_107_container">
+            <label for="field_3ldam">If you are human, leave this field blank.</label>
+            <input class="frm_form_field form-field frm_verify" id="field_3ldam" name="honeypot" type="text" value="" />
+          </div>
+
+          <div class="frm_submit">
+            <button class="frm_button_submit frm_final_submit btn btn-wide btn-border btn-invert" type="submit"><span>Submit Resume</span></button>
+          </div>
+
+        </div>
+      </fieldset>
+    </div>
+  </form>
+</div>
+
+<script is:inline>
+  (() => {
+    const form = document.getElementById("form_application");
+    if (!form) return;
+
+    // --- Dropzone-lite ---
+    const dropzone = document.getElementById("file89_dropzone");
+    const fileInput = document.getElementById("field_n3sjm");
+    const filenameEl = document.getElementById("resume_filename");
+
+    const maxBytes = Number(fileInput?.dataset?.maxBytes || 0) || ${MAX_UPLOAD_BYTES};
+
+    function setFilename(file) {
+      if (!filenameEl) return;
+      filenameEl.textContent = file ? `Selected: ${file.name}` : "";
+    }
+
+    function clearFile() {
+      if (!fileInput) return;
+      fileInput.value = "";
+      setFilename(null);
+    }
+
+    function isFileOk(file) {
+      if (!file) return false;
+      if (maxBytes && file.size > maxBytes) return false;
+      return true;
+    }
+
+    function pickFileFromEvent(e) {
+      const dt = e.dataTransfer;
+      if (dt && dt.files && dt.files.length) return dt.files[0];
+      return null;
+    }
+
+    function assignFile(file) {
+      if (!fileInput) return;
+      if (!isFileOk(file)) {
+        clearFile();
+        // mark field as blank/invalid to trigger existing CSS
+        const container = document.getElementById("frm_field_89_container");
+        if (container) container.classList.add("frm_blank_field");
+        return;
+      }
+
+      // Assign dropped file to the file input (DataTransfer shim)
+      try {
+        const data = new DataTransfer();
+        data.items.add(file);
+        fileInput.files = data.files;
+      } catch {
+        // Fallback: cannot programmatically set files in some browsers; user will have to click.
+      }
+      setFilename(file);
+
+      const container = document.getElementById("frm_field_89_container");
+      if (container) container.classList.remove("frm_blank_field");
+    }
+
+    if (dropzone && fileInput) {
+      dropzone.addEventListener("click", () => fileInput.click());
+      dropzone.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") fileInput.click();
+      });
+
+      fileInput.addEventListener("change", () => {
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) {
+          setFilename(null);
+          return;
+        }
+        if (!isFileOk(file)) {
+          clearFile();
+          const container = document.getElementById("frm_field_89_container");
+          if (container) container.classList.add("frm_blank_field");
+          return;
+        }
+        setFilename(file);
+        const container = document.getElementById("frm_field_89_container");
+        if (container) container.classList.remove("frm_blank_field");
+      });
+
+      dropzone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+      });
+      dropzone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const file = pickFileFromEvent(e);
+        if (file) assignFile(file);
+      });
+    }
+
+    // --- Validation (Formidable CSS driven) ---
+    let attempted = false;
+
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    function getControl(field) {
+      return field.querySelector("input, textarea, select");
+    }
+
+    function isValidField(field) {
+      if (!field.classList.contains("frm_required_field")) return true;
+
+      const control = getControl(field);
+      if (!control) return true;
+
+      // File
+      if (control.type === "file") {
+        const file = control.files && control.files[0];
+        return !!file && isFileOk(file);
+      }
+
+      const v = (control.value || "").trim();
+      if (!v) return false;
+
+      const rule = control.getAttribute("data-validate");
+      if (rule === "email") return emailRe.test(v);
+      if (rule === "phone") return v.replace(/\D/g, "").length >= 10;
+
+      return true;
+    }
+
+    function applyFieldState(field) {
+      const ok = isValidField(field);
+      field.classList.toggle("frm_blank_field", !ok);
+      const control = getControl(field);
+      if (control) control.setAttribute("aria-invalid", ok ? "false" : "true");
+      return ok;
+    }
+
+    function validateAll() {
+      const fields = [...form.querySelectorAll(".frm_form_field")];
+      let ok = true;
+      for (const f of fields) {
+        if (!applyFieldState(f)) ok = false;
+      }
+      return ok;
+    }
+
+    form.addEventListener(
+      "submit",
+      (e) => {
+        attempted = true;
+        if (!validateAll()) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }
+      },
+      true,
+    );
+
+    form.addEventListener("input", (e) => {
+      if (!attempted) return;
+      const field = e.target && e.target.closest && e.target.closest(".frm_form_field");
+      if (field) applyFieldState(field);
+    });
+
+    form.addEventListener("change", (e) => {
+      if (!attempted) return;
+      const field = e.target && e.target.closest && e.target.closest(".frm_form_field");
+      if (field) applyFieldState(field);
+    });
+  })();
+</script>

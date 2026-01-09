@@ -1,0 +1,53 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+const { services, activeSlug } = Astro.props as {
+  services: CollectionEntry<"services">[];
+  activeSlug?: string;
+};
+
+// Sort alphabetically using orderTitle when provided, else title
+const sorted = [...services].sort((a, b) => {
+  const A = (a.data.orderTitle ?? a.data.title).toLowerCase();
+  const B = (b.data.orderTitle ?? b.data.title).toLowerCase();
+  return A.localeCompare(B);
+});
+---
+
+<div class="block-aside-wrapper">
+  <!-- Appointments widget (present above the services list on live site) -->
+  <div class="widget_block widget block-aside" id="block-7">
+    <a href="#" data-toggle="modal" data-target="#appointmentForm" class="text-icon-sm">
+      <div class="icon-wrapper">
+        <span>
+          <i class="icon  icon-calendar"></i>
+          <span class="icon-hover"></span>
+        </span>
+      </div>
+      <h4 class="title">Appointments</h4>
+      <p>Click to book your appointment now</p>
+    </a>
+  </div>
+
+  <!-- Services menu widget -->
+  <div class="block-aside__wrapper widget block-aside" id="service_menu-2">
+    <h4 class="block-aside__title">Services</h4>
+    <div class="block-aside__content no-indent">
+      <nav class="nav-aside">
+        <ul>
+          {sorted.map((entry) => {
+            const isActive = entry.slug === activeSlug;
+            return (
+              <li class={isActive ? "current" : ""}>
+                <a href={`/services/${entry.slug}/`} title={entry.data.title}>
+                  <span class="nav-aside__icon"></span>
+                  <span class="nav-aside_text">{entry.data.title}</span>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>

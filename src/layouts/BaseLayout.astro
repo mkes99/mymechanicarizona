@@ -1,0 +1,242 @@
+---
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+
+const { title = "My Mechanic Arizona", description = "" } = Astro.props;
+
+const RECAPTCHA_SITEKEY = import.meta.env.PUBLIC_RECAPTCHA_SITEKEY ?? "";
+
+const { bodyClass = "" } = Astro.props;
+const bodyClasses = ["page", bodyClass].filter(Boolean).join(" ");
+---
+
+<!doctype html>
+<html lang="en" data-recaptcha-sitekey={RECAPTCHA_SITEKEY}>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="profile" href="https://gmpg.org/xfn/11" />
+		<link rel="shortcut icon" href="/wp-content/uploads/2023/03/logo.jpeg" type="image/x-icon" />
+
+		<!-- All in One SEO 4.9.2 - aioseo.com -->
+		
+		<meta name="description" content="Honesty, Integrity And Transparency. Tucson based auto repair shop with over 25 years of experience. We offer full service auto repair & maintenance" /> 
+		<meta name="robots" content="max-image-preview:large" /> <link rel="canonical" href="../www.mymechanicarizona.com/index.html" /> 
+		<meta name="generator" content="All in One SEO (AIOSEO) 4.9.2" /> 
+		<meta property="og:locale" content="en_US" /> 
+		<meta property="og:site_name" content="My Mechanic - Tucson based auto repair shop with over 25 years of experience. Specializing in all types of auto repair and services" /> 
+		<meta property="og:type" content="website" /> 
+		<meta property="og:title" content="Home - My Mechanic" /> 
+		<meta property="og:description" content="Honesty, Integrity And Transparency. Tucson based auto repair shop with over 25 years of experience. We offer full service auto repair & maintenance" /> 
+		<meta property="og:url" content="/" /> 
+		<meta property="og:image" content="/wp-content/uploads/2023/03/logo.jpeg" /> 
+		<meta property="og:image:secure_url" content="/wp-content/uploads/2023/03/logo.jpeg" /> 
+		<meta name="twitter:card" content="summary_large_image" /> 
+		<meta name="twitter:title" content="Home - My Mechanic" /> 
+		<meta name="twitter:description" content="Honesty, Integrity And Transparency. Tucson based auto repair shop with over 25 years of experience. We offer full service auto repair & maintenance" /> 
+		<meta name="twitter:image" content="/wp-content/uploads/2023/03/logo.jpeg" />
+		<script type="application/ld+json" class="aioseo-schema">
+			{
+				"@context": "https:\/\/schema.org",
+				"@graph": [
+					{
+						"@type": "BreadcrumbList",
+						"@id": "https:\/\/mymechanicarizona.com\/#breadcrumblist",
+						"itemListElement": [
+							{
+								"@type": "ListItem",
+								"@id": "https:\/\/mymechanicarizona.com#listItem",
+								"position": 1,
+								"name": "Home"
+							}
+						]
+					},
+					{
+						"@type": "Organization",
+						"@id": "https:\/\/mymechanicarizona.com\/#organization",
+						"name": "My Mechanic",
+						"description": "Tucson based auto repair shop with over 25 years of experience. Specializing in all types of auto repair and services",
+						"url": "https:\/\/mymechanicarizona.com\/",
+						"telephone": "+15209048551",
+						"logo": {
+							"@type": "ImageObject",
+							"url": "\/wp-content\/uploads\/2023\/03\/logo.jpeg",
+							"@id": "https:\/\/mymechanicarizona.com\/#organizationLogo"
+						},
+						"image": {
+							"@id": "https:\/\/mymechanicarizona.com\/#organizationLogo"
+						},
+						"sameAs": [
+							"https:\/\/www.facebook.com\/MyMechanicTucson"
+						]
+					},
+					{
+						"@type": "WebPage",
+						"@id": "https:\/\/mymechanicarizona.com\/#webpage",
+						"url": "https:\/\/mymechanicarizona.com\/",
+						"name": "Home - My Mechanic",
+						"description": "Honesty, Integrity And Transparency. Tucson based auto repair shop with over 25 years of experience. We offer full service auto repair & maintenance",
+						"inLanguage": "en-US",
+						"isPartOf": {
+							"@id": "https:\/\/mymechanicarizona.com\/#website"
+						},
+						"breadcrumb": {
+							"@id": "https:\/\/mymechanicarizona.com\/#breadcrumblist"
+						},
+						"datePublished": "2017-03-08T16:27:32-07:00",
+						"dateModified": "2025-10-24T10:42:30-07:00"
+					},
+					{
+						"@type": "WebSite",
+						"@id": "https:\/\/mymechanicarizona.com\/#website",
+						"url": "https:\/\/mymechanicarizona.com\/",
+						"name": "My Mechanic",
+						"description": "Tucson based auto repair shop with over 25 years of experience. Specializing in all types of auto repair and services",
+						"inLanguage": "en-US",
+						"publisher": {
+							"@id": "https:\/\/mymechanicarizona.com\/#organization"
+						}
+					}
+				]
+			}
+		</script>
+		<!-- All in One SEO -->
+
+		
+		<link rel="dns-prefetch" href="https://fonts.googleapis.com/" /> 
+		<link rel="alternate" type="application/rss+xml" title="My Mechanic » Feed" href="feed/index.html" /> 
+		<link rel="alternate" type="application/rss+xml" title="My Mechanic » Comments Feed" href="comments/feed/index.html" /> 
+		<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="wp-json/oembed/1.0/embed" /> 
+		<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="wp-json/oembed/1.0/embed" />
+		<!-- This site uses the Google Analytics by MonsterInsights plugin v9.11.1 - Using Analytics tracking - https://www.monsterinsights.com/ -->
+		<!-- Note: MonsterInsights is not currently configured on this site. The site owner needs to authenticate with Google Analytics in the MonsterInsights settings panel. -->
+		<!-- No tracking code set -->
+		<!-- / Google Analytics by MonsterInsights -->
+
+		
+		<link rel="stylesheet" id="formidable-css" href="/wp-content/plugins/formidable/css/formidableforms.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="aioseo/css/src/vue/standalone/blocks/table-of-contents/global.scss-css" href="/wp-content/plugins/all-in-one-seo-pack/dist/Lite/assets/css/table-of-contents/global.e90f6d47.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="wp-components-css" href="/wp-includes/css/dist/components/style.min.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="wp-preferences-css" href="/wp-includes/css/dist/preferences/style.min.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="wp-block-editor-css" href="/wp-includes/css/dist/block-editor/style.min.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="popup-maker-block-library-style-css" href="/wp-content/plugins/popup-maker/dist/packages/block-library-style.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="cookie-notice-front-css" href="/wp-content/plugins/cookie-notice/css/front.min.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="woocommerce-layout-css" href="/wp-content/plugins/woocommerce/assets/css/woocommerce-layout.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="woocommerce-smallscreen-css" href="/wp-content/plugins/woocommerce/assets/css/woocommerce-smallscreen.css" type="text/css" media="only screen and (max-width: 768px)" /> 
+		<link rel="stylesheet" id="woocommerce-general-css" href="/wp-content/plugins/woocommerce/assets/css/woocommerce.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="brb-public-main-css-css" href="/wp-content/plugins/business-reviews-bundle/assets/css/public-main.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="bootstrap-css" href="/wp-content/themes/car-repair-services/css/plugins/bootstrap.min.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="parent-style-css" href="/wp-content/themes/car-repair-services/style-2.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="child-style-css" href="/wp-content/themes/car-repair-services-child/style.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="car-repair-services-google-fonts-css" href="https://fonts.googleapis.com/css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="elementor-icons-css" href="/wp-content/plugins/elementor/assets/lib/eicons/css/elementor-icons.min.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="elementor-frontend-css" href="/wp-content/plugins/elementor/assets/css/frontend.min.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="elementor-post-8-css" href="/wp-content/uploads/elementor/css/post-8.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="elementor-post-56-css" href="/wp-content/uploads/elementor/css/post-56.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="bootstrap-submenu-css" href="/wp-content/themes/car-repair-services/css/plugins/bootstrap-submenu.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="animate-css" href="/wp-content/themes/car-repair-services/css/plugins/animate.min.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="slick-css" href="/wp-content/themes/car-repair-services/css/plugins/slick.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="bootstrap-datetimepicker-css" href="/wp-content/themes/car-repair-services/css/plugins/bootstrap-datetimepicker.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="iconfont-style-css" href="/wp-content/themes/car-repair-services/iconfont/style.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="magnific-popup-css" href="/wp-content/themes/car-repair-services/css/plugins/magnific-popup.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="scrolling-tabs-css" href="/wp-content/themes/car-repair-services/css/plugins/jquery.scrolling-tabs.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="twentytwenty-css" href="/wp-content/themes/car-repair-services/css/plugins/twentytwenty.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="perfect-scrollbar-css" href="/wp-content/themes/car-repair-services/css/plugins/perfect-scrollbar.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="nouislider-css" href="/wp-content/themes/car-repair-services/css/plugins/nouislider.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="shopcss-css" href="/wp-content/themes/car-repair-services/css/shop-2.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="car-repair-services-style-css" href="/wp-content/themes/car-repair-services/style-2.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="car-repair-services-wp-default-norm-css" href="/wp-content/themes/car-repair-services/css/wp-default-norm-2.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="elementor-gf-local-roboto-css" href="/wp-content/uploads/elementor/google-fonts/css/roboto.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="elementor-gf-local-robotoslab-css" href="/wp-content/uploads/elementor/google-fonts/css/robotoslab.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" id="elementor-icons-shared-1-css" href="/wp-content/plugins/car-repair-services-core/car-repair-addons/iconfont/style.css" type="text/css" media="all" /> 
+		<link rel="stylesheet" href="/css/overrides.css" type="text/css" media="all" />
+
+		<script type="text/javascript" src="/wp-includes/js/jquery/jquery.min.js" id="jquery-core-js"></script> 
+		<script type="text/javascript" src="/wp-includes/js/jquery/jquery-migrate.min.js" id="jquery-migrate-js"></script>
+		<script type="text/javascript" id="cookie-notice-front-js-before">
+			/* <![CDATA[ */
+			var cnArgs = {
+				ajaxUrl:
+					"https:\/\/mymechanicarizona.com\/wp-admin\/admin-ajax.php",
+				nonce: "3b0bce6845",
+				hideEffect: "fade",
+				position: "bottom",
+				onScroll: false,
+				onScrollOffset: 100,
+				onClick: false,
+				cookieName: "cookie_notice_accepted",
+				cookieTime: 2592000,
+				cookieTimeRejected: 2592000,
+				globalCookie: false,
+				redirection: false,
+				cache: false,
+				revokeCookies: false,
+				revokeCookiesOpt: "automatic",
+			};
+
+			//# sourceURL=cookie-notice-front-js-before
+			/* ]]> */
+		</script>
+
+		<script type="text/javascript" src="/wp-content/plugins/cookie-notice/js/front.min.js" id="cookie-notice-front-js"></script> 
+		<script type="text/javascript" src="/wp-content/plugins/estimate-plugin/js/custom.js" id="estimate-script-js"></script> 
+		<script type="text/javascript" src="/wp-content/plugins/woocommerce/assets/js/jquery-blockui/jquery.blockUI.min.js" id="wc-jquery-blockui-js" defer="defer" data-wp-strategy="defer"></script>
+		<script type="text/javascript" id="wc-add-to-cart-js-extra">
+			/* <![CDATA[ */
+			var wc_add_to_cart_params = {
+				ajax_url: "/wp-admin/admin-ajax.php",
+				wc_ajax_url: "/",
+				i18n_view_cart: "View cart",
+				cart_url: "https://mymechanicarizona.com",
+				is_cart: "",
+				cart_redirect_after_add: "no",
+			};
+			//# sourceURL=wc-add-to-cart-js-extra
+			/* ]]> */
+		</script>
+		<script type="text/javascript" src="/wp-content/plugins/woocommerce/assets/js/frontend/add-to-cart.min.js" id="wc-add-to-cart-js" defer="defer" data-wp-strategy="defer"></script> 
+		<script type="text/javascript" src="/wp-content/plugins/woocommerce/assets/js/js-cookie/js.cookie.min.js" id="wc-js-cookie-js" defer="defer" data-wp-strategy="defer"></script>
+		<script type="text/javascript" id="woocommerce-js-extra">
+			/* <![CDATA[ */
+			var woocommerce_params = {
+				ajax_url: "/wp-admin/admin-ajax.php",
+				wc_ajax_url: "/",
+				i18n_password_show: "Show password",
+				i18n_password_hide: "Hide password",
+			};
+			//# sourceURL=woocommerce-js-extra
+			/* ]]> */
+		</script>
+		<script type="text/javascript" src="/wp-content/plugins/woocommerce/assets/js/frontend/woocommerce.min.js" id="woocommerce-js" defer="defer" data-wp-strategy="defer"></script>
+		<script type="text/javascript" id="brb-public-main-js-js-extra">
+			/* <![CDATA[ */
+			var brb_vars = {
+				ajaxurl: "/wp-admin/admin-ajax.php",
+				gavatar:
+					"/wp-content/plugins/business-reviews-bundle/assets/img/google_avatar.png",
+			};
+			//# sourceURL=brb-public-main-js-js-extra
+			/* ]]> */
+		</script>
+		<script type="text/javascript" defer="defer" src="/wp-content/plugins/business-reviews-bundle/assets/js/public-main.js" id="brb-public-main-js-js"></script>
+		
+		<link rel="https://api.w.org/" href="wp-json/index.html" />
+		<link rel="alternate" title="JSON" type="application/json" href="wp-json/wp/v2/pages/56" /> <link rel="EditURI" type="application/rsd+xml" title="RSD" href="xmlrpc.php" />
+
+		<link rel="shortlink" href="/" />
+		<meta name="generator" content="Redux 4.5.9" />
+		<script type="text/javascript">
+			document.documentElement.className += " js";
+		</script>
+
+		<title>{title}</title>
+		{description && <meta name="description" content={description} />}
+		<!-- Our recaptcha + form helper (safe no-op if sitekey missing) -->
+		<script src="/js/forms-recaptcha-v3.js" defer></script>
+	</head>
+	<body class={bodyClasses}>
+		<Header />
+		<slot />
+		<Footer />
+	</body>
+</html>

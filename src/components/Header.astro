@@ -1,0 +1,220 @@
+---
+const path = Astro.url.pathname.replace(/\/+$/, "") || "/";
+
+const isActive = (href) => {
+  const target = (href || "").replace(/\/+$/, "") || "/";
+  if (target === "/") return path === "/";
+  // make "Services" active on /services and /services/<slug>
+  return path === target || path.startsWith(target + "/");
+};
+---
+<nav class="panel-menu" id="mobile-menu">
+    <div class="mmpanels">
+        <div class="mmpanel mmopened mmcurrent" id="mm0">
+            <ul>
+                <li class="mm-close-parent">
+                    <a href="#close" data-target="#close" class="mm-close">Close</a>
+                </li>
+                <li id="nav-menu-item-3775" class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-post_type menu-item-object-page menu-item-home" >
+                    <a href="https://mymechanicarizona.com/" class="menu-link main-menu-link">Home</a>
+                </li>
+                <li id="nav-menu-item-3776" class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children" >
+                    <a href="#mm1" class="menu-link main-menu-link mm-next-level" data-target="#mm1">About Us</a >
+                </li>
+                <li id="nav-menu-item-3793" class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom" >
+                    <a href="/Services/" class="menu-link main-menu-link">Services</a>
+                </li>
+                <li id="nav-menu-item-3782" class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-post_type menu-item-object-page" >
+                    <a href="https://mymechanicarizona.com/reviews/" class="menu-link main-menu-link">Reviews</a>
+                </li>
+                <li id="nav-menu-item-3781" class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-post_type menu-item-object-page" >
+                    <a href="https://mymechanicarizona.com/join-our-team/" class="menu-link main-menu-link" >Join our team</a>
+                </li>
+                <li id="nav-menu-item-3780" class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-post_type menu-item-object-page" >
+                    <a href="https://mymechanicarizona.com/financing/" class="menu-link main-menu-link">Financing</a>
+                </li>
+                <li id="nav-menu-item-3777" class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-post_type menu-item-object-page current-menu-item page_item page-item-48 current_page_item menu-item-has-children" >
+                    <a href="#mm2" class="menu-link main-menu-link mm-next-level" data-target="#mm2">Contact Us</a >
+                </li>
+                <li id="nav-menu-item-custom" class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-post_type menu-item-object-page" >
+                    <a href="#" class="menu-link main-menu-link" data-toggle="modal" data-target="#appointmentForm">Appointments</a>
+                </li>
+            </ul>
+        </div><div class="mmpanel mmhidden" id="mm1">
+            <ul class="menu-odd menu-depth-1">
+                <li>
+                    <a href="#" data-target="#" class="mm-prev-level"
+                        >Back</a>
+                </li><li>
+                    <a
+                        href="https://mymechanicarizona.com/about-us/"
+                        class="menu-link main-menu-link mm-original-link"
+                        >About Us</a>
+                </li>
+                <li
+                    id="nav-menu-item-3779"
+                    class="sub-menu-item menu-item-odd menu-item-depth-1 menu-item menu-item-type-post_type menu-item-object-page"
+                >
+                    <a
+                        href="https://mymechanicarizona.com/faq/"
+                        class="menu-link sub-menu-link">FAQ</a>
+                </li>
+            </ul>
+        </div><div class="mmpanel mmhidden" id="mm2">
+            <ul class="menu-odd menu-depth-1">
+                <li>
+                    <a href="#" data-target="#" class="mm-prev-level"
+                        >Back</a>
+                </li><li>
+                    <a
+                        href="https://mymechanicarizona.com/contacts/"
+                        class="menu-link main-menu-link mm-original-link"
+                        >Contact Us</a>
+                </li>
+                <li
+                    id="nav-menu-item-3778"
+                    class="sub-menu-item menu-item-odd menu-item-depth-1 menu-item menu-item-type-post_type menu-item-object-page"
+                >
+                    <a
+                        href="https://mymechanicarizona.com/customer-information-form/"
+                        class="menu-link sub-menu-link"
+                        >Customer Information Form</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div id="loader-wrapper" style="display: none;">
+    <div class="loader custom-loader">
+        <div class="loadingBar"></div>
+        <img src="/wp-content/uploads/2023/03/logo.jpeg" />
+    </div>
+</div>
+
+<header class="page-header-2 sticky">
+    <div class="header-info-mobile">
+        <div class="header-info-mobile-inside">
+            <p>
+                <i class="icon icon-locate"></i>
+                <a
+                    href="https://www.google.com/maps/dir//My+Mechanic+Maintenance+%26+Repair,+4039+N+Romero+Rd,+Tucson,+AZ+85705/@32.2805035,-111.0037826,17z/data=!4m8!4m7!1m0!1m5!1m1!1s0x86d6740a5b071221:0x9acb57e03992ff56!2m2!1d-111.0037826!2d32.2805035"
+                    target="_blank"
+                    rel="noopener">4039 N Romero Rd, Tucson, AZ 85705</a
+                >
+            </p>
+            <p>
+                <i class="icon icon-phone"></i>
+                1-520-904-8551
+            </p>
+            <p>
+                <i class="icon icon-email"></i>
+                <a
+                    href="mailto:support@mymechanicarizona.com"
+                    class="__cf_email__"
+                    data-cfemail="cdbeb8bdbda2bfb98da0b4a0a8aea5aca3a4aeacbfa4b7a2a3ace3aea2a0"
+                    >support@mymechanicarizona.com</a
+                >
+            </p>
+            <p>
+                <i class="icon icon-clock"></i>
+                Mon-Fri: 8:00 am – 5:00
+            </p>
+        </div>
+    </div>
+
+    <div class="header-topline">
+        <div class="header-info-toggle">
+            <i class="icon-arrow_down js-info-toggle"></i>
+        </div>
+
+        <div class="header-right-top">
+            <a
+                href="#"
+                class="appointment"
+                data-toggle="modal"
+                data-target="#appointmentForm"
+                ><i class="icon-shape icon"></i>
+                <span>Appointment</span>
+            </a>
+        </div>
+
+        <div class="container">
+            <div class="row-flex">
+                <div class="col-left">
+                    <i class="icon icon-clock"></i>Monday-Friday 8:00AM - 5:00PM
+                </div>
+                <div class="col-center">
+                    <i class="icon icon-phone"></i><span class="hidden-md"
+                        >SCHEDULE YOUR APPOINTMENT TODAY</span
+                    >
+                    <a href="tel:1-520-904-8551" class="header-phone"
+                        >1-520-904-8551</a>
+                </div>
+
+                <div class="col-right">
+                    <i class="icon icon-locate"></i>
+                    <a href="https://www.google.com/maps/dir//My+Mechanic+Maintenance+%26+Repair,+4039+N+Romero+Rd,+Tucson,+AZ+85705/@32.2805035,-111.0037826,17z/data=!4m8!4m7!1m0!1m5!1m1!1s0x86d6740a5b071221:0x9acb57e03992ff56!2m2!1d-111.0037826!2d32.2805035" target="_blank" rel="noopener">4039 N Romero Rd, Tucson, AZ 85705</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar" id="slide-nav">
+        <div class="container">
+            <div class="header-row">
+                <div class="logo">
+                    <a href="/">
+                        <img src="/wp-content/uploads/2023/03/logo.jpeg" alt="Logo" />
+                    </a>
+                </div>
+
+                <div id="slidemenu">
+                    <div class="close-menu">
+                        <i class="icon-close-cross"></i>
+                    </div>
+                    <ul id="menu-new-primary" class="nav navbar-nav">
+                        <li id="nav-menu-item-3775" class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom${ isActive("/") ? " current_page_item current-menu-item" : "" }`} >
+                            <a href="/" class="menu-link main-menu-link">Home</a>
+                        </li>
+                        <li id="nav-menu-item-3776" class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children dropdown${ isActive("/about-us") ? " current_page_item current-menu-item" : "" }`} >
+                            <a href="/about-us" class="menu-link main-menu-link" >About Us<span class="ecaret"></span></a >
+                            <ul class="dropdown-menu menu-odd menu-depth-1">
+                                <li id="nav-menu-item-3779" class={`sub-menu-item menu-item-odd menu-item-depth-1 menu-item menu-item-type-post_type menu-item-object-page${ isActive("/faq") ? " current_page_item current-menu-item" : "" }`} >
+                                    <a href="/faq" class="menu-link sub-menu-link">FAQ</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li id="nav-menu-item-3793" class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom${ isActive("/services") ? " current_page_item current-menu-item" : "" }`} >
+                            <a href="/services" class="menu-link main-menu-link">Services</a>
+                        </li>
+                        <li id="nav-menu-item-3782" class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom${ isActive("/reviews") ? " current_page_item current-menu-item" : "" }`} >
+                            <a href="/reviews" class="menu-link main-menu-link">Reviews</a>
+                        </li>
+                        <li id="nav-menu-item-3781" class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom${ isActive("/join-our-team") ? " current_page_item current-menu-item" : "" }`} >
+                            <a href="/join-our-team" class="menu-link main-menu-link" >Join our team</a>
+                        </li>
+                        <li id="nav-menu-item-3780" class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom${ isActive("/financing") ? " current_page_item current-menu-item" : "" }`} >
+                            <a href="/financing" class="menu-link main-menu-link">Financing</a>
+                        </li>
+                        <li id="nav-menu-item-3777" class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children dropdown${ isActive("/contacts") ? " current_page_item current-menu-item" : "" }`} >
+                            <a href="/contacts" class="menu-link main-menu-link" >Contact Us<span class="ecaret"></span></a >
+                            <ul class="dropdown-menu menu-odd menu-depth-1">
+                                <li id="nav-menu-item-3778" class={`sub-menu-item menu-item-odd menu-item-depth-1 menu-item menu-item-type-post_type menu-item-object-page${ isActive("/customer-information-form") ? " current_page_item current-menu-item" : "" }`} >
+                                    <a href="/customer-information-form" class="menu-link sub-menu-link" >Customer Information Form</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li id="nav-menu-item-custom" class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom" >
+                            <a href="#" class="menu-link main-menu-link" data-toggle="modal" data-target="#appointmentForm">Appointments</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="header-row-right">
+                    <button type="button" class="navbar-toggle"
+                        ><i class="icon icon-mobile_menu"></i></button
+                    >
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>

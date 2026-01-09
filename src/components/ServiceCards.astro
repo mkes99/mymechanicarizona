@@ -1,0 +1,46 @@
+---
+/**
+ * ServiceCards
+ * - Renders the Services grid on /services from src/data/services.json
+ * - Keeps the existing theme DOM/classes so current CSS continues to apply.
+ */
+import { getCollection } from "astro:content";
+
+const services = await getCollection("services");
+
+const sorted = [...services].sort((a, b) => {
+  const A = (a.data.orderTitle ?? a.data.title).toLowerCase();
+  const B = (b.data.orderTitle ?? b.data.title).toLowerCase();
+  return A.localeCompare(B);
+});
+---
+
+<div class="block">
+	<div class="container no-indent">
+		<div class="tab-services hide-mobile">
+			<div class="tab-content">
+				<div
+					class="row formative-services-alt tab-pane fade in active"
+					id="services1"
+				>
+					{
+						sorted.map((s) => (
+							<div class="col-xs-6 col-sm-6 col-md-4">
+								<a href={`/services/${s.slug}/`}>
+									<div class="services-block-alt">
+										<div class="caption">
+											<h3 class="title">{s.data.title}</h3>
+											<div class="text">
+												Click to see more about repairs and service
+											</div>
+										</div>
+									</div>
+								</a>
+							</div>
+						))
+					}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

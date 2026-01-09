@@ -1,0 +1,205 @@
+---
+/**
+ * ContactForm.astro
+ * - Formidable markup/classes preserved.
+ * - No HTML5 `required` attributes (prevents global :invalid styling on first render).
+ * - JS validation toggles `.frm_blank_field` after submit attempt.
+ */
+const FORM_ID = "form_contact-form";
+const RECAPTCHA_SITEKEY = "6LeVPnMpAAAAAHPVd9LuF8-I8BfxrJSCeEs_Uv9q";
+---
+
+<div class="frm_forms with_frm_style frm_style_formidable-style" id="frm_form_1_container">
+	<form
+		enctype="multipart/form-data"
+		method="post"
+		class="frm-show-form frm_js_validate frm_ajax_submit frm_pro_form"
+		id={FORM_ID}
+	>
+		<div class="frm_form_fields">
+			<fieldset>
+				<legend class="frm_screen_reader">Contact Us</legend>
+				<div class="frm_fields_container">
+					<input type="hidden" name="frm_action" value="create" />
+					<input type="hidden" name="form_id" value="1" />
+					<input type="hidden" name="frm_hide_fields_1" id="frm_hide_fields_1" value="" />
+					<input type="hidden" name="form_key" value="contact-form" />
+					<input type="hidden" name="item_meta[0]" value="" />
+					<input type="hidden" id="frm_submit_entry_1" name="frm_submit_entry_1" value="cb96dd78bf" />
+					<input type="hidden" name="_wp_http_referer" value="/contacts/" />
+
+					<div id="frm_field_1_container" class="frm_form_field form-field frm_required_field frm_hidden_container frm_first frm_half">
+						<label for="field_qh4icy" id="field_qh4icy_label" class="frm_primary_label">
+							First Name <span class="frm_required" aria-hidden="true">*</span>
+						</label>
+						<input
+							type="text"
+							id="field_qh4icy"
+							name="item_meta[1]"
+							value=""
+							placeholder="First Name"
+							data-reqmsg="First Name cannot be blank."
+							data-invmsg="Name is invalid"
+							aria-invalid="false"
+						/>
+					</div>
+
+					<div id="frm_field_2_container" class="frm_form_field form-field frm_required_field frm_hidden_container frm_half">
+						<label for="field_ocfup1" id="field_ocfup1_label" class="frm_primary_label">
+							Last Name <span class="frm_required" aria-hidden="true">*</span>
+						</label>
+						<input
+							type="text"
+							id="field_ocfup1"
+							name="item_meta[2]"
+							value=""
+							placeholder="Last Name"
+							data-reqmsg="Last Name cannot be blank."
+							data-invmsg="Last is invalid"
+							aria-invalid="false"
+						/>
+					</div>
+
+					<div id="frm_field_3_container" class="frm_form_field form-field frm_required_field frm_hidden_container frm_full">
+						<label for="field_29yf4d" id="field_29yf4d_label" class="frm_primary_label">
+							Your email <span class="frm_required" aria-hidden="true">*</span>
+						</label>
+						<input
+							type="email"
+							id="field_29yf4d"
+							name="item_meta[3]"
+							value=""
+							placeholder="Your Email"
+							data-reqmsg="Your email cannot be blank."
+							data-invmsg="Please enter a valid email address"
+							aria-invalid="false"
+						/>
+					</div>
+
+					<div id="frm_field_5_container" class="frm_form_field form-field frm_required_field frm_hidden_container frm_full">
+						<label for="field_9jv0r1" id="field_9jv0r1_label" class="frm_primary_label">
+							Message <span class="frm_required" aria-hidden="true">*</span>
+						</label>
+						<textarea
+							name="item_meta[5]"
+							id="field_9jv0r1"
+							rows="5"
+							placeholder="Message"
+							data-reqmsg="Message cannot be blank."
+							data-invmsg="Message is invalid"
+							aria-invalid="false"
+						></textarea>
+					</div>
+
+					<div id="frm_field_97_container" class="frm_form_field form-field frm_none_container frm12 frm_first">
+						<label for="g-recaptcha-response" id="field_ik1p_label" class="frm_primary_label">
+							Captcha
+						</label>
+						<div
+							id="field_ik1p"
+							class="frm-g-recaptcha"
+							data-sitekey={RECAPTCHA_SITEKEY}
+							data-size="invisible"
+							data-theme="light"
+						></div>
+					</div>
+
+					<div id="frm_field_102_container" class="frm_form_field form-field">
+						<div class="frm_submit">
+							<button class="frm_button_submit frm_final_submit btn btn-border btn-invert" type="submit" formnovalidate="formnovalidate">
+								<span>Contact Us</span>
+							</button>
+						</div>
+					</div>
+
+					<input type="hidden" name="item_key" value="" />
+					<div id="frm_field_107_container">
+						<label for="field_pobhm">If you are human, leave this field blank.</label>
+						<input id="field_pobhm" type="text" class="frm_form_field form-field frm_verify" name="item_meta[107]" value="" />
+					</div>
+					<input name="frm_state" type="hidden" value="XfUFndT6UkQijiZ5aADjw30SmzFsm/usicV//HFKN5E=" />
+				</div>
+			</fieldset>
+		</div>
+	</form>
+</div>
+
+<script is:inline>
+(() => {
+  const form = document.getElementById("form_contact-form");
+  if (!form) return;
+
+  const requiredContainers = Array.from(form.querySelectorAll('.frm_form_field.frm_required_field'));
+
+  const getField = (container) => container.querySelector('input, textarea, select');
+  const isEmpty = (el) => (el.value ?? "").trim() === "";
+
+  const validateContainer = (container) => {
+    const el = getField(container);
+    if (!el) return true;
+
+    let valid = true;
+
+    if (el.type === "checkbox" || el.type === "radio") {
+      valid = !!form.querySelector(`[name="${el.name}"]:checked`);
+    } else if (el.type === "file") {
+      valid = el.files && el.files.length > 0;
+    } else {
+      valid = !isEmpty(el);
+
+      if (valid && el.type === "email") {
+        valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value.trim());
+      }
+
+      const pattern = el.getAttribute("pattern");
+      if (valid && pattern) {
+        try {
+          valid = new RegExp(`^${pattern}$`).test(el.value);
+        } catch (_) {}
+      }
+    }
+
+    container.classList.toggle("frm_blank_field", !valid);
+    el.setAttribute("aria-invalid", (!valid).toString());
+    return valid;
+  };
+
+  const validateForm = () => {
+    let ok = true;
+    requiredContainers.forEach((c) => {
+      if (!validateContainer(c)) ok = false;
+    });
+    return ok;
+  };
+
+  form.addEventListener(
+    "submit",
+    (e) => {
+      const ok = validateForm();
+      if (!ok) {
+        e.preventDefault();
+        e.stopPropagation();
+        const first = form.querySelector(".frm_blank_field");
+        if (first && first.scrollIntoView) {
+          first.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+    },
+    true,
+  );
+
+  requiredContainers.forEach((c) => {
+    const el = getField(c);
+    if (!el) return;
+    ["input", "change", "blur"].forEach((evt) => {
+      el.addEventListener(
+        evt,
+        () => {
+          if (c.classList.contains("frm_blank_field")) validateContainer(c);
+        },
+        { passive: true },
+      );
+    });
+  });
+})();
+</script>

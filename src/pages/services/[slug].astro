@@ -1,0 +1,64 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ServicesSidebar from "../../components/ServicesSidebar.astro";
+import ServiceQuestionForm from "../../components/ServiceQuestionForm.astro";
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  const services = await getCollection("services");
+  return services.map((entry) => ({
+    params: { slug: entry.slug },
+  }));
+}
+
+const services = await getCollection("services");
+const { slug } = Astro.params;
+
+const entry = services.find((e) => e.slug === slug);
+if (!entry) throw new Error(`Service not found: ${slug}`);
+
+const { Content } = await entry.render();
+---
+
+<BaseLayout title={entry.data.title} bodyClass="page service-page">
+  <div id="pageTitle" class="">
+		<div class="container">
+			<!-- //Breadcrumbs Block -->
+			<h1>{entry.data.title}</h1>
+			<!-- Breadcrumbs Block -->
+			<div class="breadcrumbs">
+				<div class="breadcrumb">
+					<div class="breadcrumbs">
+						<div class="breadcrumb"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+  <div id="pageContent">
+    <div class="block">
+      <div class="container">
+        <div class="row service-single">
+          <div class="col-12 col-sm-5 col-md-4">
+            <div class="block-aside-wrapper">
+              <ServicesSidebar services={services} activeSlug={slug} />
+            </div>
+          </div>
+
+          <div class="divider-lg hidden-lg hidden-md hidden-sm"></div>
+
+          <div class="col-12 col-sm-7 col-md-8">
+            <div class="divider-lg"></div>
+            <h1>{entry.data.title}</h1>
+            <div>
+              <Content />
+            </div>
+            <h3 class="frm_form_title">Have a Question? Contact us today.</h3>
+            <ServiceQuestionForm />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
