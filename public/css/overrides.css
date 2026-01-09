@@ -391,13 +391,13 @@ body:not(.home) {
     background: url(../wp-content/uploads/2023/03/my-mechanic-shop.jpeg)
         no-repeat center 0;
 }
-@media (max-width: 991px) {
+/* @media (max-width: 991px) {
     #pageTitle {
         background: url(../wp-content/uploads/2023/03/my-mechanic-shop.jpeg)
             repeat 0;
         background-size: cover;
     }
-}
+} */
 body:not(.home) #pageContent {
     padding-top: 100px;
 }
@@ -1113,6 +1113,57 @@ body.layout-2 #mainSlider .vert-wrap {
     outline: none !important;
 }
 
-body #ui-datepicker-div{
+body .sliderReviews.rplg-grid .rplg-grid-row{
     display: none !important;
+}
+
+body .rplg-grid-row.rplg-businesses {
+    display: none !important;
+}
+
+html body .tr-widget .rplg+a.trcr-widget-link{
+    display: none !important;
+}
+
+body .rplg .rplg-biz-based {
+    text-align: center !important;
+}
+
+body .rplg .rplg-biz-rating.rplg-biz-google .rplg-biz-score{
+    display: block !important;
+    text-align: center !important;
+}
+
+.rplg-grid .rplg-biz-name {
+    padding-right: 0 !important;
+    text-align: center;
+}
+
+body .rplg .rplg-review-badge{
+    display: none !important;
+}
+
+body .rplg-slider .rplg-slider-review {
+    background-color: #fafafa;
+    border-radius: 4px;
+}
+
+/* body .rplg-slider .rplg-box .rplg-box-content{
+    height: 200px !important;
+} */
+
+body .rplg .rplg-box{
+    box-shadow: none !important;
+    border: none !important;
+    padding: 15px 15px 0 15px !important;
+}
+
+body .rplg-slider .rplg-slider-prev, 
+body .rplg-slider .rplg-slider-next{
+    background: transparent;
+}
+
+body .rplg-slider .rplg-slider-prev span, 
+body .rplg-slider .rplg-slider-next span {
+    font: normal 300 58px / 0 "Muli",Helvetica,Arial,Verdana,sans-serif!important;
 }

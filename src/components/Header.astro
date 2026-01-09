@@ -8,7 +8,7 @@ const isActive = (href) => {
   return path === target || path.startsWith(target + "/");
 };
 ---
-<nav class="panel-menu" id="mobile-menu">
+<nav class="panel-menu" id="mobile-menu" hidden aria-hidden="true" style="display:none !important;">
     <div class="mmpanels">
         <div class="mmpanel mmopened mmcurrent" id="mm0">
             <ul>
@@ -217,4 +217,23 @@ const isActive = (href) => {
             </div>
         </div>
     </nav>
+
+  <script is:inline>
+    // Ensure legacy panel-menu nav never renders (WP theme sometimes forces it visible via CSS/JS).
+    (() => {
+      const hide = () => {
+        const el = document.getElementById('mobile-menu');
+        if (!el) return;
+        el.setAttribute('hidden', '');
+        el.setAttribute('aria-hidden', 'true');
+        // Author CSS can override [hidden] in some themes; force it.
+        el.style.setProperty('display', 'none', 'important');
+      };
+      // Run now + after DOM is ready (covers modal/async DOM changes).
+      hide();
+      document.addEventListener('DOMContentLoaded', hide, { once: true });
+      window.addEventListener('load', hide, { once: true });
+    })();
+  </script>
+
 </header>
