@@ -1,0 +1,54 @@
+---
+import type { NavItem } from "../data/navigation";
+
+const { item, depth = 0, path = "/" } = Astro.props as {
+  item: NavItem;
+  depth?: number;
+  path?: string;
+};
+
+const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+
+const normalize = (p: string) => (p || "/").replace(/\/+$/, "") || "/";
+const current = normalize(path);
+
+const hrefIsActive = (href?: string) => {
+  const target = normalize(href || "/");
+  if (target === "/") return current === "/";
+  return current === target || current.startsWith(target + "/");
+};
+
+const active =
+  (item.href && hrefIsActive(item.href)) ||
+  (hasChildren && item.children!.some((c) => c.href && hrefIsActive(c.href)));
+
+const liClass =
+  "menu-item " +
+  (depth === 0 ? "menu-item-depth-0 " : "menu-item-depth-1 ") +
+  (hasChildren ? "menu-item-has-children " : "") +
+  (active ? " current_page_item current-menu-item" : "");
+---
+
+<li
+  id={item.id}
+  class={liClass + (item.modalTarget ? " menu-item-type-custom menu-item-object-custom" : "")}
+>
+  {item.modalTarget ? (
+    <a href="#" class="menu-link main-menu-link" data-toggle="modal" data-target={item.modalTarget}>
+      {item.label}
+    </a>
+  ) : (
+    <a href={item.href} class={"menu-link " + (depth === 0 ? "main-menu-link" : "sub-menu-link")}>
+      {item.label}
+      {hasChildren && depth === 0 ? <span class="ecaret"></span> : null}
+    </a>
+  )}
+
+  {hasChildren ? (
+    <ul class="dropdown-menu menu-odd menu-depth-1">
+      {item.children!.map((c) => (
+        <Astro.self item={c} depth={depth + 1} path={path} />
+      ))}
+    </ul>
+  ) : null}
+</li>

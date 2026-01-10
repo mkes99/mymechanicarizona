@@ -1027,4 +1027,69 @@ import AppointmentForm from "./AppointmentForm.astro";
 			aria-label="No"></button>
 	</div>
 </div>
+<script is:inline>
+(function () {
+  try {
+    var banner = document.getElementById("cookie-notice");
+    if (!banner) return;
+
+    var COOKIE_NAME = "cookie_notice_accepted";
+    var MAX_AGE = 2592000; // 30 days in seconds (matches prior WP plugin config)
+
+    function getCookie(name) {
+      var m = document.cookie.match(new RegExp("(^|; )" + name.replace(/([.$?*|{}()\[\]\\\/\+^])/g, "\\$1") + "=([^;]*)"));
+      return m ? decodeURIComponent(m[2]) : null;
+    }
+
+    function setCookie(name, value, maxAgeSeconds) {
+      document.cookie =
+        name + "=" + encodeURIComponent(value) +
+        "; Max-Age=" + String(maxAgeSeconds) +
+        "; Path=/" +
+        (location.protocol === "https:" ? "; Secure" : "") +
+        "; SameSite=Lax";
+    }
+
+    function hide() {
+      banner.classList.add("cookie-notice-hidden");
+      banner.classList.remove("cookie-notice-visible");
+      banner.setAttribute("aria-hidden", "true");
+    }
+
+    function show() {
+      banner.classList.remove("cookie-notice-hidden");
+      banner.classList.add("cookie-notice-visible");
+      banner.setAttribute("aria-hidden", "false");
+    }
+
+    // Only show if we don't already have a decision
+    var val = getCookie(COOKIE_NAME);
+    if (val === "true" || val === "false") {
+      hide();
+      return;
+    }
+
+    show();
+
+    var acceptBtn = document.getElementById("cn-accept-cookie");
+    var refuseBtn = document.getElementById("cn-refuse-cookie");
+    var closeBtn  = document.getElementById("cn-close-notice");
+
+    function accept() {
+      setCookie(COOKIE_NAME, "true", MAX_AGE);
+      hide();
+    }
+
+    function refuse() {
+      setCookie(COOKIE_NAME, "false", MAX_AGE);
+      hide();
+    }
+
+    if (acceptBtn) acceptBtn.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); accept(); }, true);
+    if (closeBtn)  closeBtn.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); accept(); }, true);
+    if (refuseBtn) refuseBtn.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); refuse(); }, true);
+  } catch (_) {}
+})();
+</script>
+
 <!-- / Cookie Notice plugin -->

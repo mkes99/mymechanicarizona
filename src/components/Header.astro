@@ -4,236 +4,491 @@ const path = Astro.url.pathname.replace(/\/+$/, "") || "/";
 const isActive = (href) => {
   const target = (href || "").replace(/\/+$/, "") || "/";
   if (target === "/") return path === "/";
-  // make "Services" active on /services and /services/<slug>
   return path === target || path.startsWith(target + "/");
 };
 ---
-<nav class="panel-menu" id="mobile-menu" hidden aria-hidden="true" style="display:none !important;">
-    <div class="mmpanels">
-        <div class="mmpanel mmopened mmcurrent" id="mm0">
-            <ul>
-                <li class="mm-close-parent">
-                    <a href="#close" data-target="#close" class="mm-close">Close</a>
-                </li>
-                <li id="nav-menu-item-3775" class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-post_type menu-item-object-page menu-item-home" >
-                    <a href="https://mymechanicarizona.com/" class="menu-link main-menu-link">Home</a>
-                </li>
-                <li id="nav-menu-item-3776" class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children" >
-                    <a href="#mm1" class="menu-link main-menu-link mm-next-level" data-target="#mm1">About Us</a >
-                </li>
-                <li id="nav-menu-item-3793" class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom" >
-                    <a href="/Services/" class="menu-link main-menu-link">Services</a>
-                </li>
-                <li id="nav-menu-item-3782" class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-post_type menu-item-object-page" >
-                    <a href="https://mymechanicarizona.com/reviews/" class="menu-link main-menu-link">Reviews</a>
-                </li>
-                <li id="nav-menu-item-3781" class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-post_type menu-item-object-page" >
-                    <a href="https://mymechanicarizona.com/join-our-team/" class="menu-link main-menu-link" >Join our team</a>
-                </li>
-                <li id="nav-menu-item-3780" class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-post_type menu-item-object-page" >
-                    <a href="https://mymechanicarizona.com/financing/" class="menu-link main-menu-link">Financing</a>
-                </li>
-                <li id="nav-menu-item-3777" class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-post_type menu-item-object-page current-menu-item page_item page-item-48 current_page_item menu-item-has-children" >
-                    <a href="#mm2" class="menu-link main-menu-link mm-next-level" data-target="#mm2">Contact Us</a >
-                </li>
-                <li id="nav-menu-item-custom" class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-post_type menu-item-object-page" >
-                    <a href="#" class="menu-link main-menu-link" data-toggle="modal" data-target="#appointmentForm">Appointments</a>
-                </li>
-            </ul>
-        </div><div class="mmpanel mmhidden" id="mm1">
-            <ul class="menu-odd menu-depth-1">
-                <li>
-                    <a href="#" data-target="#" class="mm-prev-level"
-                        >Back</a>
-                </li><li>
-                    <a
-                        href="https://mymechanicarizona.com/about-us/"
-                        class="menu-link main-menu-link mm-original-link"
-                        >About Us</a>
-                </li>
-                <li
-                    id="nav-menu-item-3779"
-                    class="sub-menu-item menu-item-odd menu-item-depth-1 menu-item menu-item-type-post_type menu-item-object-page"
-                >
-                    <a
-                        href="https://mymechanicarizona.com/faq/"
-                        class="menu-link sub-menu-link">FAQ</a>
-                </li>
-            </ul>
-        </div><div class="mmpanel mmhidden" id="mm2">
-            <ul class="menu-odd menu-depth-1">
-                <li>
-                    <a href="#" data-target="#" class="mm-prev-level"
-                        >Back</a>
-                </li><li>
-                    <a
-                        href="https://mymechanicarizona.com/contacts/"
-                        class="menu-link main-menu-link mm-original-link"
-                        >Contact Us</a>
-                </li>
-                <li
-                    id="nav-menu-item-3778"
-                    class="sub-menu-item menu-item-odd menu-item-depth-1 menu-item menu-item-type-post_type menu-item-object-page"
-                >
-                    <a
-                        href="https://mymechanicarizona.com/customer-information-form/"
-                        class="menu-link sub-menu-link"
-                        >Customer Information Form</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
-<div id="loader-wrapper" style="display: none;">
-    <div class="loader custom-loader">
-        <div class="loadingBar"></div>
-        <img src="/wp-content/uploads/2023/03/logo.jpeg" />
-    </div>
+
+<div id="loader-wrapper">
+  <div class="loader custom-loader">
+    <div class="loadingBar"></div>
+    <img src="/wp-content/uploads/2023/03/logo.jpeg" />
+  </div>
 </div>
 
 <header class="page-header-2 sticky">
-    <div class="header-info-mobile">
-        <div class="header-info-mobile-inside">
-            <p>
-                <i class="icon icon-locate"></i>
-                <a
-                    href="https://www.google.com/maps/dir//My+Mechanic+Maintenance+%26+Repair,+4039+N+Romero+Rd,+Tucson,+AZ+85705/@32.2805035,-111.0037826,17z/data=!4m8!4m7!1m0!1m5!1m1!1s0x86d6740a5b071221:0x9acb57e03992ff56!2m2!1d-111.0037826!2d32.2805035"
-                    target="_blank"
-                    rel="noopener">4039 N Romero Rd, Tucson, AZ 85705</a
-                >
-            </p>
-            <p>
-                <i class="icon icon-phone"></i>
-                1-520-904-8551
-            </p>
-            <p>
-                <i class="icon icon-email"></i>
-                <a
-                    href="mailto:support@mymechanicarizona.com"
-                    class="__cf_email__"
-                    data-cfemail="cdbeb8bdbda2bfb98da0b4a0a8aea5aca3a4aeacbfa4b7a2a3ace3aea2a0"
-                    >support@mymechanicarizona.com</a
-                >
-            </p>
-            <p>
-                <i class="icon icon-clock"></i>
-                Mon-Fri: 8:00 am – 5:00
-            </p>
-        </div>
+  <div class="header-info-mobile">
+    <div class="header-info-mobile-inside">
+      <p>
+        <i class="icon icon-locate"></i>
+        <a
+          href="https://www.google.com/maps/dir//My+Mechanic+Maintenance+%26+Repair,+4039+N+Romero+Rd,+Tucson,+AZ+85705/@32.2805035,-111.0037826,17z/data=!4m8!4m7!1m0!1m5!1m1!1s0x86d6740a5b071221:0x9acb57e03992ff56!2m2!1d-111.0037826!2d32.2805035"
+          target="_blank"
+          rel="noopener"
+          >4039 N Romero Rd, Tucson, AZ 85705</a
+        >
+      </p>
+      <p>
+        <i class="icon icon-phone"></i>
+        1-520-904-8551
+      </p>
+      <p>
+        <i class="icon icon-email"></i>
+        <a
+          href="mailto:support@mymechanicarizona.com"
+          class="__cf_email__"
+          data-cfemail="cdbeb8bdbda2bfb98da0b4a0a8aea5aca3a4aeacbfa4b7a2a3ace3aea2a0"
+          >support@mymechanicarizona.com</a
+        >
+      </p>
+      <p>
+        <i class="icon icon-clock"></i>
+        Mon-Fri: 8:00 am – 5:00
+      </p>
+    </div>
+  </div>
+
+  <div class="header-topline">
+    <div class="header-info-toggle">
+      <i class="icon-arrow_down js-info-toggle"></i>
     </div>
 
-    <div class="header-topline">
-        <div class="header-info-toggle">
-            <i class="icon-arrow_down js-info-toggle"></i>
-        </div>
-
-        <div class="header-right-top">
-            <a
-                href="#"
-                class="appointment"
-                data-toggle="modal"
-                data-target="#appointmentForm"
-                ><i class="icon-shape icon"></i>
-                <span>Appointment</span>
-            </a>
-        </div>
-
-        <div class="container">
-            <div class="row-flex">
-                <div class="col-left">
-                    <i class="icon icon-clock"></i>Monday-Friday 8:00AM - 5:00PM
-                </div>
-                <div class="col-center">
-                    <i class="icon icon-phone"></i><span class="hidden-md"
-                        >SCHEDULE YOUR APPOINTMENT TODAY</span
-                    >
-                    <a href="tel:1-520-904-8551" class="header-phone"
-                        >1-520-904-8551</a>
-                </div>
-
-                <div class="col-right">
-                    <i class="icon icon-locate"></i>
-                    <a href="https://www.google.com/maps/dir//My+Mechanic+Maintenance+%26+Repair,+4039+N+Romero+Rd,+Tucson,+AZ+85705/@32.2805035,-111.0037826,17z/data=!4m8!4m7!1m0!1m5!1m1!1s0x86d6740a5b071221:0x9acb57e03992ff56!2m2!1d-111.0037826!2d32.2805035" target="_blank" rel="noopener">4039 N Romero Rd, Tucson, AZ 85705</a>
-                </div>
-            </div>
-        </div>
+    <div class="header-right-top">
+      <a href="#" class="appointment" data-toggle="modal" data-target="#appointmentForm"
+        ><i class="icon-shape icon"></i>
+        <span>Appointment</span>
+      </a>
     </div>
 
-    <nav class="navbar" id="slide-nav">
-        <div class="container">
-            <div class="header-row">
-                <div class="logo">
-                    <a href="/">
-                        <img src="/wp-content/uploads/2023/03/logo.jpeg" alt="Logo" />
-                    </a>
-                </div>
-
-                <div id="slidemenu">
-                    <div class="close-menu">
-                        <i class="icon-close-cross"></i>
-                    </div>
-                    <ul id="menu-new-primary" class="nav navbar-nav">
-                        <li id="nav-menu-item-3775" class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom${ isActive("/") ? " current_page_item current-menu-item" : "" }`} >
-                            <a href="/" class="menu-link main-menu-link">Home</a>
-                        </li>
-                        <li id="nav-menu-item-3776" class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children dropdown${ isActive("/about-us") ? " current_page_item current-menu-item" : "" }`} >
-                            <a href="/about-us" class="menu-link main-menu-link" >About Us<span class="ecaret"></span></a >
-                            <ul class="dropdown-menu menu-odd menu-depth-1">
-                                <li id="nav-menu-item-3779" class={`sub-menu-item menu-item-odd menu-item-depth-1 menu-item menu-item-type-post_type menu-item-object-page${ isActive("/faq") ? " current_page_item current-menu-item" : "" }`} >
-                                    <a href="/faq" class="menu-link sub-menu-link">FAQ</a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li id="nav-menu-item-3793" class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom${ isActive("/services") ? " current_page_item current-menu-item" : "" }`} >
-                            <a href="/services" class="menu-link main-menu-link">Services</a>
-                        </li>
-                        <li id="nav-menu-item-3782" class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom${ isActive("/reviews") ? " current_page_item current-menu-item" : "" }`} >
-                            <a href="/reviews" class="menu-link main-menu-link">Reviews</a>
-                        </li>
-                        <li id="nav-menu-item-3781" class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom${ isActive("/join-our-team") ? " current_page_item current-menu-item" : "" }`} >
-                            <a href="/join-our-team" class="menu-link main-menu-link" >Join our team</a>
-                        </li>
-                        <li id="nav-menu-item-3780" class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom${ isActive("/financing") ? " current_page_item current-menu-item" : "" }`} >
-                            <a href="/financing" class="menu-link main-menu-link">Financing</a>
-                        </li>
-                        <li id="nav-menu-item-3777" class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children dropdown${ isActive("/contacts") ? " current_page_item current-menu-item" : "" }`} >
-                            <a href="/contacts" class="menu-link main-menu-link" >Contact Us<span class="ecaret"></span></a >
-                            <ul class="dropdown-menu menu-odd menu-depth-1">
-                                <li id="nav-menu-item-3778" class={`sub-menu-item menu-item-odd menu-item-depth-1 menu-item menu-item-type-post_type menu-item-object-page${ isActive("/customer-information-form") ? " current_page_item current-menu-item" : "" }`} >
-                                    <a href="/customer-information-form" class="menu-link sub-menu-link" >Customer Information Form</a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li id="nav-menu-item-custom" class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom" >
-                            <a href="#" class="menu-link main-menu-link" data-toggle="modal" data-target="#appointmentForm">Appointments</a>
-                        </li>
-                    </ul>
-                </div>
-                <div class="header-row-right">
-                    <button type="button" class="navbar-toggle"
-                        ><i class="icon icon-mobile_menu"></i></button
-                    >
-                </div>
-            </div>
+    <div class="container">
+      <div class="row-flex">
+        <div class="col-left">
+          <i class="icon icon-clock"></i>Monday-Friday 8:00AM - 5:00PM
         </div>
-    </nav>
+        <div class="col-center">
+          <i class="icon icon-phone"></i><span class="hidden-md">SCHEDULE YOUR APPOINTMENT TODAY</span>
+          <a href="tel:1-520-904-8551" class="header-phone">1-520-904-8551</a>
+        </div>
 
+        <div class="col-right">
+          <i class="icon icon-locate"></i>
+          <a
+            href="https://www.google.com/maps/dir//My+Mechanic+Maintenance+%26+Repair,+4039+N+Romero+Rd,+Tucson,+AZ+85705/@32.2805035,-111.0037826,17z/data=!4m8!4m7!1m0!1m5!1m1!1s0x86d6740a5b071221:0x9acb57e03992ff56!2m2!1d-111.0037826!2d32.2805035"
+            target="_blank"
+            rel="noopener"
+            >4039 N Romero Rd, Tucson, AZ 85705</a
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="navbar" id="slide-nav">
+    <div class="container">
+      <div class="header-row">
+        <div class="logo">
+          <a href="/">
+            <img src="/wp-content/uploads/2023/03/logo.jpeg" alt="Logo" />
+          </a>
+        </div>
+
+        <div id="slidemenu">
+          <div class="close-menu">
+            <i class="icon-close-cross"></i>
+          </div>
+
+          <!-- Desktop + source-of-truth menu (DO NOT HIDE globally) -->
+          <ul id="menu-new-primary" class="nav navbar-nav">
+            <li
+              id="nav-menu-item-3775"
+              class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom${
+                isActive("/") ? " current_page_item current-menu-item" : ""
+              }`}
+            >
+              <a href="/" class="menu-link main-menu-link">Home</a>
+            </li>
+
+            <li
+              id="nav-menu-item-3776"
+              class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children dropdown${
+                isActive("/about-us") ? " current_page_item current-menu-item" : ""
+              }`}
+            >
+              <a href="/about-us" class="menu-link main-menu-link"
+                >About Us<span class="ecaret"></span
+              ></a>
+              <ul class="dropdown-menu menu-odd menu-depth-1">
+                <li
+                  id="nav-menu-item-3779"
+                  class={`sub-menu-item menu-item-odd menu-item-depth-1 menu-item menu-item-type-post_type menu-item-object-page${
+                    isActive("/faq") ? " current_page_item current-menu-item" : ""
+                  }`}
+                >
+                  <a href="/faq" class="menu-link sub-menu-link">FAQ</a>
+                </li>
+              </ul>
+            </li>
+
+            <li
+              id="nav-menu-item-3793"
+              class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom${
+                isActive("/services") ? " current_page_item current-menu-item" : ""
+              }`}
+            >
+              <a href="/services" class="menu-link main-menu-link">Services</a>
+            </li>
+
+            <li
+              id="nav-menu-item-3782"
+              class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom${
+                isActive("/reviews") ? " current_page_item current-menu-item" : ""
+              }`}
+            >
+              <a href="/reviews" class="menu-link main-menu-link">Reviews</a>
+            </li>
+
+            <li
+              id="nav-menu-item-3781"
+              class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom${
+                isActive("/join-our-team") ? " current_page_item current-menu-item" : ""
+              }`}
+            >
+              <a href="/join-our-team" class="menu-link main-menu-link">Join our team</a>
+            </li>
+
+            <li
+              id="nav-menu-item-3780"
+              class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom${
+                isActive("/financing") ? " current_page_item current-menu-item" : ""
+              }`}
+            >
+              <a href="/financing" class="menu-link main-menu-link">Financing</a>
+            </li>
+
+            <li
+              id="nav-menu-item-3777"
+              class={`main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children dropdown${
+                isActive("/contacts") ? " current_page_item current-menu-item" : ""
+              }`}
+            >
+              <a href="/contacts" class="menu-link main-menu-link"
+                >Contact Us<span class="ecaret"></span
+              ></a>
+              <ul class="dropdown-menu menu-odd menu-depth-1">
+                <li
+                  id="nav-menu-item-3778"
+                  class={`sub-menu-item menu-item-odd menu-item-depth-1 menu-item menu-item-type-post_type menu-item-object-page${
+                    isActive("/customer-information-form") ? " current_page_item current-menu-item" : ""
+                  }`}
+                >
+                  <a href="/customer-information-form" class="menu-link sub-menu-link"
+                    >Customer Information Form</a
+                  >
+                </li>
+              </ul>
+            </li>
+
+            <li
+              id="nav-menu-item-custom"
+              class="main-menu-item menu-item-even menu-item-depth-0 menu-item menu-item-type-custom menu-item-object-custom"
+            >
+              <a href="#" class="menu-link main-menu-link" data-toggle="modal" data-target="#appointmentForm"
+                >Appointments</a
+              >
+            </li>
+          </ul>
+
+          <!-- Mobile panels will be injected here (inside #slidemenu) -->
+        </div>
+
+        <div class="header-row-right">
+          <button type="button" class="navbar-toggle"><i class="icon icon-mobile_menu"></i></button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Preloader: hide on load, with fallback -->
   <script is:inline>
-    // Ensure legacy panel-menu nav never renders (WP theme sometimes forces it visible via CSS/JS).
-    (() => {
-      const hide = () => {
-        const el = document.getElementById('mobile-menu');
-        if (!el) return;
-        el.setAttribute('hidden', '');
-        el.setAttribute('aria-hidden', 'true');
-        // Author CSS can override [hidden] in some themes; force it.
-        el.style.setProperty('display', 'none', 'important');
-      };
-      // Run now + after DOM is ready (covers modal/async DOM changes).
-      hide();
-      document.addEventListener('DOMContentLoaded', hide, { once: true });
-      window.addEventListener('load', hide, { once: true });
+    (function () {
+      try {
+        var loader = document.getElementById("loader-wrapper");
+        if (!loader) return;
+        loader.style.display = "";
+        window.addEventListener("load", function () {
+          loader.style.display = "none";
+        });
+        setTimeout(function () {
+          loader.style.display = "none";
+        }, 4000);
+      } catch (_) {}
     })();
   </script>
 
+  <!-- Slide-nav open/close + mm-panel behavior (mobile only). No WP dependencies. -->
+  <script is:inline>
+    (function () {
+      try {
+        function qs(sel, root) { return (root || document).querySelector(sel); }
+        function qsa(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+        function el(tag, attrs) {
+          var n = document.createElement(tag);
+          if (attrs) for (var k in attrs) {
+            if (k === "class") n.className = attrs[k];
+            else if (k === "text") n.textContent = attrs[k];
+            else n.setAttribute(k, attrs[k]);
+          }
+          return n;
+        }
+
+        var menu = qs("#slidemenu");
+        var openBtn = qs("button.navbar-toggle");
+        var closeBtn = menu ? qs(".close-menu", menu) : null;
+        if (!menu || !openBtn) return;
+
+        // Prevent double binding
+        if (openBtn.dataset.mmBound === "1") return;
+        openBtn.dataset.mmBound = "1";
+
+        var MOBILE_MQ = "(max-width: 1024px)";
+        var mm = window.matchMedia ? window.matchMedia(MOBILE_MQ) : null;
+
+        var injectedWrap = null; // nav.panel-menu wrapper we inject for mobile
+        var srcUl = qs("#menu-new-primary", menu);
+
+        function isMobile() { return !!(mm && mm.matches); }
+
+        // Elements the theme CSS expects toggled for slide-active
+        var selectors = [
+          "#slidemenu",
+          "#pageContent",
+          "#mainSliderWrapper",
+          ".page-footer",
+          ".page-header .header-row",
+          ".header-info-mobile",
+          ".header-topline",
+          "body",
+          ".darkout-menu"
+        ];
+
+        function setActive(active) {
+          selectors.forEach(function (sel) {
+            qsa(sel).forEach(function (node) {
+              if (active) node.classList.add("slide-active");
+              else node.classList.remove("slide-active");
+            });
+          });
+          menu.setAttribute("data-open", active ? "true" : "false");
+        }
+
+        function resetToRoot() {
+          if (!injectedWrap) return;
+          var panels = qs(".mmpanels", injectedWrap);
+          if (!panels) return;
+          var panel0 = qs("#mm0", panels);
+          if (!panel0) return;
+
+          qsa(".mmpanel", panels).forEach(function (p) {
+            p.classList.remove("mmopened", "mmcurrent");
+            if (!p.classList.contains("mmhidden")) p.classList.add("mmhidden");
+          });
+
+          panel0.classList.remove("mmhidden");
+          panel0.classList.add("mmopened", "mmcurrent");
+        }
+
+        function destroyMobilePanels() {
+          if (injectedWrap && injectedWrap.parentNode) injectedWrap.parentNode.removeChild(injectedWrap);
+          injectedWrap = null;
+          if (srcUl) srcUl.removeAttribute("hidden");
+        }
+
+        function cloneAnchor(a) {
+          var a2 = el("a", { class: a.className || "" });
+          ["href", "target", "rel", "data-toggle", "data-target"].forEach(function (k) {
+            var v = a.getAttribute(k);
+            if (v != null) a2.setAttribute(k, v);
+          });
+          a2.textContent = (a.textContent || "").trim();
+          return a2;
+        }
+
+        function buildMobilePanelsOnce() {
+          if (!isMobile()) return;
+          if (!srcUl) return;
+          if (injectedWrap) return;
+
+          var navWrap = el("nav", { class: "panel-menu mmitemopen", "aria-hidden": "false" });
+          var panels = el("div", { class: "mmpanels" });
+
+          var panelCounter = 1; // IMPORTANT: mm0 reserved for root
+          function nextId() { return "mm" + (panelCounter++); }
+
+          function buildPanelFromLis(lis, panelId, parentPanelId, parentLinkA) {
+            var panel = el("div", {
+              class: "mmpanel" + (panelId === "mm0" ? " mmopened mmcurrent" : " mmhidden"),
+              id: panelId
+            });
+
+            var ul = el("ul");
+
+            if (parentPanelId) {
+              var liBack = el("li");
+              liBack.appendChild(el("a", { href: "#", class: "mm-prev-level", "data-target": "#" + parentPanelId, text: "Back" }));
+              ul.appendChild(liBack);
+
+              if (parentLinkA) {
+                var liTop = el("li");
+                var aTop = cloneAnchor(parentLinkA);
+                aTop.classList.add("mm-original-link");
+                liTop.appendChild(aTop);
+                ul.appendChild(liTop);
+              }
+            } else {
+              // Root: single close row
+              var liClose = el("li", { class: "mm-close-parent" });
+              liClose.appendChild(el("a", { href: "#close", class: "mm-close", "data-target": "#close", text: "Close" }));
+              ul.appendChild(liClose);
+            }
+
+            lis.forEach(function (liSrc) {
+              if (!liSrc || liSrc.tagName !== "LI") return;
+
+              var aSrc = qs(":scope > a", liSrc);
+              if (!aSrc) return;
+
+              var childUl = qs(":scope > ul", liSrc);
+              var childLis = childUl ? qsa(":scope > li", childUl) : [];
+              var hasChildren = liSrc.classList.contains("menu-item-has-children") || childLis.length > 0;
+
+              var li = el("li", { class: liSrc.className || "" });
+
+              if (hasChildren) {
+                var childPanelId = nextId();
+                var a = cloneAnchor(aSrc);
+                a.classList.add("mm-next-level");
+                a.setAttribute("href", "#" + childPanelId);
+                a.setAttribute("data-target", "#" + childPanelId);
+                li.appendChild(a);
+                ul.appendChild(li);
+
+                buildPanelFromLis(childLis, childPanelId, panelId, aSrc);
+              } else {
+                li.appendChild(cloneAnchor(aSrc));
+                ul.appendChild(li);
+              }
+            });
+
+            panel.appendChild(ul);
+            panels.appendChild(panel);
+          }
+
+          buildPanelFromLis(qsa(":scope > li", srcUl), "mm0", null, null);
+
+          navWrap.appendChild(panels);
+
+          // Hide the desktop UL ONLY while mobile panels are present
+          srcUl.setAttribute("hidden", "true");
+
+          // Inject after the UL so desktop layout doesn't change
+          menu.appendChild(navWrap);
+          injectedWrap = navWrap;
+
+          // Capture-phase delegation so theme listeners can't steal Back/Next/Close.
+          navWrap.addEventListener("click", function (e) {
+            var a = e.target && e.target.closest ? e.target.closest("a") : null;
+            if (!a) return;
+
+            if (a.classList.contains("mm-close") || a.getAttribute("href") === "#close") {
+              e.preventDefault();
+              e.stopImmediatePropagation();
+              setActive(false);
+              resetToRoot();
+              return;
+            }
+
+            if (a.classList.contains("mm-next-level")) {
+              var tgt = a.getAttribute("data-target") || a.getAttribute("href");
+              if (tgt && tgt.charAt(0) === "#") {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                showPanel(tgt);
+              }
+              return;
+            }
+
+            if (a.classList.contains("mm-prev-level")) {
+              e.preventDefault();
+              e.stopImmediatePropagation();
+              var backTo = a.getAttribute("data-target");
+              if (backTo && backTo.charAt(0) === "#") showPanel(backTo);
+              return;
+            }
+          }, true);
+
+          function showPanel(hashId) {
+            var panelsRoot = qs(".mmpanels", injectedWrap);
+            if (!panelsRoot) return;
+
+            qsa(".mmpanel", panelsRoot).forEach(function (p) {
+              p.classList.remove("mmopened", "mmcurrent");
+              if (!p.classList.contains("mmhidden")) p.classList.add("mmhidden");
+            });
+
+            var t = qs(hashId, panelsRoot);
+            if (!t) return;
+            t.classList.remove("mmhidden");
+            t.classList.add("mmopened", "mmcurrent");
+          }
+        }
+
+        function openMenu() {
+          if (!isMobile()) return;
+          buildMobilePanelsOnce();
+          setActive(true);
+          resetToRoot();
+        }
+
+        function closeMenu() {
+          setActive(false);
+          resetToRoot();
+        }
+
+        // Ensure we don't end up "open" just from breakpoint changes
+        setActive(false);
+
+        openBtn.addEventListener("click", function (e) {
+          if (!isMobile()) return;
+          e.preventDefault();
+          openMenu();
+        }, true);
+
+        if (closeBtn) {
+          closeBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            closeMenu();
+          }, true);
+        }
+
+        var overlay = qs(".darkout-menu");
+        if (overlay) overlay.addEventListener("click", function () { closeMenu(); }, true);
+
+        // On resize: if desktop, tear down mobile panels and ensure desktop menu shows.
+        if (mm && typeof mm.addEventListener === "function") {
+          mm.addEventListener("change", function () {
+            if (!isMobile()) {
+              closeMenu();
+              destroyMobilePanels();
+            }
+          });
+        } else {
+          window.addEventListener("resize", function () {
+            if (!isMobile()) {
+              closeMenu();
+              destroyMobilePanels();
+            }
+          });
+        }
+      } catch (_) {}
+    })();
+  </script>
 </header>

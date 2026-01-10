@@ -1,0 +1,55 @@
+---
+import type { NavItem } from "../data/navigation";
+
+const { items, currentPath } = Astro.props as { items: NavItem[]; currentPath: string };
+
+function isActive(href: string) {
+  if (!href || href === "#") return false;
+  if (href === "/") return currentPath === "/";
+  return currentPath === href || currentPath.startsWith(href + "/");
+}
+---
+
+{items.map((item) => {
+  const active = isActive(item.href);
+  const hasChildren = Array.isArray((item as any).children) && (item as any).children.length > 0;
+
+  // Match existing theme classes as closely as possible.
+  const liClass =
+    "main-menu-item " +
+    (active ? "current_page_item current-menu-item " : "") +
+    (hasChildren ? "menu-item-has-children " : "");
+
+  // Appointments modal trigger (existing modal system)
+  if ((item as any).modalTarget) {
+    return (
+      <li class={liClass.trim()}>
+        <a
+          href="#"
+          class="menu-link main-menu-link"
+          data-modal-open={(item as any).modalTarget}
+        >
+          {item.label}
+        </a>
+        {hasChildren && (
+          <ul class="sub-menu">
+            <Astro.self items={(item as any).children} currentPath={currentPath} />
+          </ul>
+        )}
+      </li>
+    );
+  }
+
+  return (
+    <li class={liClass.trim()}>
+      <a href={item.href} class="menu-link main-menu-link">
+        {item.label}
+      </a>
+      {hasChildren && (
+        <ul class="sub-menu">
+          <Astro.self items={(item as any).children} currentPath={currentPath} />
+        </ul>
+      )}
+    </li>
+  );
+})}
