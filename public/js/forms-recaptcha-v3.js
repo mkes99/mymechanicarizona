@@ -1,84 +1,65 @@
 (() => {
-  function getSiteKey() {
-    return document.documentElement.getAttribute("data-recaptcha-sitekey") || "";
+  const forms = document.querySelectorAll('form[action="/api/forms"]');
+  if (!forms.length) return;
+
+  function showStatus(form, type, message) {
+    const box = form.querySelector("[data-form-status]");
+    if (!box) return;
+
+    box.style.display = "block";
+    box.className = `form-status form-status--${type}`;
+    box.textContent = message;
   }
 
-  function loadRecaptcha(siteKey) {
-    return new Promise((resolve, reject) => {
-      if (!siteKey) return resolve(null);
-      if (window.grecaptcha && window.grecaptcha.execute) return resolve(window.grecaptcha);
-
-      const s = document.createElement("script");
-      s.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
-      s.async = true;
-      s.defer = true;
-      s.onload = () => resolve(window.grecaptcha || null);
-      s.onerror = reject;
-      document.head.appendChild(s);
-    });
+  async function getRecaptchaToken(siteKey, action = "form_submit") {
+    if (!window.grecaptcha || !siteKey) return "";
+    return await window.grecaptcha.execute(siteKey, { action });
   }
 
-  function ensureHidden(form, name) {
-    let input = form.querySelector(`input[name="${name}"]`);
-    if (!input) {
-      input = document.createElement("input");
-      input.type = "hidden";
-      input.name = name;
-      form.appendChild(input);
-    }
-    return input;
-  }
+  for (const form of forms) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-  async function attach() {
-    const siteKey = getSiteKey();
-    const forms = Array.from(document.querySelectorAll("form")).filter((f) => {
-      // Only intercept forms that are intended for server processing
-      const action = (f.getAttribute("action") || "").trim();
-      return action === "" || action === "/api/forms" || action.endsWith("/api/forms");
-    });
+      const submitBtn = form.querySelector('[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
 
-    if (!forms.length) return;
+      try {
+        // get sitekey from <html data-recaptcha-sitekey="...">
+        const siteKey = document.documentElement.getAttribute("data-recaptcha-sitekey") || "";
+        const token = await getRecaptchaToken(siteKey);
 
-    const grecaptcha = await loadRecaptcha(siteKey);
+        const tokenInput = form.querySelector('input[name="recaptcha_token"]');
+        if (tokenInput) tokenInput.value = token;
 
-    forms.forEach((form) => {
-      // Set action to our unified endpoint
-      form.setAttribute("method", "post");
-      form.setAttribute("action", "/api/forms");
+        const fd = new FormData(form);
 
-      // Helpful identifier for routing/subject
-      ensureHidden(form, "form_name").value =
-        form.getAttribute("data-form-name") ||
-        form.getAttribute("id") ||
-        form.getAttribute("name") ||
-        document.title ||
-        "Form";
-
-      form.addEventListener("submit", async (e) => {
-        // Let browser do HTML5 validation first
-        if (!form.checkValidity()) return;
-
-        // If no site key, submit normally (server can still handle, but recaptcha will fail if enforced)
-        if (!siteKey || !grecaptcha) return;
-
-        e.preventDefault();
-
-        try {
-          const token = await grecaptcha.execute(siteKey, { action: "submit" });
-          ensureHidden(form, "recaptcha_token").value = token;
-        } catch (err) {
-          console.error("reCAPTCHA execute failed", err);
-          // fall through; server will reject if recaptcha required
+        // ensure API receives form_name
+        if (!fd.get("form_name")) {
+          const name = form.getAttribute("data-form-name") || "Form";
+          fd.set("form_name", name);
         }
 
-        form.submit();
-      });
-    });
-  }
+        const res = await fetch(form.action, {
+          method: "POST",
+          body: fd,
+          headers: { Accept: "application/json" },
+        });
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", attach);
-  } else {
-    attach();
+        const data = await res.json().catch(() => null);
+
+        if (!res.ok || !data || data.ok !== true) {
+          const msg = (data && (data.error || data.message)) || "Something went wrong. Please try again.";
+          showStatus(form, "error", msg);
+          return;
+        }
+
+        showStatus(form, "success", data.message || "Thanks! We received your submission.");
+        form.reset();
+      } catch {
+        showStatus(form, "error", "Network error. Please try again.");
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
   }
 })();

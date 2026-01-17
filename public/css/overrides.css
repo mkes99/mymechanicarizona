@@ -1538,3 +1538,14 @@ div .faq-accordion .faq__item .faq__content {
   body .sk_branding {
   visibility: hidden !important;
   }
+
+  .form-status {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: #fff;
+  font-weight: 700;
+}
+.form-status--success { border-color: rgba(0,128,0,.25); }
+.form-status--error { border-color: rgba(220,0,0,.25); }
