@@ -1,0 +1,504 @@
+
+/*--------------------------------------------------------------
+>>> TABLE OF CONTENTS:
+----------------------------------------------------------------
+# Navigation
+	## Menus
+# Accessibility
+# Alignments
+# Clearings
+# Widgets
+# Content
+	## Posts and pages
+	## Comments
+# Infinite scroll
+# Media
+	## Captions
+	## Galleries
+--------------------------------------------------------------*/
+
+/*--------------------------------------------------------------
+# Navigation
+--------------------------------------------------------------*/
+/*--------------------------------------------------------------
+## Menus
+--------------------------------------------------------------*/
+.main-navigation {
+	clear: both;
+	display: block;
+	float: left;
+	width: 100%;
+}
+
+.main-navigation ul {
+	display: none;
+	list-style: none;
+	margin: 0;
+	padding-left: 0;
+}
+
+.main-navigation li {
+	float: left;
+	position: relative;
+}
+
+.main-navigation a {
+	display: block;
+	text-decoration: none;
+}
+
+.main-navigation ul ul {
+	box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
+	float: left;
+	position: absolute;
+	top: 1.5em;
+	left: -999em;
+	z-index: 99999;
+}
+
+.main-navigation ul ul ul {
+	left: -999em;
+	top: 0;
+}
+
+.main-navigation ul ul a {
+	width: 200px;
+}
+.main-navigation ul li:hover > ul,
+.main-navigation ul li.focus > ul {
+	left: auto;
+}
+
+.main-navigation ul ul li:hover > ul,
+.main-navigation ul ul li.focus > ul {
+	left: 100%;
+}
+
+/* Small menu. */
+.menu-toggle,
+.main-navigation.toggled ul {
+	display: block;
+}
+
+@media screen and (min-width: 37.5em) {
+	.menu-toggle {
+		display: none;
+	}
+	.main-navigation ul {
+		display: block;
+	}
+}
+
+.site-main .comment-navigation,
+.site-main .posts-navigation,
+.site-main .post-navigation {
+	margin: 0 0 1.5em;
+	overflow: hidden;
+}
+/*--------------------------------------------------------------
+# Accessibility
+--------------------------------------------------------------*/
+/* Text meant only for screen readers. */
+.screen-reader-text {
+	clip: rect(1px, 1px, 1px, 1px);
+	position: absolute !important;
+	height: 1px;
+	width: 1px;
+	overflow: hidden;
+}
+
+.screen-reader-text:focus {
+	background-color: #f1f1f1;
+	border-radius: 3px;
+	box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.6);
+	clip: auto !important;
+	color: #21759b;
+	display: block;
+	font-size: 14px;
+	font-size: 0.875rem;
+	font-weight: bold;
+	height: auto;
+	left: 5px;
+	line-height: normal;
+	padding: 15px 23px 14px;
+	text-decoration: none;
+	top: 5px;
+	width: auto;
+	z-index: 100000; /* Above WP toolbar. */
+}
+
+/* Do not show the outline on the skip link target. */
+#content[tabindex="-1"]:focus {
+	outline: 0;
+}
+
+/*--------------------------------------------------------------
+# Alignments
+--------------------------------------------------------------*/
+.alignleft {
+	display: inline;
+	float: left;
+	margin-right: 1.5em;
+}
+
+.alignright {
+	display: inline;
+	float: right;
+	margin-left: 1.5em;
+}
+
+.aligncenter {
+	clear: both;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/*--------------------------------------------------------------
+# Clearings
+--------------------------------------------------------------*/
+.clear:before,
+.clear:after,
+.entry-content:before,
+.entry-content:after,
+.comment-content:before,
+.comment-content:after,
+.site-header:before,
+.site-header:after,
+.site-content:before,
+.site-content:after,
+.site-footer:before,
+.site-footer:after {
+	content: "";
+	display: table;
+	table-layout: fixed;
+}
+
+.clear:after,
+.entry-content:after,
+.comment-content:after,
+.site-header:after,
+.site-content:after,
+.site-footer:after {
+	clear: both;
+}
+
+/*--------------------------------------------------------------
+# Widgets
+--------------------------------------------------------------*/
+.widget select {
+    width: 100%;
+    padding: 6px 10px;
+}
+
+/*--------------------------------------------------------------
+# Content
+--------------------------------------------------------------*/
+/*--------------------------------------------------------------
+## Posts and pages
+--------------------------------------------------------------*/
+.sticky {
+	display: block;
+}
+.byline,
+.updated:not(.published) {
+	display: none;
+}
+
+.single .byline,
+.group-blog .byline {
+	display: inline;
+}
+
+.page-content,
+.entry-content,
+.entry-summary {
+	margin: 1.5em 0 0;
+}
+
+.page-links {
+	clear: both;
+	margin: 0 0 1.5em;
+}
+
+/*--------------------------------------------------------------
+## Comments
+--------------------------------------------------------------*/
+.comment-content a {
+	word-wrap: break-word;
+}
+
+.bypostauthor {
+	display: block;
+}
+
+/*--------------------------------------------------------------
+# Infinite scroll
+--------------------------------------------------------------*/
+/* Globally hidden elements when Infinite Scroll is supported and in use. */
+.infinite-scroll .posts-navigation, /* Older / Newer Posts Navigation (always hidden) */
+.infinite-scroll.neverending .site-footer { /* Theme Footer (when set to scrolling) */
+	display: none;
+}
+
+/* When Infinite Scroll has reached its end we need to re-display elements that were hidden (via .neverending) before. */
+.infinity-end.neverending .site-footer {
+	display: block;
+}
+
+/*--------------------------------------------------------------
+# Media
+--------------------------------------------------------------*/
+.page-content .wp-smiley,
+.entry-content .wp-smiley,
+.comment-content .wp-smiley {
+	border: none;
+	margin-bottom: 0;
+	margin-top: 0;
+	padding: 0;
+}
+
+/* Make sure embeds and iframes fit their containers. */
+embed,
+iframe,
+object {
+	max-width: 100%;
+}
+
+/*--------------------------------------------------------------
+## Captions
+--------------------------------------------------------------*/
+.wp-caption {
+	margin-bottom: 1.5em;
+	max-width: 100%;
+}
+
+.wp-caption img[class*="wp-image-"] {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.wp-caption .wp-caption-text {
+	margin: 0.8075em 0;
+}
+
+.wp-caption-text {
+	text-align: center;
+}
+
+/*--------------------------------------------------------------
+## Galleries
+--------------------------------------------------------------*/
+.gallery-columns-3 .gallery-item:nth-child(3n+1) {
+    clear: left;
+}
+.blog-post .post-teaser .gallery-item{
+  background-color: transparent;
+}
+.post-teaser img {
+    max-width: 100%;
+    height: auto;
+}
+.edit-link {
+    background: #333;
+    color: #fff;
+    display: inline-block;
+    padding: 1px 10px;
+    margin-left: 10px;
+    margin-top: 30px;
+}
+.edit-link a {
+    color: #fff;
+}
+.wp-caption-text.gallery-caption {
+    display: block;
+    padding: 20px 20px 20px 0px;
+    text-align: left;
+}
+.post-teaser th {
+  font-size: 17px !important;
+}
+.post-teaser a {
+  font-size: 15px !important;
+}
+.post-teaser td {
+  font-weight: 600;
+}
+.post-teaser img {
+  height: auto;
+  max-width: 100%;
+}
+.widget img {
+  height: auto;
+  max-width: 100%;
+}
+.category-list > li {
+  font-size: 16px;
+  line-height: 20px;
+}
+.category-list > li {
+    font-size: 18px;
+    line-height: 20px;
+    padding: 10px 0 10px 20px;
+    position: relative;
+    margin-top: 0;
+}
+.post-teaser ul li > span {
+  font-size: 14px !important;
+}
+.category-list > li a {
+  color: hsl(0, 0%, 27%);
+  font-size: 16px !important;
+  text-decoration: none;
+}
+.category-list > li {
+  font-size: 16px !important;
+}
+ .post-teaser input[type="text"], .post-teaser input[type="password"] {
+  border: 1px solid hsl(0, 0%, 60%);
+  border-radius: 0px;
+  padding: 13px 22px;
+}
+
+.nav-links > .page-numbers {
+  border: 1px solid #000;
+  display: inline-block;
+  padding: 10px 15px;
+}
+.blog-post > .inside {
+  padding: 0;
+}
+.tags-links.tags-list > li {
+	display: inline-block;
+    margin-bottom: 7px;
+    margin-right: 5px;
+    padding: 0;
+}
+.blog-post .post-image img {
+  height: auto;
+  max-width: 100%;
+  width: auto;
+}
+.sticky_post_icon {
+    font-size: 2.76em;
+    position: absolute;
+    right: 0;
+    background: rgba(256,256,256, 0.9);
+    color: #333;
+    border-top-left-radius: 40px;
+    border-bottom-right-radius: 40px;
+    border-bottom-left-radius: 40px;
+    z-index: 1;
+    padding: 4px;
+    border: 3px solid;
+}
+pre {
+    display: block;
+    padding: 9.5px;
+    margin: 0 0 10px;
+    font-size: 13px;
+    line-height: 1.42857143;
+    color: #333;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background-color: #f5f5f5;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: auto;
+}
+address {
+    margin-bottom: 20px;
+}
+.category-list {
+  list-style: outside none none;
+  margin: 0;
+  padding: 0;
+}
+.list-image > img {
+  max-width: 100%;
+  height: auto;
+  width: auto;
+} 
+/* 13-02-2017 unite test */
+ .widget_nav_menu ul>li>ul.sub-menu>li>ul.sub-menu ul.sub-menu {
+    padding-left: 13px;
+} 
+.widget_nav_menu ul > li > ul.sub-menu li > ul.sub-menu li {
+    padding-left: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+} 
+.widget_nav_menu ul > li > ul.sub-menu li > ul.sub-menu.category-list > li>a{
+  margin-left: 15px;
+}
+ol > li,ul li {
+    margin-top: 8px;
+}
+.column-right ul {
+    padding-bottom: 0;
+} 
+.post-image img {
+    height: auto;
+    max-width: 100%;
+}
+.textwidget > form select option {
+  width: 250px;
+}
+.entry-content img {
+    max-width: 100%;
+    height: auto;
+}
+.box-step .title span {
+    color: #009cdc;
+}
+.comments-area .comment .comment {
+    margin-left: 2em;
+}
+.comment-reply-title {
+  font-size: 28px;
+  font-weight: 600;
+}
+.blog #monster-widget-placeholder-1 {
+    margin-top: 40px;
+}
+.post-teaser input[type=submit] {
+    -webkit-appearance: button;
+    cursor: pointer;
+    border: 1px solid #333;
+    background: #333;
+    padding: 14px 22px 13px;
+    display: inline-block;
+    width: auto;
+    font-size: 18px;
+    line-height: 22px;
+    color: #ffffff;
+    margin: 0px 0;
+}
+ul, ol {
+    margin: 0;
+    padding: 0 0 0px 40px;
+}
+ol ol, ol ul, ul ol, ul ul,ul,ol {
+    margin-bottom: 0;
+}
+.post-teaser ul ul,.post-teaser ol ol {
+    padding-left: 20px;
+    padding-bottom: 0px;
+}
+.wp-block-image.alignfull img, .wp-block-image.alignwide img {
+  width: 100%;
+}
+.page > .offset-sm > p {
+  padding-top: 20px;
+}
+
+
+
+
+
+
+
+
+
+

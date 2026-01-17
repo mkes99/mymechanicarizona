@@ -1,90 +1,214 @@
 ---
-/**
- * ReviewsGrid
- * .astro
- * - Wraps Trust.Reviews embed snippet
- * - Loads embed.min.js only once
- *
- * Usage:
- *   <ReviewsGrid
- *  id="7916" />
- */
+type Review = {
+  id?: string;
+  created_time?: string;
+  reviewer_name?: string;
+  reviewer_photo_link?: string;
+  rating?: number;
+  review_text?: string;
+  reviewer_link?: string;
+};
+
+type Feed = {
+  bio?: {
+    name?: string;
+    place_id?: string;
+    link?: string;
+    overall_star_rating?: number;
+    rating_count?: number;
+  };
+  reviews?: Review[];
+};
 
 const {
-  id = 7916,
-  view = "list",
-  lang = "",
-  showPoweredBy = true
-} = Astro.props;
+  feed = { bio: null, reviews: [] },
+  feedError = false,
+  max = 50,
+  initial = 9,
+  step = 9,
+  title,
+} = Astro.props as {
+  feed?: Feed;
+  feedError?: boolean;
+  max?: number;
+  initial?: number;
+  step?: number;
+  title?: string;
+};
+
+const bio = feed.bio ?? {};
+const reviews = (feed.reviews ?? []).slice(0, max);
+
+const writeReviewUrl =
+  bio.place_id
+    ? `https://search.google.com/local/writereview?placeid=${encodeURIComponent(bio.place_id)}`
+    : bio.link ?? "#";
+
+function stars(rating = 0) {
+  const n = Math.max(0, Math.min(5, Math.round(Number(rating) || 0)));
+  return "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n);
+}
+
+const heading = title ?? (bio.name ? `${bio.name} Reviews` : "Customer Reviews");
 ---
 
-<div
-  class="tr-widget"
-  data-id={String(id)}
-  data-view={String(view)}
-  data-lang={String(lang)}
->
-  {showPoweredBy && (
-    <a
-      href="https://trust.reviews/"
-      class="trcr"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      Powered by <span>Trust.Reviews</span>
+<section class="reviews">
+  <header class="reviews__header">
+    <div>
+      <h2 class="reviews__title">{heading}</h2>
+
+      {(bio.overall_star_rating || bio.rating_count) && (
+        <p class="reviews__meta">
+          {bio.overall_star_rating ?? "—"} / 5
+          <span class="dot">•</span>
+          {bio.rating_count ?? "—"} reviews
+        </p>
+      )}
+    </div>
+
+    <a class="btn btn--primary" href={writeReviewUrl} target="_blank" rel="noopener noreferrer">
+      Write a review
     </a>
+  </header>
+
+  {feedError ? (
+    <div class="reviews__fallback">
+      <p>Reviews are temporarily unavailable.</p>
+      <p>Please check back soon.</p>
+    </div>
+  ) : reviews.length === 0 ? (
+    <div class="reviews__fallback">
+      <p>No reviews to display yet.</p>
+    </div>
+  ) : (
+    <>
+      <div class="masonry" data-initial={initial} data-step={step}>
+        {reviews.map((r, i) => (
+          <article class={`card ${i >= initial ? "is-hidden" : ""}`} data-review>
+            <div class="card__top">
+              {r.reviewer_photo_link ? (
+                <img class="avatar" src={r.reviewer_photo_link} alt="" loading="lazy" />
+              ) : (
+                <div class="avatar avatar--ph" aria-hidden="true" />
+              )}
+
+              <div class="meta">
+                <div class="name">{r.reviewer_name ?? "Anonymous"}</div>
+                <div class="stars" aria-label={`Rating ${r.rating ?? 0} out of 5`}>
+                  {stars(r.rating ?? 0)}
+                </div>
+              </div>
+            </div>
+
+            <p class="text">{r.review_text ?? ""}</p>
+
+            <footer class="footer">
+              {r.created_time ? (
+                <time datetime={r.created_time}>
+                  {new Date(r.created_time).toLocaleDateString()}
+                </time>
+              ) : <span />}
+
+              {r.reviewer_link ? (
+                <a class="link" href={r.reviewer_link} target="_blank" rel="noopener noreferrer">
+                  View
+                </a>
+              ) : null}
+            </footer>
+          </article>
+        ))}
+      </div>
+
+      {reviews.length > initial && (
+        <div class="reviews__footer">
+          <button class="btn" type="button" data-load-more>Load more</button>
+        </div>
+      )}
+    </>
   )}
-</div>
+</section>
 
-<script is:inline>
-(function () {
-  try {
-    var SRC = "https://cdn.trust.reviews/widget/embed.min.js";
-    var STYLE_ID = "mm-hide-trust-reviews-branding";
+{!feedError && reviews.length > initial && (
+  <script is:inline>
+    (() => {
+      const root = document.currentScript?.closest("section");
+      const grid = root?.querySelector(".masonry");
+      const btn = root?.querySelector("[data-load-more]");
+      if (!grid || !btn) return;
 
-    function injectHideStyle() {
-      if (document.getElementById(STYLE_ID)) return;
+      const initial = Number(grid.getAttribute("data-initial") || "9");
+      const step = Number(grid.getAttribute("data-step") || "9");
+      const cards = Array.from(grid.querySelectorAll("[data-review]"));
 
-      var style = document.createElement("style");
-      style.id = STYLE_ID;
-      style.type = "text/css";
-      style.appendChild(
-        document.createTextNode(
-          "html body.page .rplg + a.trcr { display: none !important; }"
-        )
-      );
-      document.head.appendChild(style);
-    }
+      let shown = initial;
 
-    function ensureScript() {
-      var existing = document.querySelector('script[src="' + SRC + '"]');
-      if (existing || window.__TRUST_REVIEWS_EMBED_LOADED__ === true) {
-        injectHideStyle();
-        return;
-      }
-
-      var s = document.createElement("script");
-      s.src = SRC;
-      s.type = "text/javascript";
-      s.defer = true;
-      s.onload = function () {
-        window.__TRUST_REVIEWS_EMBED_LOADED__ = true;
-        injectHideStyle();
+      const update = () => {
+        cards.forEach((el, i) => el.classList.toggle("is-hidden", i >= shown));
+        btn.style.display = shown >= cards.length ? "none" : "inline-flex";
       };
-      document.head.appendChild(s);
-    }
 
-    ensureScript();
+      btn.addEventListener("click", () => {
+        shown = Math.min(cards.length, shown + step);
+        update();
+      });
 
-    // Re-assert a few times in case widget re-renders itself
-    var tries = 0;
-    var iv = setInterval(function () {
-      injectHideStyle();
-      tries++;
-      if (tries > 10) clearInterval(iv);
-    }, 500);
-  } catch (e) {
-    // fail silently
+      update();
+    })();
+  </script>
+)}
+
+<style>
+  .reviews { padding: 2rem 0; }
+  .reviews__header { display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; margin-bottom: 1rem; }
+  .reviews__title { margin:0; font-size: 1.6rem; }
+  .reviews__meta { margin:.25rem 0 0; opacity:.8; }
+  .dot { margin: 0 .5rem; opacity:.6; }
+
+  /* .btn {
+    display:inline-flex; align-items:center; justify-content:center;
+    padding:.6rem .9rem;
+    border-radius: 999px;
+    border: 1px solid rgba(0,0,0,.15);
+    background: #fff;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 700;
   }
-})();
-</script>
+  .btn--primary { border-color: transparent; background: #111; color: #fff; } */
+
+  /* TRUE masonry via CSS columns (variable-height) */
+  .masonry { column-count: 1; column-gap: 1rem; }
+  @media (min-width: 640px) { .masonry { column-count: 2; } }
+  @media (min-width: 1024px) { .masonry { column-count: 3; } }
+
+  .card {
+    break-inside: avoid;
+    margin: 0 0 1rem;
+    padding: 1rem;
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,.08);
+    background: #fff;
+    display: grid;
+    gap: .75rem;
+  }
+  .card.is-hidden { display: none; }
+
+  .card__top { display:flex; gap:.75rem; align-items:center; }
+  .avatar { width:44px; height:44px; border-radius:999px; object-fit:cover; flex:0 0 auto; }
+  .avatar--ph { background: rgba(0,0,0,.06); }
+  .name { font-weight: 800; line-height: 1.1; }
+  .stars { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+  .text { margin:0; line-height:1.45; white-space: pre-wrap; }
+  .footer { display:flex; justify-content:space-between; align-items:center; font-size:.9rem; opacity:.8; gap:.75rem; }
+  .link { text-decoration: underline; }
+
+  .reviews__footer { margin-top: 1rem; display:flex; justify-content:center; }
+
+  .reviews__fallback {
+    border: 1px dashed rgba(0,0,0,.15);
+    border-radius: 16px;
+    padding: 1rem;
+    background: #fff;
+    opacity: .85;
+  }
+</style>

@@ -1,81 +1,140 @@
 ---
-/**
- * ReviewsSlider.astro
- * - Wraps Trust.Reviews widget snippet as a reusable Astro component.
- * - Loads embed.min.js only once.
- * - Injects a style rule AFTER the widget script is present to hide branding link.
- *
- * Usage:
- *   <ReviewsSlider id="7915" view="list" lang="" />
- */
+type Review = {
+  reviewer_name?: string;
+  reviewer_photo_link?: string;
+  rating?: number;
+  review_text?: string;
+};
+
+type Feed = {
+  bio?: any;
+  reviews?: Review[];
+};
 
 const {
-  id = 7915,
-  view = "list",
-  lang = "",
-} = Astro.props;
+  feed = { bio: null, reviews: [] },
+  feedError = false,
+  max = 50,
+  title = "Customer Reviews",
+} = Astro.props as {
+  feed?: Feed;
+  feedError?: boolean;
+  max?: number;
+  title?: string;
+};
+
+const reviews = (feed.reviews ?? []).slice(0, max);
+
+function stars(rating = 0) {
+  const n = Math.max(0, Math.min(5, Math.round(Number(rating) || 0)));
+  return "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n);
+}
 ---
 
-<div
-  class="tr-widget sliderReviews"
-  data-id={String(id)}
-  data-view={String(view)}
-  data-lang={String(lang)}
->
-  <a href="https://trust.reviews/" class="trcr" target="_blank" rel="noopener noreferrer">
-    Powered by <span>Trust.Reviews</span>
-  </a>
-</div>
+<section class="reviews">
+  <header class="hdr">
+    <h2 class="title">{title}</h2>
+    {!feedError && reviews.length > 0 && (
+      <div class="controls">
+        <button class="btn" type="button" data-prev aria-label="Previous">‹</button>
+        <button class="btn" type="button" data-next aria-label="Next">›</button>
+      </div>
+    )}
+  </header>
 
-<script is:inline>
-(function () {
-  try {
-    var SRC = "https://cdn.trust.reviews/widget/embed.min.js";
-    var STYLE_ID = "mm-hide-trust-reviews-branding";
+  {feedError ? (
+    <div class="fallback">
+      <p>Reviews are temporarily unavailable.</p>
+    </div>
+  ) : reviews.length === 0 ? (
+    <div class="fallback">
+      <p>No reviews to display yet.</p>
+    </div>
+  ) : (
+    <div class="carousel" tabindex="0">
+      {reviews.map((r) => (
+        <article class="slide">
+          <div class="top">
+            {r.reviewer_photo_link ? (
+              <img class="avatar" src={r.reviewer_photo_link} alt="" loading="lazy" />
+            ) : (
+              <div class="avatar ph" aria-hidden="true" />
+            )}
+            <div>
+              <div class="name">{r.reviewer_name ?? "Anonymous"}</div>
+              <div class="stars" aria-label={`Rating ${r.rating ?? 0} out of 5`}>{stars(r.rating ?? 0)}</div>
+            </div>
+          </div>
+          <p class="text">{r.review_text ?? ""}</p>
+        </article>
+      ))}
+    </div>
+  )}
+</section>
 
-    function injectHideStyle() {
-      if (document.getElementById(STYLE_ID)) return;
+{!feedError && reviews.length > 0 && (
+  <script is:inline>
+    (() => {
+      const root = document.currentScript?.closest("section");
+      const scroller = root?.querySelector(".carousel");
+      const prev = root?.querySelector("[data-prev]");
+      const next = root?.querySelector("[data-next]");
+      if (!scroller || !prev || !next) return;
 
-      var style = document.createElement("style");
-      style.id = STYLE_ID;
-      style.type = "text/css";
-      style.appendChild(
-        document.createTextNode(
-          "html body.page .rplg + a.trcr { display: none !important; }"
-        )
-      );
-      document.head.appendChild(style);
-    }
-
-    function ensureScript() {
-      var existing = document.querySelector('script[src="' + SRC + '"]');
-      if (existing || window.__TRUST_REVIEWS_EMBED_LOADED__ === true) {
-        injectHideStyle();
-        return;
-      }
-
-      var s = document.createElement("script");
-      s.src = SRC;
-      s.type = "text/javascript";
-      s.defer = true;
-      s.onload = function () {
-        window.__TRUST_REVIEWS_EMBED_LOADED__ = true;
-        injectHideStyle();
+      const scroll = (d) => {
+        const slide = scroller.querySelector(".slide");
+        const w = slide ? slide.getBoundingClientRect().width : 320;
+        scroller.scrollBy({ left: d * (w + 16), behavior: "smooth" });
       };
-      document.head.appendChild(s);
-    }
 
-    ensureScript();
+      prev.addEventListener("click", () => scroll(-1));
+      next.addEventListener("click", () => scroll(1));
+    })();
+  </script>
+)}
 
-    // Re-assert a few times in case widget re-renders itself
-    var tries = 0;
-    var iv = setInterval(function () {
-      injectHideStyle();
-      tries++;
-      if (tries > 10) clearInterval(iv);
-    }, 500);
-  } catch (e) {
-    // fail silently
+<style>
+  .reviews { padding: 2rem 0; }
+  .hdr { display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; margin-bottom:1rem; }
+  .title { margin:0; font-size:1.6rem; }
+  .controls { display:flex; gap:.5rem; }
+  .btn {
+    width:40px; height:40px;
+    border-radius:999px;
+    border:1px solid rgba(0,0,0,.15);
+    background:#fff;
+    cursor:pointer;
+    font-size:1.25rem;
+    line-height: 1;
   }
-})();
-</script>
+  .carousel {
+    display:grid;
+    grid-auto-flow:column;
+    grid-auto-columns:minmax(280px, 1fr);
+    gap:1rem;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    padding-bottom:.5rem;
+    -webkit-overflow-scrolling: touch;
+  }
+  .slide {
+    scroll-snap-align:start;
+    border:1px solid rgba(0,0,0,.08);
+    border-radius:16px;
+    padding:1rem;
+    background:#fff;
+    display:grid;
+    gap:.75rem;
+    min-height: 180px;
+  }
+  .top { display:flex; gap:.75rem; align-items:center; }
+  .avatar { width:44px; height:44px; border-radius:999px; object-fit:cover; flex:0 0 auto; }
+  .ph { background: rgba(0,0,0,.06); }
+  .name { font-weight:800; }
+  .stars { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+  .text {
+    margin:0; line-height:1.45; white-space: pre-wrap;
+    display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient: vertical; overflow:hidden;
+  }
+  .fallback { border:1px dashed rgba(0,0,0,.15); border-radius:16px; padding:1rem; opacity:.85; background:#fff; }
+</style>
