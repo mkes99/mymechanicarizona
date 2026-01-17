@@ -17,13 +17,14 @@ import vehicles from "../data/vehicles.json";
 		enctype="multipart/form-data"
 		method="post"
 		action="/api/forms"
-		class="frm-show-form frm_pro_form"
-		id="form_appointmentform"
+		class="frm-show-form mm-form"
+		data-mm-form
+		id={FORM_ID}
 		data-vehicles={JSON.stringify(vehicles)}
 		data-token="6175db04c788b56068a0069e43debc77"
 		data-validated="false"
 		novalidate
-	>
+		>
 		<div class="frm_form_fields">
 			<fieldset>
 				<legend class="frm_screen_reader">Appointment Form</legend>
