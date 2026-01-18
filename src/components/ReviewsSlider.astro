@@ -32,59 +32,6 @@ const {
   </div>
 </section>
 
-<style>
-  /* Minimal fallback styling (won't fight your theme) */
-  .reviews-slider__track {
-    display: flex;
-    gap: 18px;
-    overflow-x: auto;
-    padding-bottom: 6px;
-    scroll-snap-type: x mandatory;
-  }
-  .review-slide {
-    min-width: 280px;
-    max-width: 360px;
-    scroll-snap-align: start;
-  }
-  .review-card {
-    border: 1px solid rgba(0,0,0,.10);
-    border-radius: 14px;
-    background: #fff;
-    padding: 16px 16px;
-    height: 100%;
-  }
-  .review-card__top {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 10px;
-  }
-  .review-card__name {
-    font-weight: 800;
-    line-height: 1.2;
-  }
-  .review-card__stars {
-    font-weight: 800;
-    letter-spacing: .5px;
-    white-space: nowrap;
-  }
-  .review-card__text {
-    font-size: 14px;
-    line-height: 1.45;
-  }
-  .reviews-slider__status {
-    margin-top: 12px;
-    padding: 12px 14px;
-    border-radius: 12px;
-    border: 1px solid rgba(0,0,0,.12);
-    background: #fff;
-    font-weight: 700;
-  }
-  .reviews-slider__status--error { border-color: rgba(220,0,0,.25); }
-  .reviews-slider__status--empty { border-color: rgba(0,0,0,.18); }
-</style>
-
 <script is:inline>
 (() => {
   const root = document.querySelector('[data-reviews-slider]');

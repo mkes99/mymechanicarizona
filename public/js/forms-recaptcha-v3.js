@@ -51,7 +51,7 @@
       const control = getControl(field);
       if (!control) continue;
 
-      // Skip hidden required wrappers (Formidable uses some hidden containers)
+      // Skip hidden required wrappers
       const style = window.getComputedStyle(field);
       if (style && style.display === 'none') continue;
 
@@ -115,6 +115,10 @@
     }
 
     forms.forEach((form) => {
+      // Guard: prevent double-binding (can happen with partial hydration / modal reinits)
+      if (form.dataset.mmBound === '1') return;
+      form.dataset.mmBound = '1';
+
       // Force our endpoint
       form.setAttribute('method', 'post');
       form.setAttribute('action', '/api/forms');
@@ -129,12 +133,13 @@
         'Form';
       ensureHidden(form, 'form_name').value = formName;
 
-      // Submit interception (capture beats Formidable/jQuery handlers)
+      // Submit interception (CAPTURE beats Formidable/jQuery handlers)
       form.addEventListener(
         'submit',
         async (e) => {
+          // IMPORTANT: stop ALL other submit handlers (prevents recursive loops / call stack issues)
           e.preventDefault();
-          e.stopPropagation();
+          e.stopImmediatePropagation();
 
           clearStatus(form);
 
@@ -155,7 +160,6 @@
                 ensureHidden(form, 'recaptcha_token').value = token;
               } catch (err) {
                 console.warn('[forms] reCAPTCHA execute failed:', err);
-                // Let the request proceed; server will reject if required
               }
             }
 
@@ -175,7 +179,8 @@
             }
 
             showStatus(form, 'success', data.message || 'Thanks! We received your submission.');
-            // Optional: clear fields on success (but keep hidden WP fields)
+
+            // Clear fields on success (but keep hidden WP fields)
             form.querySelectorAll('input, textarea, select').forEach((el) => {
               const name = el.getAttribute('name') || '';
               const type = (el.getAttribute('type') || '').toLowerCase();

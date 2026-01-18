@@ -1550,3 +1550,137 @@ div .faq-accordion .faq__item .faq__content {
 .form-status--success { border-color: rgba(0,128,0,.25); }
 .form-status--error { border-color: rgba(220,0,0,.25); }
 .form-status--info { border-color: rgba(0,0,0,.18); }
+
+
+/* =========================================================
+   REVIEWS — Masonry Grid + Slider (white cards over image)
+   ========================================================= */
+
+/* ---------- Shared review card look ---------- */
+.mm-review-card,
+.review-card {
+  background: #fff !important; /* critical for slider over image */
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  border-radius: 14px;
+  padding: 16px 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+.mm-review-card__top,
+.review-card__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.mm-review-card__name,
+.review-card__name {
+  font-weight: 800;
+  line-height: 1.2;
+  color: #111 !important;
+}
+
+.mm-review-card__stars,
+.review-card__stars {
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  color: #111 !important;
+}
+
+.mm-review-card__text,
+.review-card__text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #111 !important;
+}
+
+.mm-review-card__meta,
+.review-card__meta {
+  margin-top: 10px;
+  font-size: 12px;
+  opacity: 0.75;
+  color: #111 !important;
+}
+
+/* ---------- Masonry Grid (CSS columns) ---------- */
+.mm-reviews-grid {
+  margin-top: 18px;
+}
+
+.mm-reviews-masonry {
+  column-count: 3;
+  column-gap: 22px;
+}
+
+@media (max-width: 1024px) {
+  .mm-reviews-masonry { column-count: 2; }
+}
+@media (max-width: 640px) {
+  .mm-reviews-masonry { column-count: 1; }
+}
+
+.mm-reviews-masonry > * {
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
+  display: inline-block;
+  width: 100%;
+  margin: 0 0 22px;
+}
+
+.mm-reviews-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+/* ---------- Slider ---------- */
+.mm-reviews-slider {
+  margin-top: 22px;
+}
+
+/* If slick is active, it wraps slides; this keeps spacing */
+.mm-reviews-slider__track .mm-review-slide {
+  padding: 10px;
+}
+
+.mm-reviews-slider .mm-review-card,
+.mm-reviews-slider .review-card {
+  height: 100%;
+}
+
+/* Slick arrows (if theme doesn't style them nicely) */
+.mm-reviews-slider .slick-prev,
+.mm-reviews-slider .slick-next {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.70);
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  z-index: 2;
+}
+
+.mm-reviews-slider .slick-prev:before,
+.mm-reviews-slider .slick-next:before {
+  color: rgba(0, 0, 0, 0.75);
+  font-size: 18px;
+}
+
+/* Fallback slider (no slick): horizontal scroll snap */
+.mm-reviews-slider__track {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scroll-snap-type: x mandatory;
+}
+
+.mm-reviews-slider__track .mm-review-slide {
+  min-width: 280px;
+  max-width: 360px;
+  scroll-snap-align: start;
+}
