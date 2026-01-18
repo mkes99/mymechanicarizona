@@ -2,7 +2,7 @@
 const {
   apiPath = "/api/reviews",
   max = 50,
-  limit = 3,
+  limit = 16, // total items to render; recommend multiples of 4
   autoplay = true,
   writeReviewUrl = "https://search.google.com/local/writereview?placeid=ChIJIRIHWwp01oYRVv-SOeBXy5o",
   title = "What customers are saying",
@@ -43,7 +43,7 @@ const {
     margin-bottom: 14px;
   }
 
-  /* fallback (no slick): horizontal scroll snap */
+  /* fallback (no slick): horizontal scroll */
   .reviews-slider__track {
     display: flex;
     gap: 18px;
@@ -52,13 +52,7 @@ const {
     scroll-snap-type: x mandatory;
   }
 
-  .reviews-slider__track > .review-card--slider {
-    min-width: 280px;
-    max-width: 360px;
-    scroll-snap-align: start;
-  }
-
-  /* slider card (white, hero) */
+  /* card */
   .reviews-slider .review-card--slider {
     background: #fff !important;
     border-radius: 18px;
@@ -68,13 +62,7 @@ const {
     height: 100%;
     display: flex;
     flex-direction: column;
-  }
-
-  .reviews-slider .review-card__header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 10px;
+    scroll-snap-align: start;
   }
 
   .reviews-slider .review-card__meta {
@@ -82,6 +70,7 @@ const {
     flex-direction: column;
     gap: 2px;
     min-width: 0;
+    margin-bottom: 8px;
   }
 
   .reviews-slider .review-card__name {
@@ -108,7 +97,7 @@ const {
     margin-top: 6px;
   }
 
-  /* clamp keeps slider cards consistent height */
+  /* truncate long text */
   .reviews-slider .review-card__text--clamp {
     display: -webkit-box;
     -webkit-line-clamp: 4;
@@ -123,60 +112,18 @@ const {
     border-top: 1px solid rgba(0,0,0,.08);
   }
 
+  /* Google blue link */
   .reviews-slider .review-card__google {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    color: #374151;
+    color: #1a73e8; /* Google blue */
     text-decoration: none;
     font-weight: 700;
   }
 
   .reviews-slider .review-card__google:hover {
     text-decoration: underline;
-  }
-
-  .reviews-slider .review-card__gmark {
-    width: 22px;
-    height: 22px;
-    border-radius: 6px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    font-size: 14px;
-    background: rgba(0,0,0,.06);
-    color: rgba(0,0,0,.70);
-  }
-
-  /* avatar with initials fallback */
-  .reviews-slider .review-card__avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 999px;
-    overflow: hidden;
-    flex: 0 0 auto;
-    background: #eee;
-    position: relative;
-    border: 1px solid rgba(0,0,0,.10);
-  }
-
-  .reviews-slider .review-card__avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .reviews-slider .review-card__avatar-fallback {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    color: rgba(0,0,0,.65);
-    background: rgba(0,0,0,.06);
   }
 
   /* when slick takes over, it controls layout */
@@ -217,7 +164,7 @@ const {
 
   const api = root.getAttribute('data-api') || '/api/reviews';
   const max = Number(root.getAttribute('data-max') || '50');
-  const limit = Number(root.getAttribute('data-limit') || '12');
+  const limit = Number(root.getAttribute('data-limit') || '16');
   const autoplay = (root.getAttribute('data-autoplay') || '1') === '1';
 
   const status = root.querySelector('[data-status]');
@@ -250,50 +197,6 @@ const {
     return '★★★★★☆☆☆☆☆'.slice(5 - s, 10 - s);
   }
 
-  function getAvatar(r) {
-    return (
-      r.reviewer_photo_url ||
-      r.profile_photo_url ||
-      r.reviewer_photo ||
-      r.profile_photo ||
-      r.profile_photo_url_high ||
-      r.profile_image_url ||
-      r.profile_image ||
-      r.author_photo ||
-      r.author_photo_url ||
-      r.avatar ||
-      r.avatar_url ||
-      ''
-    );
-  }
-
-  function initials(name) {
-    const parts = String(name || '').trim().split(/\s+/).slice(0, 2);
-    return parts.map(p => (p[0] || '').toUpperCase()).join('') || 'A';
-  }
-
-  function renderAvatarHtml(name, avatarUrl) {
-    if (avatarUrl) {
-      return `
-        <div class="review-card__avatar">
-          <img
-            src="${escapeHtml(avatarUrl)}"
-            alt="${escapeHtml(name)}"
-            loading="lazy"
-            referrerpolicy="no-referrer"
-            onerror="this.remove();"
-          />
-          <span class="review-card__avatar-fallback">${escapeHtml(initials(name))}</span>
-        </div>
-      `;
-    }
-    return `
-      <div class="review-card__avatar">
-        <span class="review-card__avatar-fallback">${escapeHtml(initials(name))}</span>
-      </div>
-    `;
-  }
-
   function cardEl(r) {
     const name = r.reviewer_name || r.author_name || r.name || 'Anonymous';
     const text = r.review_text || r.text || r.content || '';
@@ -306,8 +209,6 @@ const {
       r.time_ago ||
       '';
 
-    const avatar = getAvatar(r);
-
     const googleUrl =
       r.url ||
       r.review_url ||
@@ -318,13 +219,10 @@ const {
     div.className = 'review-card review-card--slider';
 
     div.innerHTML = `
-      <div class="review-card__header">
-        ${renderAvatarHtml(name, avatar)}
-        <div class="review-card__meta">
-          <div class="review-card__name">${escapeHtml(name)}</div>
-          ${when ? `<div class="review-card__time">${escapeHtml(when)}</div>` : ''}
-          <div class="review-card__stars">${escapeHtml(renderStars(rating))}</div>
-        </div>
+      <div class="review-card__meta">
+        <div class="review-card__name">${escapeHtml(name)}</div>
+        ${when ? `<div class="review-card__time">${escapeHtml(when)}</div>` : ''}
+        <div class="review-card__stars">${escapeHtml(renderStars(rating))}</div>
       </div>
 
       <div class="review-card__text review-card__text--clamp">
@@ -333,8 +231,7 @@ const {
 
       <div class="review-card__footer">
         <a class="review-card__google" href="${escapeHtml(googleUrl)}" target="_blank" rel="noopener">
-          <span class="review-card__gmark" aria-hidden="true">G</span>
-          <span>View on Google</span>
+          View on Google
         </a>
       </div>
     `;
@@ -358,32 +255,30 @@ const {
 
       hideStatus();
 
-      // IMPORTANT: append real nodes (not string join), avoids [object HTMLDivElement]
       track.innerHTML = '';
       items.forEach((r) => track.appendChild(cardEl(r)));
 
-      // Slick if available
       const hasJQ = typeof window.jQuery === 'function';
       const $ = hasJQ ? window.jQuery : null;
 
       if ($ && typeof $(track).slick === 'function') {
-        // Avoid double init
         if ($(track).hasClass('slick-initialized')) return;
 
+        // page in groups: show 4, scroll 4
         $(track).slick({
-          slidesToShow: 3,
-          slidesToScroll: 1,
+          slidesToShow: 4,
+          slidesToScroll: 4,
           arrows: true,
           dots: false,
           autoplay: autoplay,
-          autoplaySpeed: 4000,
+          autoplaySpeed: 4500,
           responsive: [
-            { breakpoint: 1024, settings: { slidesToShow: 2 } },
-            { breakpoint: 768, settings: { slidesToShow: 1 } }
+            { breakpoint: 1200, settings: { slidesToShow: 3, slidesToScroll: 3 } },
+            { breakpoint: 992,  settings: { slidesToShow: 2, slidesToScroll: 2 } },
+            { breakpoint: 768,  settings: { slidesToShow: 1, slidesToScroll: 1 } }
           ]
         });
 
-        // let slick handle overflow
         track.style.overflow = 'visible';
       }
     } catch (e) {
