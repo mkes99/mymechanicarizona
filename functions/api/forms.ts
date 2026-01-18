@@ -1,115 +1,196 @@
-(() => {
-  const forms = document.querySelectorAll('form[data-mm-form][action="/api/forms"]');
-  if (!forms.length) return;
+export async function onRequestPost({ request, env }: any) {
+  try {
+    const contentType = request.headers.get("content-type") || "";
+    let form: FormData;
 
-  function showStatus(form, type, message) {
-    const box = form.querySelector("[data-form-status]");
-    if (!box) return;
-    box.style.display = "block";
-    box.className = `form-status form-status--${type}`;
-    box.textContent = message;
-  }
+    if (contentType.includes("multipart/form-data") || contentType.includes("application/x-www-form-urlencoded")) {
+      form = await request.formData();
+    } else {
+      const json = await request.json().catch(() => ({}));
+      form = new FormData();
+      Object.entries(json || {}).forEach(([k, v]) => form.append(k, String(v)));
+    }
 
-  function getSiteKey() {
-    return document.documentElement.getAttribute("data-recaptcha-sitekey") || "";
-  }
+    const formName = (form.get("form_name") || "Form").toString();
+    const recaptchaToken = (form.get("recaptcha_token") || "").toString();
 
-  function loadRecaptcha(siteKey) {
-    return new Promise((resolve, reject) => {
-      if (!siteKey) return reject(new Error("Missing reCAPTCHA site key"));
+    // Verify reCAPTCHA v3
+    const recaptchaSecret = env.RECAPTCHA_SECRET_KEY;
+    if (!recaptchaSecret) {
+      return new Response(JSON.stringify({ ok: false, error: "Missing RECAPTCHA_SECRET_KEY" }), {
+        status: 500,
+        headers: { "content-type": "application/json" },
+      });
+    }
 
-      if (window.grecaptcha && typeof window.grecaptcha.ready === "function") {
-        return resolve();
+    const verifyRes = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        secret: recaptchaSecret,
+        response: recaptchaToken,
+        remoteip: request.headers.get("cf-connecting-ip") || "",
+      }),
+    });
+
+    const verify = await verifyRes.json();
+    const minScore = Number(env.RECAPTCHA_MIN_SCORE || 0.5);
+
+    if (!verify?.success || (typeof verify.score === "number" && verify.score < minScore)) {
+      return new Response(JSON.stringify({ ok: false, error: "reCAPTCHA verification failed" }), {
+        status: 400,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    // Determine routing (preview vs prod)
+    const branch = env.CF_PAGES_BRANCH || "";
+    const mailTo = branch === "main" ? env.MAIL_TO_PROD : env.MAIL_TO_PREVIEW;
+
+    if (!mailTo) {
+      return new Response(JSON.stringify({ ok: false, error: "Missing MAIL_TO_PROD/MAIL_TO_PREVIEW" }), {
+        status: 500,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    const mailFrom = env.MAIL_FROM;
+    if (!mailFrom) {
+      return new Response(JSON.stringify({ ok: false, error: "Missing MAIL_FROM" }), {
+        status: 500,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    const exclude = new Set(["recaptcha_token", "g-recaptcha-response"]);
+    const fields: { key: string; value: string }[] = [];
+
+    const replyToEmail = (form.get("email") || form.get("Email") || form.get("your-email") || "")
+      .toString()
+      .trim();
+
+    for (const [key, value] of form.entries()) {
+      if (exclude.has(key)) continue;
+      if (value instanceof File) continue;
+      fields.push({ key, value: String(value) });
+    }
+
+    const referer = request.headers.get("referer") || "";
+    const userAgent = request.headers.get("user-agent") || "";
+    const ip = request.headers.get("cf-connecting-ip") || "";
+    const subject = `[MyMechanicAZ] ${formName}`;
+
+    // TEXT
+    const textLines = fields.map((f) => `${f.key}: ${f.value}`);
+    textLines.push("", "----", `Page: ${referer}`, `IP: ${ip}`, `UA: ${userAgent}`);
+    const text = textLines.join("\n");
+
+    // HTML
+    const escapeHtml = (s: string) =>
+      s
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+    const rows = fields
+      .map(
+        (f) =>
+          `<tr>
+            <td style="padding:8px 10px;border-bottom:1px solid #eee;font-weight:600;white-space:nowrap;">${escapeHtml(
+              f.key
+            )}</td>
+            <td style="padding:8px 10px;border-bottom:1px solid #eee;">${escapeHtml(f.value)}</td>
+          </tr>`
+      )
+      .join("");
+
+    const html = `
+      <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.45;color:#111;">
+        <h2 style="margin:0 0 12px;">${escapeHtml(subject)}</h2>
+        <table style="border-collapse:collapse;width:100%;max-width:720px;background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden;">
+          <tbody>${rows}</tbody>
+        </table>
+
+        <div style="margin-top:14px;font-size:13px;color:#444;">
+          <div><strong>Page:</strong> ${escapeHtml(referer)}</div>
+          <div><strong>IP:</strong> ${escapeHtml(ip)}</div>
+          <div><strong>UA:</strong> ${escapeHtml(userAgent)}</div>
+        </div>
+      </div>
+    `.trim();
+
+    // Attachments
+    const attachments: any[] = [];
+    const maxBytes = Number(env.MAX_UPLOAD_BYTES || 20 * 1024 * 1024);
+
+    for (const [, value] of form.entries()) {
+      if (!(value instanceof File)) continue;
+      if (!value.name) continue;
+
+      if (value.size > maxBytes) {
+        return new Response(JSON.stringify({ ok: false, error: `Attachment too large: ${value.name}` }), {
+          status: 413,
+          headers: { "content-type": "application/json" },
+        });
       }
 
-      if (document.querySelector('script[data-recaptcha-v3="1"]')) {
-        const t0 = Date.now();
-        const timer = setInterval(() => {
-          if (window.grecaptcha && typeof window.grecaptcha.ready === "function") {
-            clearInterval(timer);
-            resolve();
-          } else if (Date.now() - t0 > 8000) {
-            clearInterval(timer);
-            reject(new Error("reCAPTCHA failed to load"));
-          }
-        }, 50);
-        return;
-      }
+      const buf = await value.arrayBuffer();
+      const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
 
-      const s = document.createElement("script");
-      s.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
-      s.async = true;
-      s.defer = true;
-      s.setAttribute("data-recaptcha-v3", "1");
-      s.onload = () => resolve();
-      s.onerror = () => reject(new Error("Failed to load reCAPTCHA script"));
-      document.head.appendChild(s);
+      attachments.push({
+        filename: value.name,
+        content: b64,
+      });
+    }
+
+    const resendKey = env.RESEND_API_KEY;
+    if (!resendKey) {
+      return new Response(JSON.stringify({ ok: false, error: "Missing RESEND_API_KEY" }), {
+        status: 500,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    const payload: any = {
+      from: mailFrom,
+      to: [mailTo],
+      subject,
+      text,
+      html,
+      attachments: attachments.length ? attachments : undefined,
+    };
+
+    if (replyToEmail) {
+      payload.reply_to = replyToEmail;
+    }
+
+    const sendRes = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${resendKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!sendRes.ok) {
+      const errText = await sendRes.text().catch(() => "");
+      return new Response(JSON.stringify({ ok: false, error: `Email send failed (${sendRes.status}): ${errText}` }), {
+        status: 502,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify({ ok: true, message: "Thanks! We received your submission." }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  } catch (err: any) {
+    return new Response(JSON.stringify({ ok: false, error: `Server error: ${err?.message || "unknown"}` }), {
+      status: 500,
+      headers: { "content-type": "application/json" },
     });
   }
-
-  async function getToken(siteKey) {
-    await loadRecaptcha(siteKey);
-    await new Promise((resolve) => window.grecaptcha.ready(resolve));
-    return await window.grecaptcha.execute(siteKey, { action: "form_submit" });
-  }
-
-  for (const form of forms) {
-    // CAPTURE PHASE so we beat Formidable/jQuery handlers
-    form.addEventListener(
-      "submit",
-      async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        // critical: prevent Formidable submit pipeline
-        if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
-
-        const submitBtn = form.querySelector('[type="submit"]');
-        if (submitBtn) submitBtn.disabled = true;
-
-        try {
-          const siteKey = getSiteKey();
-          if (!siteKey) {
-            showStatus(form, "error", "Missing reCAPTCHA site key.");
-            return;
-          }
-
-          const token = await getToken(siteKey);
-
-          const tokenInput = form.querySelector('input[name="recaptcha_token"]');
-          if (tokenInput) tokenInput.value = token;
-
-          const fd = new FormData(form);
-
-          // Ensure server gets form_name
-          if (!fd.get("form_name")) {
-            const name = form.getAttribute("data-form-name") || "Form";
-            fd.set("form_name", name);
-          }
-
-          const res = await fetch(form.action, {
-            method: "POST",
-            body: fd,
-            headers: { Accept: "application/json" },
-          });
-
-          /** @type {{ ok: boolean; message?: string; error?: string } | null} */
-          const data = await res.json().catch(() => null);
-
-          if (!res.ok || !data || data.ok !== true) {
-            const msg = (data && (data.error || data.message)) || "Something went wrong. Please try again.";
-            showStatus(form, "error", msg);
-            return;
-          }
-
-          showStatus(form, "success", data.message || "Thanks! We received your submission.");
-          form.reset();
-        } catch (err) {
-          showStatus(form, "error", err?.message || "Network error. Please try again.");
-        } finally {
-          if (submitBtn) submitBtn.disabled = false;
-        }
-      },
-      true
-    );
-  }
-})();
+}
