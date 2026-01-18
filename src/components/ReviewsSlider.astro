@@ -2,7 +2,7 @@
 const {
   apiPath = "/api/reviews",
   max = 50,
-  limit = 12, // how many to show in the slider
+  limit = 12,
   autoplay = true,
   writeReviewUrl = "https://search.google.com/local/writereview?placeid=ChIJIRIHWwp01oYRVv-SOeBXy5o",
   title = "What customers are saying",
@@ -19,18 +19,196 @@ const {
 >
   <div class="reviews-slider__header">
     <h2 class="reviews-slider__title">{title}</h2>
-    <a class="btn btn-border" href={writeReviewUrl} target="_blank" rel="noopener">
-      Write a review
-    </a>
+    <a class="btn btn-border" href={writeReviewUrl} target="_blank" rel="noopener">Write a review</a>
   </div>
 
   <div class="reviews-slider__status" data-status style="display:none;"></div>
 
-  <!-- Slider track (Slick will transform this if available) -->
   <div class="reviews-slider__track" data-track>
     <!-- cards injected client-side -->
   </div>
 </section>
+
+<style>
+  .reviews-slider {
+    margin-top: 22px;
+  }
+
+  .reviews-slider__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+
+  /* fallback (no slick): horizontal scroll snap */
+  .reviews-slider__track {
+    display: flex;
+    gap: 18px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scroll-snap-type: x mandatory;
+  }
+
+  .reviews-slider__track > .review-card--slider {
+    min-width: 280px;
+    max-width: 360px;
+    scroll-snap-align: start;
+  }
+
+  /* slider card (white, hero) */
+  .reviews-slider .review-card--slider {
+    background: #fff !important;
+    border-radius: 18px;
+    padding: 16px 16px 12px;
+    border: 1px solid rgba(255,255,255,.70);
+    box-shadow: 0 14px 34px rgba(0,0,0,.22);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .reviews-slider .review-card__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .reviews-slider .review-card__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .reviews-slider .review-card__name {
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1.2;
+  }
+
+  .reviews-slider .review-card__time {
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  .reviews-slider .review-card__stars {
+    font-size: 14px;
+    letter-spacing: 1px;
+    color: #fbbc04;
+  }
+
+  .reviews-slider .review-card__text {
+    font-size: 14px;
+    line-height: 1.55;
+    color: #374151;
+    margin-top: 6px;
+  }
+
+  /* clamp keeps slider cards consistent height */
+  .reviews-slider .review-card__text--clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* footer */
+  .reviews-slider .review-card__footer {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0,0,0,.08);
+  }
+
+  .reviews-slider .review-card__google {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #374151;
+    text-decoration: none;
+    font-weight: 700;
+  }
+
+  .reviews-slider .review-card__google:hover {
+    text-decoration: underline;
+  }
+
+  .reviews-slider .review-card__gmark {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 14px;
+    background: rgba(0,0,0,.06);
+    color: rgba(0,0,0,.70);
+  }
+
+  /* avatar with initials fallback */
+  .reviews-slider .review-card__avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    overflow: hidden;
+    flex: 0 0 auto;
+    background: #eee;
+    position: relative;
+    border: 1px solid rgba(0,0,0,.10);
+  }
+
+  .reviews-slider .review-card__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .reviews-slider .review-card__avatar-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    color: rgba(0,0,0,.65);
+    background: rgba(0,0,0,.06);
+  }
+
+  /* when slick takes over, it controls layout */
+  .reviews-slider .slick-list { margin: 0 -10px; }
+  .reviews-slider .slick-slide { padding: 0 10px; }
+
+  .reviews-slider .slick-prev,
+  .reviews-slider .slick-next {
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.70);
+    background: #fff;
+    box-shadow: 0 12px 26px rgba(0,0,0,.22);
+    z-index: 2;
+  }
+
+  .reviews-slider .slick-prev:before,
+  .reviews-slider .slick-next:before {
+    color: rgba(0,0,0,.75);
+    font-size: 18px;
+  }
+
+  .reviews-slider__status {
+    margin: 12px 0 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,.12);
+    background: #fff;
+    font-weight: 800;
+  }
+</style>
 
 <script is:inline>
 (() => {
@@ -52,6 +230,12 @@ const {
     status.textContent = msg;
   }
 
+  function hideStatus() {
+    if (!status) return;
+    status.style.display = 'none';
+    status.textContent = '';
+  }
+
   function escapeHtml(s) {
     return String(s)
       .replaceAll('&','&amp;')
@@ -66,34 +250,64 @@ const {
     return '★★★★★☆☆☆☆☆'.slice(5 - s, 10 - s);
   }
 
-  function cardHtml(r) {
-      const name =
-      r.reviewer_name ||
-      r.author_name ||
-      r.name ||
-      'Anonymous';
+  function getAvatar(r) {
+    return (
+      r.reviewer_photo_url ||
+      r.profile_photo_url ||
+      r.reviewer_photo ||
+      r.profile_photo ||
+      r.profile_photo_url_high ||
+      r.profile_image_url ||
+      r.profile_image ||
+      r.author_photo ||
+      r.author_photo_url ||
+      r.avatar ||
+      r.avatar_url ||
+      ''
+    );
+  }
 
-    const text =
-      r.review_text ||
-      r.text ||
-      r.content ||
-      '';
+  function initials(name) {
+    const parts = String(name || '').trim().split(/\s+/).slice(0, 2);
+    return parts.map(p => (p[0] || '').toUpperCase()).join('') || 'A';
+  }
 
+  function renderAvatarHtml(name, avatarUrl) {
+    if (avatarUrl) {
+      return `
+        <div class="review-card__avatar">
+          <img
+            src="${escapeHtml(avatarUrl)}"
+            alt="${escapeHtml(name)}"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+            onerror="this.remove();"
+          />
+          <span class="review-card__avatar-fallback">${escapeHtml(initials(name))}</span>
+        </div>
+      `;
+    }
+    return `
+      <div class="review-card__avatar">
+        <span class="review-card__avatar-fallback">${escapeHtml(initials(name))}</span>
+      </div>
+    `;
+  }
+
+  function cardEl(r) {
+    const name = r.reviewer_name || r.author_name || r.name || 'Anonymous';
+    const text = r.review_text || r.text || r.content || '';
     const rating = Number(r.rating || r.stars || 0);
 
     const when =
       r.relative_time_description ||
       r.relative_time ||
       r.timeago ||
+      r.time_ago ||
       '';
 
-    const avatar =
-      r.reviewer_photo_url ||
-      r.profile_photo_url ||
-      r.avatar ||
-      '';
+    const avatar = getAvatar(r);
 
-    // Prefer a direct Google review url if present
     const googleUrl =
       r.url ||
       r.review_url ||
@@ -105,14 +319,7 @@ const {
 
     div.innerHTML = `
       <div class="review-card__header">
-        <div class="review-card__avatar">
-          ${
-            avatar
-              ? `<img src="${escapeHtml(avatar)}" alt="${escapeHtml(name)}" loading="lazy" referrerpolicy="no-referrer" />`
-              : ''
-          }
-        </div>
-
+        ${renderAvatarHtml(name, avatar)}
         <div class="review-card__meta">
           <div class="review-card__name">${escapeHtml(name)}</div>
           ${when ? `<div class="review-card__time">${escapeHtml(when)}</div>` : ''}
@@ -131,7 +338,6 @@ const {
         </a>
       </div>
     `;
-
     return div;
   }
 
@@ -150,16 +356,20 @@ const {
         return;
       }
 
-      if (status) status.style.display = 'none';
-      track.innerHTML = items.map(cardHtml).join('');
+      hideStatus();
 
-      // If Slick is present (theme uses jQuery + slick), initialize it.
-      // Otherwise the flex overflow-x fallback stays.
+      // IMPORTANT: append real nodes (not string join), avoids [object HTMLDivElement]
+      track.innerHTML = '';
+      items.forEach((r) => track.appendChild(cardEl(r)));
+
+      // Slick if available
       const hasJQ = typeof window.jQuery === 'function';
       const $ = hasJQ ? window.jQuery : null;
 
       if ($ && typeof $(track).slick === 'function') {
-        // Slick expects direct children as slides; our markup satisfies that.
+        // Avoid double init
+        if ($(track).hasClass('slick-initialized')) return;
+
         $(track).slick({
           slidesToShow: 3,
           slidesToScroll: 1,
@@ -173,7 +383,7 @@ const {
           ]
         });
 
-        // Optional: remove fallback overflow when slick takes over
+        // let slick handle overflow
         track.style.overflow = 'visible';
       }
     } catch (e) {

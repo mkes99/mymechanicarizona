@@ -8,7 +8,15 @@ const {
 } = Astro.props;
 ---
 
-<section class="reviews-grid" data-reviews-grid data-api={apiPath} data-max={max} data-initial={initial} data-step={step} data-write-url={writeReviewUrl}>
+<section
+  class="reviews-grid"
+  data-reviews-grid
+  data-api={apiPath}
+  data-max={max}
+  data-initial={initial}
+  data-step={step}
+  data-write-url={writeReviewUrl}
+>
   <div class="reviews-grid__header">
     <h2>Customer Reviews</h2>
     <a class="btn btn-border" href={writeReviewUrl} target="_blank" rel="noopener">Write a Review</a>
@@ -25,15 +33,130 @@ const {
   </div>
 </section>
 
+<style>
+  /* FORCE masonry columns even if theme tries to override with flex/grid */
+  .reviews-grid__masonry {
+    column-count: 3 !important;
+    column-gap: 18px !important;
+    display: block !important;
+  }
+  @media (max-width: 1100px) {
+    .reviews-grid__masonry { column-count: 2 !important; }
+  }
+  @media (max-width: 640px) {
+    .reviews-grid__masonry { column-count: 1 !important; }
+  }
+
+  .reviews-grid__masonry > .review-card {
+    display: inline-block !important;
+    width: 100% !important;
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    margin: 0 0 18px;
+
+    background: #fff;
+    border-radius: 18px;
+    padding: 16px 16px;
+    border: 1px solid rgba(0,0,0,.08);
+    box-shadow: 0 8px 22px rgba(0,0,0,.12);
+  }
+
+  .review-card__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .review-card__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .review-card__name {
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1.2;
+  }
+
+  .review-card__time {
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  .review-card__stars {
+    font-size: 14px;
+    letter-spacing: 1px;
+    color: #fbbc04;
+  }
+
+  .review-card__text {
+    font-size: 14px;
+    line-height: 1.55;
+    color: #374151;
+    margin-top: 6px;
+  }
+
+  /* Avatar with initials fallback */
+  .review-card__avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    overflow: hidden;
+    flex: 0 0 auto;
+    background: #eee;
+    position: relative;
+    border: 1px solid rgba(0,0,0,.10);
+  }
+
+  .review-card__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .review-card__avatar-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    color: rgba(0,0,0,.65);
+    background: rgba(0,0,0,.06);
+  }
+
+  .reviews-grid__actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+  }
+
+  .reviews-grid__status {
+    margin: 12px 0 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,.12);
+    background: #fff;
+    font-weight: 800;
+  }
+  .reviews-grid__status--error { border-color: rgba(220,0,0,.25); }
+  .reviews-grid__status--empty { border-color: rgba(0,0,0,.18); }
+</style>
+
 <script is:inline>
 (() => {
   const root = document.querySelector('[data-reviews-grid]');
   if (!root) return;
 
   const api = root.getAttribute('data-api') || '/api/reviews';
-  const max = Number(root.getAttribute('data-max') || '50');
-  const initial = Number(root.getAttribute('data-initial') || '9');
-  const step = Number(root.getAttribute('data-step') || '9');
+  const max = Number(root.getAttribute('data-max') || '100');
+  const initial = Number(root.getAttribute('data-initial') || '20');
+  const step = Number(root.getAttribute('data-step') || '20');
 
   const status = root.querySelector('[data-status]');
   const list = root.querySelector('[data-list]');
@@ -49,66 +172,12 @@ const {
     status.textContent = msg;
   }
 
-  function renderStars(n) {
-    const s = Math.max(0, Math.min(5, Number(n) || 0));
-    return '★★★★★☆☆☆☆☆'.slice(5 - s, 10 - s);
+  function hideStatus() {
+    if (!status) return;
+    status.style.display = 'none';
+    status.textContent = '';
   }
 
-  function renderCard(r) {
-    const name =
-      r.reviewer_name ||
-      r.author_name ||
-      r.name ||
-      'Anonymous';
-
-    const text =
-      r.review_text ||
-      r.text ||
-      r.content ||
-      '';
-
-    const rating = Number(r.rating || r.stars || 0);
-
-    const when =
-      r.relative_time_description ||
-      r.relative_time ||
-      r.timeago ||
-      '';
-
-    const avatar =
-      r.reviewer_photo_url ||
-      r.profile_photo_url ||
-      r.avatar ||
-      '';
-
-    const div = document.createElement('div');
-    div.className = 'review-card';
-
-    div.innerHTML = `
-      <div class="review-card__header">
-        <div class="review-card__avatar">
-          ${
-            avatar
-              ? `<img src="${escapeHtml(avatar)}" alt="${escapeHtml(name)}" loading="lazy" referrerpolicy="no-referrer" />`
-              : ''
-          }
-        </div>
-
-        <div class="review-card__meta">
-          <div class="review-card__name">${escapeHtml(name)}</div>
-          ${when ? `<div class="review-card__time">${escapeHtml(when)}</div>` : ''}
-          <div class="review-card__stars">${escapeHtml(renderStars(rating))}</div>
-        </div>
-      </div>
-
-      <div class="review-card__text">
-        ${escapeHtml(text)}
-      </div>
-    `;
-
-    return div;
-  }
-  
   function escapeHtml(s) {
     return String(s)
       .replaceAll('&','&amp;')
@@ -118,10 +187,92 @@ const {
       .replaceAll("'","&#039;");
   }
 
+  function renderStars(n) {
+    const s = Math.max(0, Math.min(5, Number(n) || 0));
+    return '★★★★★☆☆☆☆☆'.slice(5 - s, 10 - s);
+  }
+
+  function getAvatar(r) {
+    return (
+      r.reviewer_photo_url ||
+      r.profile_photo_url ||
+      r.reviewer_photo ||
+      r.profile_photo ||
+      r.profile_photo_url_high ||
+      r.profile_image_url ||
+      r.profile_image ||
+      r.author_photo ||
+      r.author_photo_url ||
+      r.avatar ||
+      r.avatar_url ||
+      ''
+    );
+  }
+
+  function initials(name) {
+    const parts = String(name || '').trim().split(/\s+/).slice(0, 2);
+    return parts.map(p => (p[0] || '').toUpperCase()).join('') || 'A';
+  }
+
+  function renderAvatarHtml(name, avatarUrl) {
+    if (avatarUrl) {
+      return `
+        <div class="review-card__avatar">
+          <img
+            src="${escapeHtml(avatarUrl)}"
+            alt="${escapeHtml(name)}"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+            onerror="this.remove();"
+          />
+          <span class="review-card__avatar-fallback">${escapeHtml(initials(name))}</span>
+        </div>
+      `;
+    }
+    return `
+      <div class="review-card__avatar">
+        <span class="review-card__avatar-fallback">${escapeHtml(initials(name))}</span>
+      </div>
+    `;
+  }
+
+  function renderCard(r) {
+    const name = r.reviewer_name || r.author_name || r.name || 'Anonymous';
+    const text = r.review_text || r.text || r.content || '';
+    const rating = Number(r.rating || r.stars || 0);
+
+    // most feeds provide a relative string, use it when available
+    const when =
+      r.relative_time_description ||
+      r.relative_time ||
+      r.timeago ||
+      r.time_ago ||
+      '';
+
+    const avatar = getAvatar(r);
+
+    const div = document.createElement('div');
+    div.className = 'review-card';
+
+    div.innerHTML = `
+      <div class="review-card__header">
+        ${renderAvatarHtml(name, avatar)}
+        <div class="review-card__meta">
+          <div class="review-card__name">${escapeHtml(name)}</div>
+          ${when ? `<div class="review-card__time">${escapeHtml(when)}</div>` : ''}
+          <div class="review-card__stars">${escapeHtml(renderStars(rating))}</div>
+        </div>
+      </div>
+      <div class="review-card__text">${escapeHtml(text)}</div>
+    `;
+
+    return div;
+  }
+
   function drawMore(count) {
     if (!list) return;
     const next = all.slice(shown, shown + count);
-    next.forEach(r => list.appendChild(renderCard(r)));
+    next.forEach((r) => list.appendChild(renderCard(r)));
     shown += next.length;
 
     if (btn) btn.style.display = shown < all.length ? 'inline-block' : 'none';
@@ -141,12 +292,10 @@ const {
         return;
       }
 
-      if (status) status.style.display = 'none';
+      hideStatus();
       drawMore(initial);
 
-      if (btn) {
-        btn.addEventListener('click', () => drawMore(step));
-      }
+      if (btn) btn.addEventListener('click', () => drawMore(step));
     } catch (e) {
       setStatus('error', 'Reviews are temporarily unavailable.');
       if (btn) btn.style.display = 'none';
