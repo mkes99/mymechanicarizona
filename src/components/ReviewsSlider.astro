@@ -4,6 +4,7 @@ const {
   max = 50,
   limit = 16, // total items to render; recommend multiples of 4
   autoplay = true,
+  autoplayMs = 5500,
   writeReviewUrl = "https://search.google.com/local/writereview?placeid=ChIJIRIHWwp01oYRVv-SOeBXy5o",
   title = "What customers are saying",
 } = Astro.props;
@@ -16,6 +17,7 @@ const {
   data-max={max}
   data-limit={limit}
   data-autoplay={autoplay ? "1" : "0"}
+  data-autoplay-ms={autoplayMs}
 >
   <div class="reviews-slider__header">
     <h2 class="reviews-slider__title">{title}</h2>
@@ -24,15 +26,20 @@ const {
 
   <div class="reviews-slider__status" data-status style="display:none;"></div>
 
+  <!-- Controls (used for fallback; hidden when Slick is active) -->
+  <div class="reviews-slider__controls" data-controls>
+    <button type="button" class="reviews-slider__arrow" data-prev aria-label="Previous reviews">‹</button>
+    <button type="button" class="reviews-slider__arrow" data-next aria-label="Next reviews">›</button>
+  </div>
+
+  <!-- Track (Slick may transform this; fallback uses scroll snapping) -->
   <div class="reviews-slider__track" data-track>
     <!-- cards injected client-side -->
   </div>
 </section>
 
 <style>
-  .reviews-slider {
-    margin-top: 22px;
-  }
+  .reviews-slider { margin-top: 22px; }
 
   .reviews-slider__header {
     display: flex;
@@ -43,16 +50,69 @@ const {
     margin-bottom: 14px;
   }
 
-  /* fallback (no slick): horizontal scroll */
+  /* Controls */
+  .reviews-slider__controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin: 0 0 10px;
+  }
+
+  .reviews-slider__arrow {
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.70);
+    background: #fff;
+    box-shadow: 0 12px 26px rgba(0,0,0,.22);
+    font-size: 22px;
+    line-height: 1;
+    font-weight: 800;
+    color: rgba(0,0,0,.75);
+    cursor: pointer;
+  }
+
+  /* Fallback track: 4-up paging with scroll snap */
   .reviews-slider__track {
     display: flex;
     gap: 18px;
     overflow-x: auto;
-    padding-bottom: 6px;
+    padding-bottom: 8px;
     scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
   }
 
-  /* card */
+  .reviews-slider__track::-webkit-scrollbar { height: 8px; }
+  .reviews-slider__track::-webkit-scrollbar-thumb { background: rgba(0,0,0,.18); border-radius: 999px; }
+
+  /* 4 cards per view on desktop */
+  .reviews-slider__track > .review-card--slider {
+    scroll-snap-align: start;
+    flex: 0 0 calc((100% - (18px * 3)) / 4);
+    max-width: calc((100% - (18px * 3)) / 4);
+  }
+
+  @media (max-width: 1200px) {
+    .reviews-slider__track > .review-card--slider {
+      flex-basis: calc((100% - (18px * 2)) / 3);
+      max-width: calc((100% - (18px * 2)) / 3);
+    }
+  }
+  @media (max-width: 992px) {
+    .reviews-slider__track > .review-card--slider {
+      flex-basis: calc((100% - 18px) / 2);
+      max-width: calc((100% - 18px) / 2);
+    }
+  }
+  @media (max-width: 768px) {
+    .reviews-slider__track > .review-card--slider {
+      flex-basis: 100%;
+      max-width: 100%;
+    }
+  }
+
+  /* Card (white; sits over your already-darkened image) */
   .reviews-slider .review-card--slider {
     background: #fff !important;
     border-radius: 18px;
@@ -62,7 +122,6 @@ const {
     height: 100%;
     display: flex;
     flex-direction: column;
-    scroll-snap-align: start;
   }
 
   .reviews-slider .review-card__meta {
@@ -97,7 +156,7 @@ const {
     margin-top: 6px;
   }
 
-  /* truncate long text */
+  /* Keep consistent height */
   .reviews-slider .review-card__text--clamp {
     display: -webkit-box;
     -webkit-line-clamp: 4;
@@ -105,14 +164,12 @@ const {
     overflow: hidden;
   }
 
-  /* footer */
   .reviews-slider .review-card__footer {
     margin-top: auto;
     padding-top: 12px;
     border-top: 1px solid rgba(0,0,0,.08);
   }
 
-  /* Google blue link */
   .reviews-slider .review-card__google {
     display: inline-flex;
     align-items: center;
@@ -122,30 +179,14 @@ const {
     font-weight: 700;
   }
 
-  .reviews-slider .review-card__google:hover {
-    text-decoration: underline;
-  }
+  .reviews-slider .review-card__google:hover { text-decoration: underline; }
 
-  /* when slick takes over, it controls layout */
+  /* If Slick takes over, hide fallback controls (Slick has its own arrows) */
+  .reviews-slider[data-slick="1"] .reviews-slider__controls { display: none; }
+
+  /* Slick spacing if active */
   .reviews-slider .slick-list { margin: 0 -10px; }
   .reviews-slider .slick-slide { padding: 0 10px; }
-
-  .reviews-slider .slick-prev,
-  .reviews-slider .slick-next {
-    width: 40px;
-    height: 40px;
-    border-radius: 999px;
-    border: 1px solid rgba(255,255,255,.70);
-    background: #fff;
-    box-shadow: 0 12px 26px rgba(0,0,0,.22);
-    z-index: 2;
-  }
-
-  .reviews-slider .slick-prev:before,
-  .reviews-slider .slick-next:before {
-    color: rgba(0,0,0,.75);
-    font-size: 18px;
-  }
 
   .reviews-slider__status {
     margin: 12px 0 0;
@@ -166,9 +207,12 @@ const {
   const max = Number(root.getAttribute('data-max') || '50');
   const limit = Number(root.getAttribute('data-limit') || '16');
   const autoplay = (root.getAttribute('data-autoplay') || '1') === '1';
+  const autoplayMs = Number(root.getAttribute('data-autoplay-ms') || '5500');
 
   const status = root.querySelector('[data-status]');
   const track = root.querySelector('[data-track]');
+  const prevBtn = root.querySelector('[data-prev]');
+  const nextBtn = root.querySelector('[data-next]');
 
   function setStatus(type, msg) {
     if (!status) return;
@@ -176,7 +220,6 @@ const {
     status.className = `reviews-slider__status reviews-slider__status--${type}`;
     status.textContent = msg;
   }
-
   function hideStatus() {
     if (!status) return;
     status.style.display = 'none';
@@ -197,6 +240,16 @@ const {
     return '★★★★★☆☆☆☆☆'.slice(5 - s, 10 - s);
   }
 
+  function getGoogleUrl(r) {
+    return (
+      r.url ||
+      r.review_url ||
+      r.google_url ||
+      r.link ||
+      'https://www.google.com/maps?cid=11154105522663391062'
+    );
+  }
+
   function cardEl(r) {
     const name = r.reviewer_name || r.author_name || r.name || 'Anonymous';
     const text = r.review_text || r.text || r.content || '';
@@ -209,19 +262,14 @@ const {
       r.time_ago ||
       '';
 
-    const googleUrl =
-      r.url ||
-      r.review_url ||
-      r.google_url ||
-      'https://www.google.com/maps?cid=11154105522663391062';
+    const googleUrl = getGoogleUrl(r);
 
     const div = document.createElement('div');
     div.className = 'review-card review-card--slider';
-
     div.innerHTML = `
       <div class="review-card__meta">
         <div class="review-card__name">${escapeHtml(name)}</div>
-        ${when ? `<div class="review-card__time">${escapeHtml(when)}</div>` : ''}
+        ${when ? `<div class="review-card__time">${escapeHtml(when)}</div>` : ``}
         <div class="review-card__stars">${escapeHtml(renderStars(rating))}</div>
       </div>
 
@@ -236,6 +284,40 @@ const {
       </div>
     `;
     return div;
+  }
+
+  function pageScrollCount() {
+    // match CSS breakpoints for "cards per view"
+    const w = window.innerWidth || 1200;
+    if (w <= 768) return 1;
+    if (w <= 992) return 2;
+    if (w <= 1200) return 3;
+    return 4;
+  }
+
+  function scrollByCards(dir) {
+    if (!track) return;
+    const card = track.querySelector('.review-card--slider');
+    if (!card) return;
+
+    const cards = pageScrollCount();
+    const gap = 18; // keep in sync with CSS gap
+    const dx = (card.getBoundingClientRect().width + gap) * cards * dir;
+
+    track.scrollBy({ left: dx, behavior: 'smooth' });
+  }
+
+  function initFallbackControls() {
+    if (prevBtn) prevBtn.addEventListener('click', () => scrollByCards(-1));
+    if (nextBtn) nextBtn.addEventListener('click', () => scrollByCards(1));
+
+    // autoplay (fallback)
+    if (autoplay) {
+      let t = setInterval(() => scrollByCards(1), autoplayMs);
+      // pause on hover
+      root.addEventListener('mouseenter', () => { clearInterval(t); });
+      root.addEventListener('mouseleave', () => { t = setInterval(() => scrollByCards(1), autoplayMs); });
+    }
   }
 
   async function init() {
@@ -254,33 +336,36 @@ const {
       }
 
       hideStatus();
-
       track.innerHTML = '';
-      items.forEach((r) => track.appendChild(cardEl(r)));
+      items.forEach(r => track.appendChild(cardEl(r)));
 
+      // Try Slick if available; otherwise fallback scroll remains
       const hasJQ = typeof window.jQuery === 'function';
       const $ = hasJQ ? window.jQuery : null;
 
       if ($ && typeof $(track).slick === 'function') {
-        if ($(track).hasClass('slick-initialized')) return;
-
-        // page in groups: show 4, scroll 4
-        $(track).slick({
-          slidesToShow: 4,
-          slidesToScroll: 4,
-          arrows: true,
-          dots: false,
-          autoplay: autoplay,
-          autoplaySpeed: 4500,
-          responsive: [
-            { breakpoint: 1200, settings: { slidesToShow: 3, slidesToScroll: 3 } },
-            { breakpoint: 992,  settings: { slidesToShow: 2, slidesToScroll: 2 } },
-            { breakpoint: 768,  settings: { slidesToShow: 1, slidesToScroll: 1 } }
-          ]
-        });
-
-        track.style.overflow = 'visible';
+        if (!$(track).hasClass('slick-initialized')) {
+          root.setAttribute('data-slick', '1');
+          $(track).slick({
+            slidesToShow: 4,
+            slidesToScroll: 4,
+            arrows: true,
+            dots: false,
+            autoplay: autoplay,
+            autoplaySpeed: autoplayMs,
+            responsive: [
+              { breakpoint: 1200, settings: { slidesToShow: 3, slidesToScroll: 3 } },
+              { breakpoint: 992,  settings: { slidesToShow: 2, slidesToScroll: 2 } },
+              { breakpoint: 768,  settings: { slidesToShow: 1, slidesToScroll: 1 } }
+            ]
+          });
+        }
+        // slick owns movement now
+        return;
       }
+
+      // fallback controls
+      initFallbackControls();
     } catch (e) {
       setStatus('error', 'Reviews are temporarily unavailable.');
     }
