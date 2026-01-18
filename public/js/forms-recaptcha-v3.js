@@ -50,22 +50,9 @@
     return await window.grecaptcha.execute(siteKey, { action: "form_submit" });
   }
 
-  // Block Formidable/jQuery delegated handlers BEFORE they run
-  document.addEventListener(
-    "submit",
-    (e) => {
-      const form = e.target;
-      if (!(form instanceof HTMLFormElement)) return;
-      if (!form.matches(FORM_SELECTOR)) return;
-
-      e.preventDefault();
-      e.stopPropagation();
-      if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
-    },
-    true
-  );
-
-  // Our real handler (capture)
+  // One capture submit handler:
+  // - blocks Formidable/jQuery
+  // - performs our async submit
   document.addEventListener(
     "submit",
     async (e) => {
@@ -73,10 +60,16 @@
       if (!(form instanceof HTMLFormElement)) return;
       if (!form.matches(FORM_SELECTOR)) return;
 
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+
       const submitBtn = form.querySelector('[type="submit"]');
       if (submitBtn) submitBtn.disabled = true;
 
       try {
+        showStatus(form, "info", "Submitting…");
+
         const siteKey = getSiteKey();
         if (!siteKey) {
           showStatus(form, "error", "Missing reCAPTCHA site key.");
@@ -84,6 +77,7 @@
         }
 
         const token = await getToken(siteKey);
+
         const tokenInput = form.querySelector('input[name="recaptcha_token"]');
         if (tokenInput) tokenInput.value = token;
 
@@ -100,8 +94,11 @@
           headers: { Accept: "application/json" },
         });
 
-        /** @type {{ ok: boolean; message?: string; error?: string } | null} */
-        const data = await res.json().catch(() => null);
+        const raw = await res.text();
+        let data = null;
+        try {
+          data = JSON.parse(raw);
+        } catch {}
 
         if (!res.ok || !data || data.ok !== true) {
           const msg = (data && (data.error || data.message)) || `Request failed (${res.status})`;
@@ -112,7 +109,8 @@
         showStatus(form, "success", data.message || "Thanks! We received your submission.");
         form.reset();
       } catch (err) {
-        showStatus(form, "error", err?.message || "Network error. Please try again.");
+        console.error("[forms] submit failed", err);
+        showStatus(form, "error", err?.message || String(err) || "Network error. Please try again.");
       } finally {
         if (submitBtn) submitBtn.disabled = false;
       }
