@@ -1,162 +1,188 @@
 ---
-type Review = {
-  reviewer_name?: string;
-  reviewer_photo_link?: string;
-  rating?: number;
-  review_text?: string;
-};
-
-type Feed = {
-  bio?: any;
-  reviews?: Review[];
-};
-
 const {
-  feed: feedProp,
-  feedError: feedErrorProp = false,
+  apiPath = "/api/reviews",
   max = 50,
-  title = "Customer Reviews",
-} = Astro.props as {
-  feed?: Feed;
-  feedError?: boolean;
-  max?: number;
-  title?: string;
-};
-
-// If no feed provided, fetch from the site's API.
-let feed: Feed = feedProp ?? { bio: null, reviews: [] };
-let feedError = feedErrorProp;
-
-if (!feedProp) {
-  const apiUrl = new URL("/api/reviews", Astro.url);
-  try {
-    const res = await fetch(apiUrl.toString(), { headers: { Accept: "application/json" } });
-    if (!res.ok) throw new Error(String(res.status));
-    const json = (await res.json()) as any;
-    if (json && json.ok === false) {
-      feedError = true;
-      feed = { bio: null, reviews: [] };
-    } else {
-      feed = json as Feed;
-    }
-  } catch {
-    feedError = true;
-    feed = { bio: null, reviews: [] };
-  }
-}
-
-const reviews = (feed.reviews ?? []).slice(0, max);
-
-function stars(rating = 0) {
-  const n = Math.max(0, Math.min(5, Math.round(Number(rating) || 0)));
-  return "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n);
-}
+  limit = 12, // how many to show in the slider
+  autoplay = true,
+  writeReviewUrl = "https://search.google.com/local/writereview?placeid=ChIJIRIHWwp01oYRVv-SOeBXy5o",
+  title = "What customers are saying",
+} = Astro.props;
 ---
 
-<section class="reviews">
-  <header class="hdr">
-    <h2 class="title">{title}</h2>
-    {!feedError && reviews.length > 0 && (
-      <div class="controls">
-        <button class="btn" type="button" data-prev aria-label="Previous">‹</button>
-        <button class="btn" type="button" data-next aria-label="Next">›</button>
-      </div>
-    )}
-  </header>
+<section
+  class="reviews-slider"
+  data-reviews-slider
+  data-api={apiPath}
+  data-max={max}
+  data-limit={limit}
+  data-autoplay={autoplay ? "1" : "0"}
+>
+  <div class="reviews-slider__header">
+    <h2 class="reviews-slider__title">{title}</h2>
+    <a class="btn btn-border" href={writeReviewUrl} target="_blank" rel="noopener">
+      Write a review
+    </a>
+  </div>
 
-  {feedError ? (
-    <div class="fallback">
-      <p>Reviews are temporarily unavailable.</p>
-    </div>
-  ) : reviews.length === 0 ? (
-    <div class="fallback">
-      <p>No reviews to display yet.</p>
-    </div>
-  ) : (
-    <div class="carousel" tabindex="0">
-      {reviews.map((r) => (
-        <article class="slide">
-          <div class="top">
-            {r.reviewer_photo_link ? (
-              <img class="avatar" src={r.reviewer_photo_link} alt="" loading="lazy" />
-            ) : (
-              <div class="avatar ph" aria-hidden="true" />
-            )}
-            <div>
-              <div class="name">{r.reviewer_name ?? "Anonymous"}</div>
-              <div class="stars" aria-label={`Rating ${r.rating ?? 0} out of 5`}>{stars(r.rating ?? 0)}</div>
-            </div>
-          </div>
-          <p class="text">{r.review_text ?? ""}</p>
-        </article>
-      ))}
-    </div>
-  )}
+  <div class="reviews-slider__status" data-status style="display:none;"></div>
+
+  <!-- Slider track (Slick will transform this if available) -->
+  <div class="reviews-slider__track" data-track>
+    <!-- cards injected client-side -->
+  </div>
 </section>
 
-{!feedError && reviews.length > 0 && (
-  <script is:inline>
-    (() => {
-      const root = document.currentScript?.closest("section");
-      const scroller = root?.querySelector(".carousel");
-      const prev = root?.querySelector("[data-prev]");
-      const next = root?.querySelector("[data-next]");
-      if (!scroller || !prev || !next) return;
-
-      const scroll = (d) => {
-        const slide = scroller.querySelector(".slide");
-        const w = slide ? slide.getBoundingClientRect().width : 320;
-        scroller.scrollBy({ left: d * (w + 16), behavior: "smooth" });
-      };
-
-      prev.addEventListener("click", () => scroll(-1));
-      next.addEventListener("click", () => scroll(1));
-    })();
-  </script>
-)}
-
 <style>
-  .reviews { padding: 2rem 0; }
-  .hdr { display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; margin-bottom:1rem; }
-  .title { margin:0; font-size:1.6rem; }
-  .controls { display:flex; gap:.5rem; }
-  .btn {
-    width:40px; height:40px;
-    border-radius:999px;
-    border:1px solid rgba(0,0,0,.15);
-    background:#fff;
-    cursor:pointer;
-    font-size:1.25rem;
-    line-height: 1;
+  /* Minimal fallback styling (won't fight your theme) */
+  .reviews-slider__track {
+    display: flex;
+    gap: 18px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scroll-snap-type: x mandatory;
   }
-  .carousel {
-    display:grid;
-    grid-auto-flow:column;
-    grid-auto-columns:minmax(280px, 1fr);
-    gap:1rem;
-    overflow-x:auto;
-    scroll-snap-type:x mandatory;
-    padding-bottom:.5rem;
-    -webkit-overflow-scrolling: touch;
+  .review-slide {
+    min-width: 280px;
+    max-width: 360px;
+    scroll-snap-align: start;
   }
-  .slide {
-    scroll-snap-align:start;
-    border:1px solid rgba(0,0,0,.08);
-    border-radius:16px;
-    padding:1rem;
-    background:#fff;
-    display:grid;
-    gap:.75rem;
-    min-height: 180px;
+  .review-card {
+    border: 1px solid rgba(0,0,0,.10);
+    border-radius: 14px;
+    background: #fff;
+    padding: 16px 16px;
+    height: 100%;
   }
-  .top { display:flex; gap:.75rem; align-items:center; }
-  .avatar { width:44px; height:44px; border-radius:999px; object-fit:cover; flex:0 0 auto; }
-  .ph { background: rgba(0,0,0,.06); }
-  .name { font-weight:800; }
-  .stars { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-  .text {
-    margin:0; line-height:1.45; white-space: pre-wrap;
-    display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient: vertical; overflow:hidden;
+  .review-card__top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
   }
-  .fallback { border:1px dashed rgba(0,0,0,.15); border-radius:16px; padding:1rem; opacity:.85; background:#fff; }
+  .review-card__name {
+    font-weight: 800;
+    line-height: 1.2;
+  }
+  .review-card__stars {
+    font-weight: 800;
+    letter-spacing: .5px;
+    white-space: nowrap;
+  }
+  .review-card__text {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  .reviews-slider__status {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,.12);
+    background: #fff;
+    font-weight: 700;
+  }
+  .reviews-slider__status--error { border-color: rgba(220,0,0,.25); }
+  .reviews-slider__status--empty { border-color: rgba(0,0,0,.18); }
 </style>
+
+<script is:inline>
+(() => {
+  const root = document.querySelector('[data-reviews-slider]');
+  if (!root) return;
+
+  const api = root.getAttribute('data-api') || '/api/reviews';
+  const max = Number(root.getAttribute('data-max') || '50');
+  const limit = Number(root.getAttribute('data-limit') || '12');
+  const autoplay = (root.getAttribute('data-autoplay') || '1') === '1';
+
+  const status = root.querySelector('[data-status]');
+  const track = root.querySelector('[data-track]');
+
+  function setStatus(type, msg) {
+    if (!status) return;
+    status.style.display = 'block';
+    status.className = `reviews-slider__status reviews-slider__status--${type}`;
+    status.textContent = msg;
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'","&#039;");
+  }
+
+  function renderStars(n) {
+    const s = Math.max(0, Math.min(5, Number(n) || 0));
+    return '★★★★★☆☆☆☆☆'.slice(5 - s, 10 - s);
+  }
+
+  function cardHtml(r) {
+    const name = r.reviewer_name || 'Anonymous';
+    const text = r.review_text || '';
+    const rating = r.rating || 0;
+
+    return `
+      <div class="review-slide">
+        <div class="review-card">
+          <div class="review-card__top">
+            <div class="review-card__name">${escapeHtml(name)}</div>
+            <div class="review-card__stars">${escapeHtml(renderStars(rating))}</div>
+          </div>
+          <div class="review-card__text">${escapeHtml(text)}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  async function init() {
+    if (!track) return;
+
+    try {
+      const res = await fetch(api, { headers: { 'Accept': 'application/json' } });
+      const data = await res.json().catch(() => null);
+
+      const reviews = data && Array.isArray(data.reviews) ? data.reviews : [];
+      const items = reviews.slice(0, Math.min(max, limit));
+
+      if (!items.length) {
+        setStatus('empty', 'No reviews to display yet.');
+        return;
+      }
+
+      if (status) status.style.display = 'none';
+      track.innerHTML = items.map(cardHtml).join('');
+
+      // If Slick is present (theme uses jQuery + slick), initialize it.
+      // Otherwise the flex overflow-x fallback stays.
+      const hasJQ = typeof window.jQuery === 'function';
+      const $ = hasJQ ? window.jQuery : null;
+
+      if ($ && typeof $(track).slick === 'function') {
+        // Slick expects direct children as slides; our markup satisfies that.
+        $(track).slick({
+          slidesToShow: 3,
+          slidesToScroll: 1,
+          arrows: true,
+          dots: false,
+          autoplay: autoplay,
+          autoplaySpeed: 4000,
+          responsive: [
+            { breakpoint: 1024, settings: { slidesToShow: 2 } },
+            { breakpoint: 768, settings: { slidesToShow: 1 } }
+          ]
+        });
+
+        // Optional: remove fallback overflow when slick takes over
+        track.style.overflow = 'visible';
+      }
+    } catch (e) {
+      setStatus('error', 'Reviews are temporarily unavailable.');
+    }
+  }
+
+  init();
+})();
+</script>
