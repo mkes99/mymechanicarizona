@@ -64,7 +64,8 @@ const {
 
   .review-card__header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    justify-content: space-between;
     gap: 12px;
     margin-bottom: 10px;
   }
@@ -100,34 +101,27 @@ const {
     margin-top: 6px;
   }
 
-  /* Avatar with initials fallback */
-  .review-card__avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 999px;
-    overflow: hidden;
-    flex: 0 0 auto;
-    background: #eee;
-    position: relative;
-    border: 1px solid rgba(0,0,0,.10);
-  }
-
-  .review-card__avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .review-card__avatar-fallback {
-    position: absolute;
-    inset: 0;
+  .review-card__footer {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0,0,0,.08);
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    color: rgba(0,0,0,.65);
-    background: rgba(0,0,0,.06);
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .review-card__google {
+    color: #1a73e8; /* Google blue */
+    text-decoration: none;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .review-card__google:hover {
+    text-decoration: underline;
   }
 
   .reviews-grid__actions {
@@ -192,48 +186,14 @@ const {
     return '★★★★★☆☆☆☆☆'.slice(5 - s, 10 - s);
   }
 
-  function getAvatar(r) {
+  function getGoogleUrl(r) {
     return (
-      r.reviewer_photo_url ||
-      r.profile_photo_url ||
-      r.reviewer_photo ||
-      r.profile_photo ||
-      r.profile_photo_url_high ||
-      r.profile_image_url ||
-      r.profile_image ||
-      r.author_photo ||
-      r.author_photo_url ||
-      r.avatar ||
-      r.avatar_url ||
-      ''
+      r.url ||
+      r.review_url ||
+      r.google_url ||
+      r.link ||
+      'https://www.google.com/maps?cid=11154105522663391062'
     );
-  }
-
-  function initials(name) {
-    const parts = String(name || '').trim().split(/\s+/).slice(0, 2);
-    return parts.map(p => (p[0] || '').toUpperCase()).join('') || 'A';
-  }
-
-  function renderAvatarHtml(name, avatarUrl) {
-    if (avatarUrl) {
-      return `
-        <div class="review-card__avatar">
-          <img
-            src="${escapeHtml(avatarUrl)}"
-            alt="${escapeHtml(name)}"
-            loading="lazy"
-            referrerpolicy="no-referrer"
-            onerror="this.remove();"
-          />
-          <span class="review-card__avatar-fallback">${escapeHtml(initials(name))}</span>
-        </div>
-      `;
-    }
-    return `
-      <div class="review-card__avatar">
-        <span class="review-card__avatar-fallback">${escapeHtml(initials(name))}</span>
-      </div>
-    `;
   }
 
   function renderCard(r) {
@@ -241,7 +201,6 @@ const {
     const text = r.review_text || r.text || r.content || '';
     const rating = Number(r.rating || r.stars || 0);
 
-    // most feeds provide a relative string, use it when available
     const when =
       r.relative_time_description ||
       r.relative_time ||
@@ -249,21 +208,27 @@ const {
       r.time_ago ||
       '';
 
-    const avatar = getAvatar(r);
+    const googleUrl = getGoogleUrl(r);
 
     const div = document.createElement('div');
     div.className = 'review-card';
 
     div.innerHTML = `
       <div class="review-card__header">
-        ${renderAvatarHtml(name, avatar)}
         <div class="review-card__meta">
           <div class="review-card__name">${escapeHtml(name)}</div>
           ${when ? `<div class="review-card__time">${escapeHtml(when)}</div>` : ''}
           <div class="review-card__stars">${escapeHtml(renderStars(rating))}</div>
         </div>
       </div>
+
       <div class="review-card__text">${escapeHtml(text)}</div>
+
+      <div class="review-card__footer">
+        <a class="review-card__google" href="${escapeHtml(googleUrl)}" target="_blank" rel="noopener">
+          See review on Google
+        </a>
+      </div>
     `;
 
     return div;
