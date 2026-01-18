@@ -1551,6 +1551,7 @@ div .faq-accordion .faq__item .faq__content {
 .form-status--error { border-color: rgba(220,0,0,.25); }
 .form-status--info { border-color: rgba(0,0,0,.18); }
 
+
 /* =========================================================
    REVIEWS – SHARED TOKENS
    ========================================================= */
@@ -1568,7 +1569,7 @@ div .faq-accordion .faq__item .faq__content {
 
   /* Slider tuning */
   --reviews-slider-gap: 18px;
-  --reviews-slider-card-h: 230px; /* make taller if you want */
+  --reviews-slider-card-h: 230px;
 }
 
 /* =========================================================
@@ -1660,8 +1661,8 @@ div .faq-accordion .faq__item .faq__content {
 }
 
 /* =========================================================
-   REVIEWS SLIDER – layout (4 visible, step by 4)
-   IMPORTANT: no viewport padding/margins (prevents partial cards)
+   REVIEWS SLIDER – layout
+   (IMPORTANT: viewport is the scroll container; track is flex)
    ========================================================= */
 
 .reviews-slider,
@@ -1677,25 +1678,33 @@ div .faq-accordion .faq__item .faq__content {
 }
 
 .reviews-slider__viewport {
-  overflow: hidden;
   width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+
+  /* DO NOT add padding/margins here; it breaks snap math */
   padding: 0 !important;
   margin: 0 !important;
+
+  /* hide scrollbars */
+  scrollbar-width: none;
 }
+.reviews-slider__viewport::-webkit-scrollbar { display: none; }
 
 .reviews-slider__track {
   display: flex;
   flex-wrap: nowrap !important;
   gap: var(--reviews-slider-gap);
-  will-change: transform;
-  transition: transform 350ms ease;
-  transform: translate3d(0,0,0);
 }
 
 /* 4-up */
 .reviews-slider__track > .review-card--slider {
   flex: 0 0 calc((100% - (var(--reviews-slider-gap) * 3)) / 4);
   min-width: 0;
+  scroll-snap-align: start;
 }
 
 /* 3-up */
@@ -1704,14 +1713,12 @@ div .faq-accordion .faq__item .faq__content {
     flex-basis: calc((100% - (var(--reviews-slider-gap) * 2)) / 3);
   }
 }
-
 /* 2-up */
 @media (max-width: 900px) {
   .reviews-slider__track > .review-card--slider {
     flex-basis: calc((100% - (var(--reviews-slider-gap) * 1)) / 2);
   }
 }
-
 /* 1-up */
 @media (max-width: 640px) {
   .reviews-slider__track > .review-card--slider {
@@ -1738,6 +1745,7 @@ div .faq-accordion .faq__item .faq__content {
   flex-direction: column;
 }
 
+/* meta */
 .reviews-slider .review-card--slider .review-card__meta {
   display: flex;
   flex-direction: column;
@@ -1747,7 +1755,7 @@ div .faq-accordion .faq__item .faq__content {
   flex: 0 0 auto;
 }
 
-/* Scrollable body area (component uses .review-card__text--scroll) */
+/* scrollable body */
 .reviews-slider .review-card--slider .review-card__text--scroll {
   flex: 1 1 auto;
   overflow: auto;
@@ -1758,7 +1766,7 @@ div .faq-accordion .faq__item .faq__content {
   line-height: 1.55;
 }
 
-/* Optional: prettier scrollbar */
+/* scrollbar (optional) */
 .reviews-slider .review-card--slider .review-card__text--scroll::-webkit-scrollbar {
   width: 8px;
 }
@@ -1767,6 +1775,7 @@ div .faq-accordion .faq__item .faq__content {
   border-radius: 999px;
 }
 
+/* footer pinned bottom */
 .reviews-slider .review-card--slider .review-card__footer {
   margin-top: 10px;
   padding-top: 12px;
@@ -1774,12 +1783,12 @@ div .faq-accordion .faq__item .faq__content {
   flex: 0 0 auto;
 }
 
+/* Google link */
 .reviews-slider .review-card--slider .review-card__google {
   color: var(--review-google-blue) !important;
   text-decoration: none;
   font-weight: 700;
 }
-
 .reviews-slider .review-card--slider .review-card__google:hover {
   text-decoration: underline;
 }
@@ -1811,7 +1820,7 @@ div .faq-accordion .faq__item .faq__content {
   cursor: default;
 }
 
-/* If any theme CSS tries to absolutely-position arrows, neutralize it */
+/* Neutralize any theme absolute positioning */
 .reviews-slider__arrow,
 .reviews-slider__arrow:before,
 .reviews-slider__arrow:after {
@@ -1844,7 +1853,7 @@ div .faq-accordion .faq__item .faq__content {
   color: var(--review-google-gold);
 }
 
-/* Grid text breathing room */
+/* grid text breathing */
 .reviews-grid__masonry > .review-card .review-card__text {
   font-size: 14px;
   line-height: 1.55;
@@ -1854,7 +1863,7 @@ div .faq-accordion .faq__item .faq__content {
   padding-bottom: 12px;
 }
 
-/* Status blocks (grid + slider) */
+/* Status blocks */
 .reviews-grid__status,
 .reviews-slider__status {
   margin: 12px 0 0;
@@ -1863,33 +1872,4 @@ div .faq-accordion .faq__item .faq__content {
   border: 1px solid rgba(0,0,0,.12);
   background: #fff;
   font-weight: 800;
-}
-
-/* viewport becomes the scroll container */
-.reviews-slider__viewport {
-  overflow: hidden;
-  width: 100%;
-}
-
-.reviews-slider__viewport {
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-
-  /* hide scrollbar (optional) */
-  scrollbar-width: none;
-}
-.reviews-slider__viewport::-webkit-scrollbar { display: none; }
-
-/* snap each card */
-.reviews-slider__track > .review-card--slider {
-  scroll-snap-align: start;
-}
-
-/* IMPORTANT: do not add padding/margins to viewport or math drifts */
-.reviews-slider__viewport {
-  padding: 0 !important;
-  margin: 0 !important;
 }

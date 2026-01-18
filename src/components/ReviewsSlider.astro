@@ -22,7 +22,8 @@ const {
   <div class="reviews-slider__header">
     <h2 class="reviews-slider__title">{title}</h2>
 
-    <a class="btn btn-border btn-wide" href={writeReviewUrl} target="_blank" rel="noopener">
+    <!-- IMPORTANT: keep your button markup -->
+    <a class="btn border-btn btn-wide" href={writeReviewUrl} target="_blank" rel="noopener">
       <span>Write a review</span>
     </a>
   </div>
@@ -76,12 +77,16 @@ const {
   let timer = null;
   let isHover = false;
 
+  // Infinite-loop state
+  let isCloned = false;
+
   function setStatus(type, msg) {
     if (!status) return;
     status.style.display = 'block';
     status.className = `reviews-slider__status reviews-slider__status--${type}`;
     status.textContent = msg;
   }
+
   function hideStatus() {
     if (!status) return;
     status.style.display = 'none';
@@ -157,15 +162,16 @@ const {
     return div;
   }
 
-  // Infinite loop using clones (first/last "page" worth of cards)
-  let isCloned = false;
-  let cloneHeadCount = 0;
-  let cloneTailCount = 0;
-
   function clearClones() {
     if (!track) return;
     track.querySelectorAll('[data-clone]').forEach(n => n.remove());
     isCloned = false;
+  }
+
+  function firstRealEl() {
+    if (!track) return null;
+    const per = cardsPerView();
+    return track.children[per] || null; // after prepending "per" clones
   }
 
   function applyClones() {
@@ -176,42 +182,86 @@ const {
     const children = Array.from(track.children);
     if (children.length <= per) return;
 
-    cloneHeadCount = per;
-    cloneTailCount = per;
-
     // Clone last page to the front
-    const tail = children.slice(-per).map(n => {
+    children.slice(-per).forEach((n) => {
       const c = n.cloneNode(true);
       c.setAttribute('data-clone', '1');
-      return c;
+      track.insertBefore(c, track.firstChild);
     });
-    tail.forEach(n => track.insertBefore(n, track.firstChild));
 
     // Clone first page to the end
-    const head = children.slice(0, per).map(n => {
+    children.slice(0, per).forEach((n) => {
       const c = n.cloneNode(true);
       c.setAttribute('data-clone', '1');
-      return c;
+      track.appendChild(c);
     });
-    head.forEach(n => track.appendChild(n));
 
     isCloned = true;
 
-    // Jump to the "real first page"
+    // ✅ Jump to the first REAL card boundary (fixes partial-card issue)
     requestAnimationFrame(() => {
-      viewport.scrollLeft = viewport.clientWidth;
+      const firstReal = firstRealEl();
+      if (firstReal) viewport.scrollLeft = firstReal.offsetLeft;
     });
   }
 
-  function scrollNext() {
-    if (!viewport) return;
-    viewport.scrollBy({ left: viewport.clientWidth, behavior: 'smooth' });
+  function onScrollLoopFix() {
+    if (!viewport || !track || !isCloned) return;
+
+    const per = cardsPerView();
+    const totalReal = items.length;
+
+    const firstReal = track.children[per];
+    const lastRealFirst = track.children[per + (totalReal - per)];
+    const endCloneStart = track.children[per + totalReal]; // first clone after real items
+
+    if (!firstReal || !lastRealFirst || !endCloneStart) return;
+
+    const x = viewport.scrollLeft;
+
+    // Into "front clones" area => jump to last real page (no animation)
+    if (x <= firstReal.offsetLeft - 2) {
+      viewport.scrollLeft = lastRealFirst.offsetLeft;
+      return;
+    }
+
+    // Into "end clones" area => jump to first real page (no animation)
+    if (x >= endCloneStart.offsetLeft - 2) {
+      viewport.scrollLeft = firstReal.offsetLeft;
+      return;
+    }
   }
 
-  function scrollPrev() {
-    if (!viewport) return;
-    viewport.scrollBy({ left: -viewport.clientWidth, behavior: 'smooth' });
+  // Move by a full page using actual element offsets (no drift)
+  function scrollToPage(delta) {
+    if (!viewport || !track) return;
+
+    const per = cardsPerView();
+    const cards = Array.from(track.children);
+    const x = viewport.scrollLeft;
+
+    // page starts are indices divisible by per
+    const starts = cards
+      .map((el, idx) => ({ el, idx, left: el.offsetLeft }))
+      .filter(o => o.idx % per === 0);
+
+    if (!starts.length) return;
+
+    // find current page start
+    let current = 0;
+    for (let i = 0; i < starts.length; i++) {
+      if (starts[i].left <= x + 2) current = i;
+    }
+
+    let next = current + delta;
+    if (next < 0) next = 0;
+    if (next > starts.length - 1) next = starts.length - 1;
+
+    viewport.scrollTo({ left: starts[next].left, behavior: 'smooth' });
   }
+
+  function scrollNext() { scrollToPage(1); }
+  function scrollPrev() { scrollToPage(-1); }
 
   function stopAuto() {
     if (timer) {
@@ -229,25 +279,6 @@ const {
     }, autoplayMs);
   }
 
-  function onScrollLoopFix() {
-    if (!viewport || !track || !isCloned) return;
-
-    // If we've scrolled into the cloned end, jump back to the real start (no animation)
-    const maxScroll = viewport.scrollWidth - viewport.clientWidth;
-
-    // Near start clone area
-    if (viewport.scrollLeft <= 2) {
-      viewport.scrollLeft = viewport.clientWidth * (Math.ceil(items.length / cardsPerView()));
-      return;
-    }
-
-    // Near end clone area
-    if (viewport.scrollLeft >= maxScroll - 2) {
-      viewport.scrollLeft = viewport.clientWidth;
-      return;
-    }
-  }
-
   async function init() {
     if (!track || !viewport) return;
 
@@ -257,6 +288,11 @@ const {
       const reviews = data && Array.isArray(data.reviews) ? data.reviews : [];
 
       items = reviews.slice(0, Math.min(max, limit));
+
+      // ✅ Trim to a full page (prevents weird last-page snapping)
+      const per = cardsPerView();
+      const full = Math.floor(items.length / per) * per;
+      items = items.slice(0, full || per);
 
       if (!items.length) {
         setStatus('empty', 'No reviews to display yet.');
@@ -268,7 +304,6 @@ const {
       track.innerHTML = '';
       items.forEach(r => track.appendChild(cardEl(r)));
 
-      // Ensure correct snap positions after render
       requestAnimationFrame(() => {
         applyClones();
       });
@@ -283,14 +318,14 @@ const {
       }
 
       // Infinite loop correction
+      let raf = 0;
       viewport.addEventListener('scroll', () => {
-        // throttle-ish
-        window.requestAnimationFrame(onScrollLoopFix);
+        if (raf) cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(onScrollLoopFix);
       }, { passive: true });
 
-      // Rebuild clones on resize (cardsPerView changes)
+      // Rebuild clones on resize
       window.addEventListener('resize', () => {
-        // preserve the “real” position by snapping to the nearest page width
         stopAuto();
         requestAnimationFrame(() => {
           applyClones();
