@@ -23,7 +23,7 @@ const {
     <h2 class="reviews-slider__title">{title}</h2>
 
     <!-- IMPORTANT: keep your button markup -->
-    <a class="btn border-btn btn-wide" href={writeReviewUrl} target="_blank" rel="noopener">
+    <a class="btn btn-border btn-wide" href={writeReviewUrl} target="_blank" rel="noopener">
       <span>Write a review</span>
     </a>
   </div>
@@ -57,288 +57,246 @@ const {
 
 <script is:inline>
 (() => {
-  const root = document.querySelector('[data-reviews-slider]');
-  if (!root) return;
+  const sliders = document.querySelectorAll('[data-reviews-slider]');
+  if (!sliders.length) return;
 
-  const api = root.getAttribute('data-api') || '/api/reviews';
-  const max = Number(root.getAttribute('data-max') || '50');
-  const limit = Number(root.getAttribute('data-limit') || '24');
-  const autoplay = (root.getAttribute('data-autoplay') || '0') === '1';
-  const autoplayMs = Number(root.getAttribute('data-autoplay-ms') || '5500') || 5500;
+  sliders.forEach((root) => {
+    const api = root.getAttribute('data-api') || '/api/reviews';
+    const max = Number(root.getAttribute('data-max') || '50');
+    const limit = Number(root.getAttribute('data-limit') || '24');
+    const autoplay = (root.getAttribute('data-autoplay') || '0') === '1';
+    const autoplayMs = Number(root.getAttribute('data-autoplay-ms') || '5500');
 
-  const status = root.querySelector('[data-status]');
-  const frame = root.querySelector('[data-frame]');
-  const viewport = root.querySelector('[data-viewport]');
-  const track = root.querySelector('[data-track]');
-  const prevBtn = root.querySelector('[data-prev]');
-  const nextBtn = root.querySelector('[data-next]');
+    const status = root.querySelector('[data-status]');
+    const frame = root.querySelector('[data-frame]');
+    const viewport = root.querySelector('[data-viewport]');
+    const track = root.querySelector('[data-track]');
+    const prevBtn = root.querySelector('[data-prev]');
+    const nextBtn = root.querySelector('[data-next]');
 
-  let items = [];
-  let timer = null;
-  let isHover = false;
+    let items = [];
+    let timer = null;
+    let isHover = false;
+    let isCloned = false;
 
-  // Infinite-loop state
-  let isCloned = false;
+    /* -------------------------------------------------- */
+    /* helpers                                            */
+    /* -------------------------------------------------- */
 
-  function setStatus(type, msg) {
-    if (!status) return;
-    status.style.display = 'block';
-    status.className = `reviews-slider__status reviews-slider__status--${type}`;
-    status.textContent = msg;
-  }
-
-  function hideStatus() {
-    if (!status) return;
-    status.style.display = 'none';
-    status.textContent = '';
-  }
-
-  function escapeHtml(s) {
-    return String(s)
-      .replaceAll('&','&amp;')
-      .replaceAll('<','&lt;')
-      .replaceAll('>','&gt;')
-      .replaceAll('"','&quot;')
-      .replaceAll("'","&#039;");
-  }
-
-  function renderStars(n) {
-    const s = Math.max(0, Math.min(5, Number(n) || 0));
-    return '★★★★★☆☆☆☆☆'.slice(5 - s, 10 - s);
-  }
-
-  function getGoogleUrl(r) {
-    return (
-      r.url ||
-      r.review_url ||
-      r.google_url ||
-      r.link ||
-      'https://www.google.com/maps?cid=11154105522663391062'
-    );
-  }
-
-  function cardsPerView() {
-    const w = window.innerWidth || 1200;
-    if (w <= 640) return 1;
-    if (w <= 900) return 2;
-    if (w <= 1200) return 3;
-    return 4;
-  }
-
-  function cardEl(r) {
-    const name = r.reviewer_name || r.author_name || r.name || 'Anonymous';
-    const text = r.review_text || r.text || r.content || '';
-    const rating = Number(r.rating || r.stars || 0);
-
-    const when =
-      r.relative_time_description ||
-      r.relative_time ||
-      r.timeago ||
-      r.time_ago ||
-      '';
-
-    const googleUrl = getGoogleUrl(r);
-
-    const div = document.createElement('div');
-    div.className = 'review-card review-card--slider';
-
-    div.innerHTML = `
-      <div class="review-card__meta">
-        <div class="review-card__name">${escapeHtml(name)}</div>
-        ${when ? `<div class="review-card__time">${escapeHtml(when)}</div>` : ``}
-        <div class="review-card__stars">${escapeHtml(renderStars(rating))}</div>
-      </div>
-
-      <div class="review-card__text review-card__text--scroll">
-        ${escapeHtml(text)}
-      </div>
-
-      <div class="review-card__footer">
-        <a class="review-card__google" href="${escapeHtml(googleUrl)}" target="_blank" rel="noopener">
-          View on Google
-        </a>
-      </div>
-    `;
-    return div;
-  }
-
-  function clearClones() {
-    if (!track) return;
-    track.querySelectorAll('[data-clone]').forEach(n => n.remove());
-    isCloned = false;
-  }
-
-  function firstRealEl() {
-    if (!track) return null;
-    const per = cardsPerView();
-    return track.children[per] || null; // after prepending "per" clones
-  }
-
-  function applyClones() {
-    if (!track || !viewport) return;
-    clearClones();
-
-    const per = cardsPerView();
-    const children = Array.from(track.children);
-    if (children.length <= per) return;
-
-    // Clone last page to the front
-    children.slice(-per).forEach((n) => {
-      const c = n.cloneNode(true);
-      c.setAttribute('data-clone', '1');
-      track.insertBefore(c, track.firstChild);
-    });
-
-    // Clone first page to the end
-    children.slice(0, per).forEach((n) => {
-      const c = n.cloneNode(true);
-      c.setAttribute('data-clone', '1');
-      track.appendChild(c);
-    });
-
-    isCloned = true;
-
-    // ✅ Jump to the first REAL card boundary (fixes partial-card issue)
-    requestAnimationFrame(() => {
-      const firstReal = firstRealEl();
-      if (firstReal) viewport.scrollLeft = firstReal.offsetLeft;
-    });
-  }
-
-  function onScrollLoopFix() {
-    if (!viewport || !track || !isCloned) return;
-
-    const per = cardsPerView();
-    const totalReal = items.length;
-
-    const firstReal = track.children[per];
-    const lastRealFirst = track.children[per + (totalReal - per)];
-    const endCloneStart = track.children[per + totalReal]; // first clone after real items
-
-    if (!firstReal || !lastRealFirst || !endCloneStart) return;
-
-    const x = viewport.scrollLeft;
-
-    // Into "front clones" area => jump to last real page (no animation)
-    if (x <= firstReal.offsetLeft - 2) {
-      viewport.scrollLeft = lastRealFirst.offsetLeft;
-      return;
+    function setStatus(type, msg) {
+      if (!status) return;
+      status.style.display = 'block';
+      status.textContent = msg;
+      status.className = `reviews-slider__status reviews-slider__status--${type}`;
     }
 
-    // Into "end clones" area => jump to first real page (no animation)
-    if (x >= endCloneStart.offsetLeft - 2) {
-      viewport.scrollLeft = firstReal.offsetLeft;
-      return;
-    }
-  }
-
-  // Move by a full page using actual element offsets (no drift)
-  function scrollToPage(delta) {
-    if (!viewport || !track) return;
-
-    const per = cardsPerView();
-    const cards = Array.from(track.children);
-    const x = viewport.scrollLeft;
-
-    // page starts are indices divisible by per
-    const starts = cards
-      .map((el, idx) => ({ el, idx, left: el.offsetLeft }))
-      .filter(o => o.idx % per === 0);
-
-    if (!starts.length) return;
-
-    // find current page start
-    let current = 0;
-    for (let i = 0; i < starts.length; i++) {
-      if (starts[i].left <= x + 2) current = i;
+    function hideStatus() {
+      if (!status) return;
+      status.style.display = 'none';
+      status.textContent = '';
     }
 
-    let next = current + delta;
-    if (next < 0) next = 0;
-    if (next > starts.length - 1) next = starts.length - 1;
-
-    viewport.scrollTo({ left: starts[next].left, behavior: 'smooth' });
-  }
-
-  function scrollNext() { scrollToPage(1); }
-  function scrollPrev() { scrollToPage(-1); }
-
-  function stopAuto() {
-    if (timer) {
-      clearInterval(timer);
-      timer = null;
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
     }
-  }
 
-  function startAuto() {
-    stopAuto();
-    if (!autoplay) return;
-    timer = setInterval(() => {
-      if (isHover) return;
-      scrollNext();
-    }, autoplayMs);
-  }
+    function renderStars(n) {
+      const s = Math.max(0, Math.min(5, Number(n) || 0));
+      return '★★★★★☆☆☆☆☆'.slice(5 - s, 10 - s);
+    }
 
-  async function init() {
-    if (!track || !viewport) return;
+    function getCardsPerView() {
+      const w = window.innerWidth;
+      if (w <= 640) return 1;
+      if (w <= 900) return 2;
+      if (w <= 1200) return 3;
+      return 4;
+    }
 
-    try {
-      const res = await fetch(api, { headers: { 'Accept': 'application/json' } });
-      const data = await res.json().catch(() => null);
-      const reviews = data && Array.isArray(data.reviews) ? data.reviews : [];
+    function cardEl(r) {
+      const name = r.reviewer_name || r.author_name || r.name || 'Anonymous';
+      const text = r.review_text || r.text || r.content || '';
+      const rating = Number(r.rating || r.stars || 0);
+      const when =
+        r.relative_time_description ||
+        r.relative_time ||
+        r.timeago ||
+        '';
 
-      items = reviews.slice(0, Math.min(max, limit));
+      const googleUrl =
+        r.url ||
+        r.review_url ||
+        r.google_url ||
+        r.link ||
+        'https://www.google.com/maps?cid=11154105522663391062';
 
-      // ✅ Trim to a full page (prevents weird last-page snapping)
-      const per = cardsPerView();
-      const full = Math.floor(items.length / per) * per;
-      items = items.slice(0, full || per);
+      const div = document.createElement('div');
+      div.className = 'review-card review-card--slider';
 
-      if (!items.length) {
-        setStatus('empty', 'No reviews to display yet.');
-        return;
-      }
+      div.innerHTML = `
+        <div class="review-card__meta">
+          <div class="review-card__name">${escapeHtml(name)}</div>
+          ${when ? `<div class="review-card__time">${escapeHtml(when)}</div>` : ''}
+          <div class="review-card__stars">${renderStars(rating)}</div>
+        </div>
 
-      hideStatus();
+        <div class="review-card__text review-card__text--scroll">
+          ${escapeHtml(text)}
+        </div>
 
-      track.innerHTML = '';
-      items.forEach(r => track.appendChild(cardEl(r)));
+        <div class="review-card__footer">
+          <a class="review-card__google" href="${escapeHtml(googleUrl)}" target="_blank" rel="noopener">
+            View on Google
+          </a>
+        </div>
+      `;
+      return div;
+    }
+
+    /* -------------------------------------------------- */
+    /* infinite cloning                                   */
+    /* -------------------------------------------------- */
+
+    function clearClones() {
+      track.querySelectorAll('[data-clone]').forEach(n => n.remove());
+      isCloned = false;
+    }
+
+    function applyClones() {
+      clearClones();
+
+      const per = getCardsPerView();
+      const cards = Array.from(track.children);
+      if (cards.length <= per) return;
+
+      const head = cards.slice(0, per);
+      const tail = cards.slice(-per);
+
+      tail.forEach(card => {
+        const clone = card.cloneNode(true);
+        clone.setAttribute('data-clone', '1');
+        track.insertBefore(clone, track.firstChild);
+      });
+
+      head.forEach(card => {
+        const clone = card.cloneNode(true);
+        clone.setAttribute('data-clone', '1');
+        track.appendChild(clone);
+      });
+
+      isCloned = true;
 
       requestAnimationFrame(() => {
-        applyClones();
+        viewport.scrollLeft = viewport.clientWidth;
       });
+    }
 
-      if (prevBtn) prevBtn.addEventListener('click', () => { stopAuto(); scrollPrev(); startAuto(); });
-      if (nextBtn) nextBtn.addEventListener('click', () => { stopAuto(); scrollNext(); startAuto(); });
+    /* -------------------------------------------------- */
+    /* scrolling logic                                    */
+    /* -------------------------------------------------- */
 
-      // Pause on hover
-      if (frame) {
-        frame.addEventListener('mouseenter', () => { isHover = true; });
-        frame.addEventListener('mouseleave', () => { isHover = false; });
+    function scrollByPage(dir) {
+      viewport.scrollBy({
+        left: dir * viewport.clientWidth,
+        behavior: 'smooth'
+      });
+    }
+
+    function loopFix() {
+      if (!isCloned) return;
+
+      const max = viewport.scrollWidth - viewport.clientWidth;
+      const per = getCardsPerView();
+      const realPages = Math.ceil(items.length / per);
+
+      if (viewport.scrollLeft <= 1) {
+        viewport.scrollLeft = viewport.clientWidth * realPages;
       }
 
-      // Infinite loop correction
-      let raf = 0;
-      viewport.addEventListener('scroll', () => {
-        if (raf) cancelAnimationFrame(raf);
-        raf = requestAnimationFrame(onScrollLoopFix);
-      }, { passive: true });
+      if (viewport.scrollLeft >= max - 1) {
+        viewport.scrollLeft = viewport.clientWidth;
+      }
+    }
 
-      // Rebuild clones on resize
-      window.addEventListener('resize', () => {
-        stopAuto();
-        requestAnimationFrame(() => {
-          applyClones();
+    /* -------------------------------------------------- */
+    /* autoplay                                           */
+    /* -------------------------------------------------- */
+
+    function stopAuto() {
+      if (timer) clearInterval(timer);
+      timer = null;
+    }
+
+    function startAuto() {
+      stopAuto();
+      if (!autoplay) return;
+
+      timer = setInterval(() => {
+        if (!isHover) scrollByPage(1);
+      }, autoplayMs);
+    }
+
+    /* -------------------------------------------------- */
+    /* init                                               */
+    /* -------------------------------------------------- */
+
+    async function init() {
+      try {
+        const res = await fetch(api, { headers: { Accept: 'application/json' } });
+        const data = await res.json();
+        const reviews = Array.isArray(data.reviews) ? data.reviews : [];
+
+        items = reviews.slice(0, Math.min(max, limit));
+        if (!items.length) {
+          setStatus('empty', 'No reviews to display.');
+          return;
+        }
+
+        hideStatus();
+        track.innerHTML = '';
+        items.forEach(r => track.appendChild(cardEl(r)));
+
+        requestAnimationFrame(applyClones);
+
+        prevBtn?.addEventListener('click', () => {
+          stopAuto();
+          scrollByPage(-1);
           startAuto();
         });
-      });
 
-      startAuto();
-    } catch (e) {
-      setStatus('error', 'Reviews are temporarily unavailable.');
+        nextBtn?.addEventListener('click', () => {
+          stopAuto();
+          scrollByPage(1);
+          startAuto();
+        });
+
+        frame?.addEventListener('mouseenter', () => (isHover = true));
+        frame?.addEventListener('mouseleave', () => (isHover = false));
+
+        viewport.addEventListener('scroll', () => {
+          requestAnimationFrame(loopFix);
+        }, { passive: true });
+
+        window.addEventListener('resize', () => {
+          stopAuto();
+          requestAnimationFrame(() => {
+            applyClones();
+            startAuto();
+          });
+        });
+
+        startAuto();
+      } catch (e) {
+        setStatus('error', 'Reviews are temporarily unavailable.');
+      }
     }
-  }
 
-  init();
+    init();
+  });
 })();
 </script>
