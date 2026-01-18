@@ -1626,6 +1626,28 @@ div .faq-accordion .faq__item .faq__content {
 }
 
 /* =========================================================
+   REVIEWS SLIDER – header layout
+   ========================================================= */
+
+.reviews-slider__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.reviews-slider__title {
+  margin: 0;
+}
+
+/* If it wraps on small screens, keep button aligned nicely */
+.reviews-slider__header .btn {
+  margin-left: auto;
+}
+
+/* =========================================================
    REVIEWS SLIDER – custom pager (4 visible, step by 4)
    ========================================================= */
 
@@ -1636,13 +1658,11 @@ div .faq-accordion .faq__item .faq__content {
   gap: 14px;
 }
 
-/* This is the viewport that enforces "only 4 visible" */
 .reviews-slider__viewport {
   overflow: hidden;
   width: 100%;
 }
 
-/* Track slides as a whole "page" width */
 .reviews-slider__track {
   display: flex;
   gap: 18px;
@@ -1676,7 +1696,80 @@ div .faq-accordion .faq__item .faq__content {
   }
 }
 
-/* Side arrows (centered) */
+/* =========================================================
+   REVIEWS SLIDER – white cards over image (NO avatar)
+   ========================================================= */
+
+.reviews-slider .review-card--slider {
+  background: #fff !important;
+  border-radius: 18px;
+  padding: 16px 16px 12px;
+  border: 1px solid rgba(255,255,255,.70);
+  box-shadow: 0 14px 34px rgba(0,0,0,.22);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.reviews-slider .review-card--slider .review-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  margin-bottom: 8px;
+}
+
+.reviews-slider .review-card--slider .review-card__name {
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.2;
+}
+
+.reviews-slider .review-card--slider .review-card__time {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.reviews-slider .review-card--slider .review-card__stars {
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: #fbbc04;
+}
+
+.reviews-slider .review-card--slider .review-card__text {
+  font-size: 14px;
+  line-height: 1.55;
+  color: #374151;
+  margin-top: 6px;
+}
+
+.reviews-slider .review-card--slider .review-card__text--clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.reviews-slider .review-card--slider .review-card__footer {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,0,0,.08);
+}
+
+.reviews-slider .review-card--slider .review-card__google {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #1a73e8 !important;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.reviews-slider .review-card--slider .review-card__google:hover {
+  text-decoration: underline;
+}
+
+/* Side arrows centered */
 .reviews-slider__arrow {
   flex: 0 0 auto;
   width: 44px;
@@ -1696,12 +1789,6 @@ div .faq-accordion .faq__item .faq__content {
 .reviews-slider__arrow:disabled {
   opacity: .45;
   cursor: default;
-}
-
-/* Make sure arrows don't stack top/bottom */
-.reviews-slider__arrow--prev,
-.reviews-slider__arrow--next {
-  align-self: center;
 }
 
 /* =========================================================

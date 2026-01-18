@@ -2,7 +2,7 @@
 const {
   apiPath = "/api/reviews",
   max = 50,
-  limit = 50, // render up to this many cards total
+  limit = 16, // render up to this many cards total
   autoplay = true,
   autoplayMs = 5500,
   writeReviewUrl = "https://search.google.com/local/writereview?placeid=ChIJIRIHWwp01oYRVv-SOeBXy5o",
@@ -21,12 +21,15 @@ const {
 >
   <div class="reviews-slider__header">
     <h2 class="reviews-slider__title">{title}</h2>
-    <a class="btn btn-border" href={writeReviewUrl} target="_blank" rel="noopener"><span>Write a review</span></a>
+
+    <!-- keep YOUR button markup/classes -->
+    <a class="btn border-btn btn-wide" href={writeReviewUrl} target="_blank" rel="noopener">
+      <span>Write a review</span>
+    </a>
   </div>
 
   <div class="reviews-slider__status" data-status style="display:none;"></div>
 
-  <!-- Wrapper lets us place arrows on the sides of the cards -->
   <div class="reviews-slider__frame" data-frame>
     <button type="button" class="reviews-slider__arrow reviews-slider__arrow--prev" data-prev aria-label="Previous reviews">
       ‹
@@ -138,7 +141,6 @@ const {
   }
 
   function getCardsPerView() {
-    // must match CSS breakpoints
     const w = window.innerWidth || 1200;
     if (w <= 640) return 1;
     if (w <= 900) return 2;
@@ -160,15 +162,12 @@ const {
 
   function applyTransform() {
     if (!track) return;
-    const per = getCardsPerView();
     const total = pagesCount();
     if (page > total - 1) page = total - 1;
 
-    // Move by full "page" (4 cards on desktop, 3/2/1 on smaller)
     const pageWidth = viewport ? viewport.clientWidth : 0;
     const x = pageWidth * page;
     track.style.transform = `translate3d(${-x}px, 0, 0)`;
-
     updateButtons();
   }
 
@@ -216,25 +215,17 @@ const {
       track.innerHTML = '';
       items.forEach(r => track.appendChild(cardEl(r)));
 
-      // Events
       if (prevBtn) prevBtn.addEventListener('click', () => { stopAuto(); go(-1); startAuto(); });
       if (nextBtn) nextBtn.addEventListener('click', () => { stopAuto(); go(1); startAuto(); });
 
-      // Resize keeps paging correct (4/3/2/1)
-      window.addEventListener('resize', () => {
-        // re-apply transform using updated viewport width & cards-per-view
-        applyTransform();
-      });
+      window.addEventListener('resize', () => applyTransform());
 
-      // Pause on hover for desktop usability
       if (frame) {
         frame.addEventListener('mouseenter', stopAuto);
         frame.addEventListener('mouseleave', startAuto);
       }
 
-      // Start at beginning
       page = 0;
-      // first layout pass
       requestAnimationFrame(() => {
         applyTransform();
         startAuto();
