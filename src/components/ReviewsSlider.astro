@@ -2,7 +2,7 @@
 const {
   apiPath = "/api/reviews",
   max = 50,
-  limit = 16, // total items to render; recommend multiples of 4
+  limit = 16, // total items rendered; recommend multiples of 4
   autoplay = true,
   autoplayMs = 5500,
   writeReviewUrl = "https://search.google.com/local/writereview?placeid=ChIJIRIHWwp01oYRVv-SOeBXy5o",
@@ -26,15 +26,29 @@ const {
 
   <div class="reviews-slider__status" data-status style="display:none;"></div>
 
-  <!-- Controls (used for fallback; hidden when Slick is active) -->
-  <div class="reviews-slider__controls" data-controls>
-    <button type="button" class="reviews-slider__arrow" data-prev aria-label="Previous reviews">‹</button>
-    <button type="button" class="reviews-slider__arrow" data-next aria-label="Next reviews">›</button>
-  </div>
+  <!-- Wrapper lets us place arrows on the sides of the cards -->
+  <div class="reviews-slider__frame" data-frame>
+    <button
+      type="button"
+      class="reviews-slider__arrow reviews-slider__arrow--prev"
+      data-prev
+      aria-label="Previous reviews"
+    >
+      ‹
+    </button>
 
-  <!-- Track (Slick may transform this; fallback uses scroll snapping) -->
-  <div class="reviews-slider__track" data-track>
-    <!-- cards injected client-side -->
+    <div class="reviews-slider__track" data-track>
+      <!-- cards injected client-side -->
+    </div>
+
+    <button
+      type="button"
+      class="reviews-slider__arrow reviews-slider__arrow--next"
+      data-next
+      aria-label="Next reviews"
+    >
+      ›
+    </button>
   </div>
 </section>
 
@@ -50,69 +64,91 @@ const {
     margin-bottom: 14px;
   }
 
-  /* Controls */
-  .reviews-slider__controls {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin: 0 0 10px;
+  .reviews-slider__frame {
+    position: relative;
   }
 
+  /* Arrows on the sides of the cards */
   .reviews-slider__arrow {
-    width: 40px;
-    height: 40px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
     border-radius: 999px;
     border: 1px solid rgba(255,255,255,.70);
     background: #fff;
     box-shadow: 0 12px 26px rgba(0,0,0,.22);
-    font-size: 22px;
+    font-size: 24px;
     line-height: 1;
-    font-weight: 800;
+    font-weight: 900;
     color: rgba(0,0,0,.75);
     cursor: pointer;
+    z-index: 3;
   }
 
-  /* Fallback track: 4-up paging with scroll snap */
+  .reviews-slider__arrow--prev { left: -18px; }
+  .reviews-slider__arrow--next { right: -18px; }
+
+  @media (max-width: 768px) {
+    .reviews-slider__arrow--prev { left: -8px; }
+    .reviews-slider__arrow--next { right: -8px; }
+  }
+
+  /* Fallback track: snap slider */
   .reviews-slider__track {
-    display: flex;
-    gap: 18px;
-    overflow-x: auto;
+    display: flex !important;
+    gap: 18px !important;
+    overflow-x: auto !important;
     padding-bottom: 8px;
     scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
+
+    /* give room so arrows don't overlap content */
+    padding-left: 26px;
+    padding-right: 26px;
   }
 
-  .reviews-slider__track::-webkit-scrollbar { height: 8px; }
-  .reviews-slider__track::-webkit-scrollbar-thumb { background: rgba(0,0,0,.18); border-radius: 999px; }
-
-  /* 4 cards per view on desktop */
+  /* IMPORTANT: Hard-lock card width so we never see 9 */
   .reviews-slider__track > .review-card--slider {
     scroll-snap-align: start;
-    flex: 0 0 calc((100% - (18px * 3)) / 4);
-    max-width: calc((100% - (18px * 3)) / 4);
+
+    /* 4-up default */
+    flex: 0 0 calc((100% - (18px * 3)) / 4) !important;
+    width: calc((100% - (18px * 3)) / 4) !important;
+    min-width: calc((100% - (18px * 3)) / 4) !important;
+    max-width: calc((100% - (18px * 3)) / 4) !important;
   }
 
   @media (max-width: 1200px) {
     .reviews-slider__track > .review-card--slider {
-      flex-basis: calc((100% - (18px * 2)) / 3);
-      max-width: calc((100% - (18px * 2)) / 3);
-    }
-  }
-  @media (max-width: 992px) {
-    .reviews-slider__track > .review-card--slider {
-      flex-basis: calc((100% - 18px) / 2);
-      max-width: calc((100% - 18px) / 2);
-    }
-  }
-  @media (max-width: 768px) {
-    .reviews-slider__track > .review-card--slider {
-      flex-basis: 100%;
-      max-width: 100%;
+      flex-basis: calc((100% - (18px * 2)) / 3) !important;
+      width: calc((100% - (18px * 2)) / 3) !important;
+      min-width: calc((100% - (18px * 2)) / 3) !important;
+      max-width: calc((100% - (18px * 2)) / 3) !important;
     }
   }
 
-  /* Card (white; sits over your already-darkened image) */
+  @media (max-width: 992px) {
+    .reviews-slider__track > .review-card--slider {
+      flex-basis: calc((100% - 18px) / 2) !important;
+      width: calc((100% - 18px) / 2) !important;
+      min-width: calc((100% - 18px) / 2) !important;
+      max-width: calc((100% - 18px) / 2) !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .reviews-slider__track > .review-card--slider {
+      flex-basis: 100% !important;
+      width: 100% !important;
+      min-width: 100% !important;
+      max-width: 100% !important;
+    }
+  }
+
+  /* Card (white, sits over hero image) */
   .reviews-slider .review-card--slider {
     background: #fff !important;
     border-radius: 18px;
@@ -156,7 +192,6 @@ const {
     margin-top: 6px;
   }
 
-  /* Keep consistent height */
   .reviews-slider .review-card__text--clamp {
     display: -webkit-box;
     -webkit-line-clamp: 4;
@@ -174,15 +209,15 @@ const {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    color: #1a73e8; /* Google blue */
+    color: #1a73e8;
     text-decoration: none;
     font-weight: 700;
   }
 
   .reviews-slider .review-card__google:hover { text-decoration: underline; }
 
-  /* If Slick takes over, hide fallback controls (Slick has its own arrows) */
-  .reviews-slider[data-slick="1"] .reviews-slider__controls { display: none; }
+  /* Hide fallback arrows if Slick takes over */
+  .reviews-slider[data-slick="1"] .reviews-slider__arrow { display: none; }
 
   /* Slick spacing if active */
   .reviews-slider .slick-list { margin: 0 -10px; }
@@ -286,8 +321,7 @@ const {
     return div;
   }
 
-  function pageScrollCount() {
-    // match CSS breakpoints for "cards per view"
+  function cardsPerView() {
     const w = window.innerWidth || 1200;
     if (w <= 768) return 1;
     if (w <= 992) return 2;
@@ -300,8 +334,8 @@ const {
     const card = track.querySelector('.review-card--slider');
     if (!card) return;
 
-    const cards = pageScrollCount();
-    const gap = 18; // keep in sync with CSS gap
+    const cards = cardsPerView();
+    const gap = 18; // must match CSS gap
     const dx = (card.getBoundingClientRect().width + gap) * cards * dir;
 
     track.scrollBy({ left: dx, behavior: 'smooth' });
@@ -311,10 +345,8 @@ const {
     if (prevBtn) prevBtn.addEventListener('click', () => scrollByCards(-1));
     if (nextBtn) nextBtn.addEventListener('click', () => scrollByCards(1));
 
-    // autoplay (fallback)
     if (autoplay) {
       let t = setInterval(() => scrollByCards(1), autoplayMs);
-      // pause on hover
       root.addEventListener('mouseenter', () => { clearInterval(t); });
       root.addEventListener('mouseleave', () => { t = setInterval(() => scrollByCards(1), autoplayMs); });
     }
@@ -339,7 +371,7 @@ const {
       track.innerHTML = '';
       items.forEach(r => track.appendChild(cardEl(r)));
 
-      // Try Slick if available; otherwise fallback scroll remains
+      // If Slick exists, use it and hide our arrows
       const hasJQ = typeof window.jQuery === 'function';
       const $ = hasJQ ? window.jQuery : null;
 
@@ -360,11 +392,9 @@ const {
             ]
           });
         }
-        // slick owns movement now
         return;
       }
 
-      // fallback controls
       initFallbackControls();
     } catch (e) {
       setStatus('error', 'Reviews are temporarily unavailable.');
