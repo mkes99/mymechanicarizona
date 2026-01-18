@@ -2,7 +2,7 @@
 const {
   apiPath = "/api/reviews",
   max = 50,
-  limit = 24,          // total cards to render in the slider
+  limit = 24,          // total cards to render in the slider (we will trim to a full "page")
   autoplay = true,
   autoplayMs = 5500,
   writeReviewUrl = "https://search.google.com/local/writereview?placeid=ChIJIRIHWwp01oYRVv-SOeBXy5o",
@@ -22,7 +22,7 @@ const {
   <div class="reviews-slider__header">
     <h2 class="reviews-slider__title">{title}</h2>
 
-    <a class="btn btn-border" href={writeReviewUrl} target="_blank" rel="noopener">
+    <a class="btn border-btn btn-wide" href={writeReviewUrl} target="_blank" rel="noopener">
       <span>Write a review</span>
     </a>
   </div>
@@ -30,7 +30,12 @@ const {
   <div class="reviews-slider__status" data-status style="display:none;"></div>
 
   <div class="reviews-slider__frame" data-frame>
-    <button type="button" class="reviews-slider__arrow reviews-slider__arrow--prev" data-prev aria-label="Previous reviews">
+    <button
+      type="button"
+      class="reviews-slider__arrow reviews-slider__arrow--prev"
+      data-prev
+      aria-label="Previous reviews"
+    >
       ‹
     </button>
 
@@ -38,7 +43,12 @@ const {
       <div class="reviews-slider__track" data-track></div>
     </div>
 
-    <button type="button" class="reviews-slider__arrow reviews-slider__arrow--next" data-next aria-label="Next reviews">
+    <button
+      type="button"
+      class="reviews-slider__arrow reviews-slider__arrow--next"
+      data-next
+      aria-label="Next reviews"
+    >
       ›
     </button>
   </div>
@@ -52,6 +62,7 @@ const {
   const api = root.getAttribute('data-api') || '/api/reviews';
   const max = Number(root.getAttribute('data-max') || '50');
   const limit = Number(root.getAttribute('data-limit') || '24');
+
   const autoplay = (root.getAttribute('data-autoplay') || '0') === '1';
   const autoplayMs = Number(root.getAttribute('data-autoplay-ms') || '5500') || 5500;
 
@@ -62,10 +73,20 @@ const {
   const prevBtn = root.querySelector('[data-prev]');
   const nextBtn = root.querySelector('[data-next]');
 
-  let items = [];
-  let page = 0;
+  let baseItems = [];
+  let renderItems = [];       // head clones + base + tail clones
+  let perView = 4;
+  let gapPx = 18;
+  let cardW = 0;
+  let stepPx = 0;
+
+  // "index" is in CARD UNITS (not pages): we jump by perView cards at a time.
+  // We start at index = perView so we're on the first real page (after the head clones).
+  let index = 0;
+
   let timer = null;
   let isHover = false;
+  let isAnimating = false;
 
   function setStatus(type, msg) {
     if (!status) return;
@@ -140,69 +161,120 @@ const {
     return div;
   }
 
-  function getCardsPerView() {
-    const w = window.innerWidth || 1200;
-    if (w <= 640) return 1;
-    if (w <= 900) return 2;
-    if (w <= 1200) return 3;
-    return 4;
-  }
-
-  function pagesCount() {
-    const per = getCardsPerView();
-    return Math.max(1, Math.ceil(items.length / per));
-  }
-
-  // Measure a single slide width accurately, including gap
-  function getPageStepPx() {
-    if (!track) return 0;
-    const per = getCardsPerView();
-    const first = track.children && track.children[0];
-    if (!first) return 0;
-
+  function readGapPx() {
+    if (!track) return 18;
     const style = window.getComputedStyle(track);
-    const gap = parseFloat(style.columnGap || style.gap || '0') || 0;
-
-    const cardRect = first.getBoundingClientRect();
-    const cardW = cardRect.width || 0;
-
-    // page width = N cards + (N-1) gaps
-    return (cardW * per) + (gap * Math.max(0, per - 1));
+    const g = parseFloat(style.gap || style.columnGap || '0') || 0;
+    return g;
   }
 
-  function updateButtons() {
-    // Infinite: never disabled
-    if (prevBtn) prevBtn.disabled = false;
-    if (nextBtn) nextBtn.disabled = false;
+  // Measure how many cards fit (instead of window-width guessing)
+  function measurePerView() {
+    if (!viewport || !track) return 4;
+    const kids = track.children;
+    if (!kids || !kids.length) return 4;
+
+    const first = kids[0].getBoundingClientRect();
+    const vw = viewport.getBoundingClientRect().width;
+    const gap = readGapPx();
+    const w = first.width || 0;
+
+    // how many "w + gap" segments fit into viewport (+gap to compensate rounding)
+    let per = Math.floor((vw + gap) / (w + gap));
+    per = Math.max(1, Math.min(4, per));
+    return per;
   }
 
-  function applyTransform(animate = true) {
+  function measureStep() {
+    if (!track) return;
+    const kids = track.children;
+    if (!kids || !kids.length) return;
+
+    gapPx = readGapPx();
+    cardW = kids[0].getBoundingClientRect().width || 0;
+    perView = measurePerView();
+
+    // Step in PX for one FULL PAGE (perView cards)
+    stepPx = (cardW * perView) + (gapPx * Math.max(0, perView));
+    // Why +gapPx*perView? because between pages there is ALSO a gap after the last card when translating by card units.
+    // We translate by card units (index) below, so we'll also compute cardStepPx:
+  }
+
+  function cardUnitPx() {
+    // one card + one gap (the distance from card i to card i+1 in flex with gap)
+    return (cardW + gapPx);
+  }
+
+  function setTranslate(px, animate) {
+    if (!track) return;
+    track.style.transition = animate ? 'transform 350ms ease' : 'none';
+    track.style.transform = `translate3d(${-px}px, 0, 0)`;
+  }
+
+  function rebuildRenderItems() {
+    // Ensure we only render full pages so we never show partial pages at the end
+    // (infinite loop needs full pages to look clean).
+    const fullPagesCount = Math.max(1, Math.floor(baseItems.length / perView));
+    const usableCount = Math.max(perView, fullPagesCount * perView);
+    const usable = baseItems.slice(0, usableCount);
+
+    // clone perView at head/tail for seamless wrap
+    const head = usable.slice(-perView);
+    const tail = usable.slice(0, perView);
+
+    renderItems = [...head, ...usable, ...tail];
+
+    // start index at first real page (after head clones)
+    index = perView;
+  }
+
+  function renderTrack() {
+    if (!track) return;
+    track.innerHTML = '';
+    renderItems.forEach((r) => track.appendChild(cardEl(r)));
+  }
+
+  function snapToIndex(newIndex, animate) {
     if (!track) return;
 
-    const total = pagesCount();
-    if (total <= 1) {
-      track.style.transform = 'translate3d(0,0,0)';
-      updateButtons();
-      return;
-    }
+    index = newIndex;
 
-    // wrap page infinitely
-    if (page < 0) page = total - 1;
-    if (page > total - 1) page = 0;
-
-    const stepPx = getPageStepPx();
-    const x = stepPx * page;
-
-    track.style.transition = animate ? 'transform 350ms ease' : 'none';
-    track.style.transform = `translate3d(${-x}px, 0, 0)`;
-    updateButtons();
+    // translate by card units (index cards from start)
+    const px = cardUnitPx() * index;
+    setTranslate(px, animate);
   }
 
-  function go(deltaPages) {
-    const total = pagesCount();
-    if (total <= 1) return;
-    page += deltaPages;
-    applyTransform(true);
+  function go(dir) {
+    if (isAnimating) return;
+    if (!track) return;
+
+    isAnimating = true;
+
+    // move by one PAGE (perView cards)
+    snapToIndex(index + (dir * perView), true);
+  }
+
+  function onTransitionEnd() {
+    if (!track) return;
+
+    // usable base length is renderItems - 2*perView
+    const usableLen = renderItems.length - (2 * perView);
+
+    // If we moved into tail clones, jump back to the equivalent real index
+    // (no animation so it looks infinite).
+    if (index >= usableLen + perView) {
+      // wrap to first real page
+      index = perView;
+      snapToIndex(index, false);
+    }
+
+    // If we moved into head clones, jump to last real page
+    if (index < perView) {
+      index = usableLen;
+      snapToIndex(index, false);
+    }
+
+    isAnimating = false;
   }
 
   function stopAuto() {
@@ -222,6 +294,44 @@ const {
     }, autoplayMs);
   }
 
+  function bindHoverPause() {
+    if (!frame) return;
+    frame.addEventListener('mouseenter', () => { isHover = true; });
+    frame.addEventListener('mouseleave', () => { isHover = false; });
+  }
+
+  function bindButtons() {
+    if (prevBtn) prevBtn.addEventListener('click', () => { stopAuto(); go(-1); startAuto(); });
+    if (nextBtn) nextBtn.addEventListener('click', () => { stopAuto(); go(1); startAuto(); });
+  }
+
+  function hardRecalcAndSnap() {
+    // Called on resize: re-measure perView, rebuild clones, re-render, snap to start.
+    if (!track || !viewport) return;
+
+    // We need at least one card rendered to measure, so:
+    // 1) render a temporary "base only" to measure.
+    track.innerHTML = '';
+    baseItems.slice(0, Math.min(baseItems.length, 8)).forEach((r) => track.appendChild(cardEl(r)));
+
+    // 2) measure real perView using actual DOM
+    measureStep();
+
+    // 3) rebuild full render array using that perView
+    rebuildRenderItems();
+
+    // 4) render and snap to start (no animation)
+    renderTrack();
+    measureStep(); // re-measure now that real cards exist
+    snapToIndex(perView, false);
+
+    // force a second frame to avoid rounding jitter
+    requestAnimationFrame(() => {
+      measureStep();
+      snapToIndex(perView, false);
+    });
+  }
+
   async function init() {
     if (!track || !viewport) return;
 
@@ -230,41 +340,38 @@ const {
       const data = await res.json().catch(() => null);
 
       const reviews = data && Array.isArray(data.reviews) ? data.reviews : [];
-      items = reviews.slice(0, Math.min(max, limit));
+      baseItems = reviews.slice(0, Math.min(max, limit));
 
-      if (!items.length) {
+      if (!baseItems.length) {
         setStatus('empty', 'No reviews to display yet.');
         return;
       }
 
       hideStatus();
 
-      track.innerHTML = '';
-      items.forEach(r => track.appendChild(cardEl(r)));
+      // Initial render/recalc
+      hardRecalcAndSnap();
 
-      if (prevBtn) prevBtn.addEventListener('click', () => { stopAuto(); go(-1); startAuto(); });
-      if (nextBtn) nextBtn.addEventListener('click', () => { stopAuto(); go(1); startAuto(); });
+      // Bind UI
+      bindButtons();
+      bindHoverPause();
 
-      // Pause on hover over the whole slider frame
-      if (frame) {
-        frame.addEventListener('mouseenter', () => { isHover = true; });
-        frame.addEventListener('mouseleave', () => { isHover = false; });
-      }
+      // Infinite wrap fix
+      track.addEventListener('transitionend', onTransitionEnd);
 
-      // Recalculate exact step on resize (fixes partial-cards)
+      // Resize: rebuild + snap (prevents clipped partial cards)
+      let resizeTimer = null;
       window.addEventListener('resize', () => {
-        // snap without animation to the nearest page using new measurements
-        applyTransform(false);
-        requestAnimationFrame(() => applyTransform(false));
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          stopAuto();
+          hardRecalcAndSnap();
+          startAuto();
+        }, 120);
       });
 
-      page = 0;
-      requestAnimationFrame(() => {
-        applyTransform(false);
-        startAuto();
-      });
-
-      updateButtons();
+      // Start auto
+      startAuto();
     } catch (e) {
       setStatus('error', 'Reviews are temporarily unavailable.');
     }
