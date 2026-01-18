@@ -1864,3 +1864,32 @@ div .faq-accordion .faq__item .faq__content {
   background: #fff;
   font-weight: 800;
 }
+
+/* viewport becomes the scroll container */
+.reviews-slider__viewport {
+  overflow: hidden;
+  width: 100%;
+}
+
+.reviews-slider__viewport {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+
+  /* hide scrollbar (optional) */
+  scrollbar-width: none;
+}
+.reviews-slider__viewport::-webkit-scrollbar { display: none; }
+
+/* snap each card */
+.reviews-slider__track > .review-card--slider {
+  scroll-snap-align: start;
+}
+
+/* IMPORTANT: do not add padding/margins to viewport or math drifts */
+.reviews-slider__viewport {
+  padding: 0 !important;
+  margin: 0 !important;
+}

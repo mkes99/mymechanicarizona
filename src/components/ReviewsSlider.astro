@@ -22,7 +22,7 @@ const {
   <div class="reviews-slider__header">
     <h2 class="reviews-slider__title">{title}</h2>
 
-    <a class="btn border-btn btn-wide" href={writeReviewUrl} target="_blank" rel="noopener">
+    <a class="btn btn-border btn-wide" href={writeReviewUrl} target="_blank" rel="noopener">
       <span>Write a review</span>
     </a>
   </div>
@@ -62,7 +62,6 @@ const {
   const api = root.getAttribute('data-api') || '/api/reviews';
   const max = Number(root.getAttribute('data-max') || '50');
   const limit = Number(root.getAttribute('data-limit') || '24');
-
   const autoplay = (root.getAttribute('data-autoplay') || '0') === '1';
   const autoplayMs = Number(root.getAttribute('data-autoplay-ms') || '5500') || 5500;
 
@@ -73,20 +72,9 @@ const {
   const prevBtn = root.querySelector('[data-prev]');
   const nextBtn = root.querySelector('[data-next]');
 
-  let baseItems = [];
-  let renderItems = [];       // head clones + base + tail clones
-  let perView = 4;
-  let gapPx = 18;
-  let cardW = 0;
-  let stepPx = 0;
-
-  // "index" is in CARD UNITS (not pages): we jump by perView cards at a time.
-  // We start at index = perView so we're on the first real page (after the head clones).
-  let index = 0;
-
+  let items = [];
   let timer = null;
   let isHover = false;
-  let isAnimating = false;
 
   function setStatus(type, msg) {
     if (!status) return;
@@ -122,6 +110,14 @@ const {
       r.link ||
       'https://www.google.com/maps?cid=11154105522663391062'
     );
+  }
+
+  function cardsPerView() {
+    const w = window.innerWidth || 1200;
+    if (w <= 640) return 1;
+    if (w <= 900) return 2;
+    if (w <= 1200) return 3;
+    return 4;
   }
 
   function cardEl(r) {
@@ -161,120 +157,60 @@ const {
     return div;
   }
 
-  function readGapPx() {
-    if (!track) return 18;
-    const style = window.getComputedStyle(track);
-    const g = parseFloat(style.gap || style.columnGap || '0') || 0;
-    return g;
-  }
+  // Infinite loop using clones (first/last "page" worth of cards)
+  let isCloned = false;
+  let cloneHeadCount = 0;
+  let cloneTailCount = 0;
 
-  // Measure how many cards fit (instead of window-width guessing)
-  function measurePerView() {
-    if (!viewport || !track) return 4;
-    const kids = track.children;
-    if (!kids || !kids.length) return 4;
-
-    const first = kids[0].getBoundingClientRect();
-    const vw = viewport.getBoundingClientRect().width;
-    const gap = readGapPx();
-    const w = first.width || 0;
-
-    // how many "w + gap" segments fit into viewport (+gap to compensate rounding)
-    let per = Math.floor((vw + gap) / (w + gap));
-    per = Math.max(1, Math.min(4, per));
-    return per;
-  }
-
-  function measureStep() {
+  function clearClones() {
     if (!track) return;
-    const kids = track.children;
-    if (!kids || !kids.length) return;
-
-    gapPx = readGapPx();
-    cardW = kids[0].getBoundingClientRect().width || 0;
-    perView = measurePerView();
-
-    // Step in PX for one FULL PAGE (perView cards)
-    stepPx = (cardW * perView) + (gapPx * Math.max(0, perView));
-    // Why +gapPx*perView? because between pages there is ALSO a gap after the last card when translating by card units.
-    // We translate by card units (index) below, so we'll also compute cardStepPx:
+    track.querySelectorAll('[data-clone]').forEach(n => n.remove());
+    isCloned = false;
   }
 
-  function cardUnitPx() {
-    // one card + one gap (the distance from card i to card i+1 in flex with gap)
-    return (cardW + gapPx);
+  function applyClones() {
+    if (!track || !viewport) return;
+    clearClones();
+
+    const per = cardsPerView();
+    const children = Array.from(track.children);
+    if (children.length <= per) return;
+
+    cloneHeadCount = per;
+    cloneTailCount = per;
+
+    // Clone last page to the front
+    const tail = children.slice(-per).map(n => {
+      const c = n.cloneNode(true);
+      c.setAttribute('data-clone', '1');
+      return c;
+    });
+    tail.forEach(n => track.insertBefore(n, track.firstChild));
+
+    // Clone first page to the end
+    const head = children.slice(0, per).map(n => {
+      const c = n.cloneNode(true);
+      c.setAttribute('data-clone', '1');
+      return c;
+    });
+    head.forEach(n => track.appendChild(n));
+
+    isCloned = true;
+
+    // Jump to the "real first page"
+    requestAnimationFrame(() => {
+      viewport.scrollLeft = viewport.clientWidth;
+    });
   }
 
-  function setTranslate(px, animate) {
-    if (!track) return;
-    track.style.transition = animate ? 'transform 350ms ease' : 'none';
-    track.style.transform = `translate3d(${-px}px, 0, 0)`;
+  function scrollNext() {
+    if (!viewport) return;
+    viewport.scrollBy({ left: viewport.clientWidth, behavior: 'smooth' });
   }
 
-  function rebuildRenderItems() {
-    // Ensure we only render full pages so we never show partial pages at the end
-    // (infinite loop needs full pages to look clean).
-    const fullPagesCount = Math.max(1, Math.floor(baseItems.length / perView));
-    const usableCount = Math.max(perView, fullPagesCount * perView);
-    const usable = baseItems.slice(0, usableCount);
-
-    // clone perView at head/tail for seamless wrap
-    const head = usable.slice(-perView);
-    const tail = usable.slice(0, perView);
-
-    renderItems = [...head, ...usable, ...tail];
-
-    // start index at first real page (after head clones)
-    index = perView;
-  }
-
-  function renderTrack() {
-    if (!track) return;
-    track.innerHTML = '';
-    renderItems.forEach((r) => track.appendChild(cardEl(r)));
-  }
-
-  function snapToIndex(newIndex, animate) {
-    if (!track) return;
-
-    index = newIndex;
-
-    // translate by card units (index cards from start)
-    const px = cardUnitPx() * index;
-    setTranslate(px, animate);
-  }
-
-  function go(dir) {
-    if (isAnimating) return;
-    if (!track) return;
-
-    isAnimating = true;
-
-    // move by one PAGE (perView cards)
-    snapToIndex(index + (dir * perView), true);
-  }
-
-  function onTransitionEnd() {
-    if (!track) return;
-
-    // usable base length is renderItems - 2*perView
-    const usableLen = renderItems.length - (2 * perView);
-
-    // If we moved into tail clones, jump back to the equivalent real index
-    // (no animation so it looks infinite).
-    if (index >= usableLen + perView) {
-      // wrap to first real page
-      index = perView;
-      snapToIndex(index, false);
-    }
-
-    // If we moved into head clones, jump to last real page
-    if (index < perView) {
-      index = usableLen;
-      snapToIndex(index, false);
-    }
-
-    isAnimating = false;
+  function scrollPrev() {
+    if (!viewport) return;
+    viewport.scrollBy({ left: -viewport.clientWidth, behavior: 'smooth' });
   }
 
   function stopAuto() {
@@ -287,49 +223,29 @@ const {
   function startAuto() {
     stopAuto();
     if (!autoplay) return;
-
     timer = setInterval(() => {
       if (isHover) return;
-      go(1);
+      scrollNext();
     }, autoplayMs);
   }
 
-  function bindHoverPause() {
-    if (!frame) return;
-    frame.addEventListener('mouseenter', () => { isHover = true; });
-    frame.addEventListener('mouseleave', () => { isHover = false; });
-  }
+  function onScrollLoopFix() {
+    if (!viewport || !track || !isCloned) return;
 
-  function bindButtons() {
-    if (prevBtn) prevBtn.addEventListener('click', () => { stopAuto(); go(-1); startAuto(); });
-    if (nextBtn) nextBtn.addEventListener('click', () => { stopAuto(); go(1); startAuto(); });
-  }
+    // If we've scrolled into the cloned end, jump back to the real start (no animation)
+    const maxScroll = viewport.scrollWidth - viewport.clientWidth;
 
-  function hardRecalcAndSnap() {
-    // Called on resize: re-measure perView, rebuild clones, re-render, snap to start.
-    if (!track || !viewport) return;
+    // Near start clone area
+    if (viewport.scrollLeft <= 2) {
+      viewport.scrollLeft = viewport.clientWidth * (Math.ceil(items.length / cardsPerView()));
+      return;
+    }
 
-    // We need at least one card rendered to measure, so:
-    // 1) render a temporary "base only" to measure.
-    track.innerHTML = '';
-    baseItems.slice(0, Math.min(baseItems.length, 8)).forEach((r) => track.appendChild(cardEl(r)));
-
-    // 2) measure real perView using actual DOM
-    measureStep();
-
-    // 3) rebuild full render array using that perView
-    rebuildRenderItems();
-
-    // 4) render and snap to start (no animation)
-    renderTrack();
-    measureStep(); // re-measure now that real cards exist
-    snapToIndex(perView, false);
-
-    // force a second frame to avoid rounding jitter
-    requestAnimationFrame(() => {
-      measureStep();
-      snapToIndex(perView, false);
-    });
+    // Near end clone area
+    if (viewport.scrollLeft >= maxScroll - 2) {
+      viewport.scrollLeft = viewport.clientWidth;
+      return;
+    }
   }
 
   async function init() {
@@ -338,39 +254,50 @@ const {
     try {
       const res = await fetch(api, { headers: { 'Accept': 'application/json' } });
       const data = await res.json().catch(() => null);
-
       const reviews = data && Array.isArray(data.reviews) ? data.reviews : [];
-      baseItems = reviews.slice(0, Math.min(max, limit));
 
-      if (!baseItems.length) {
+      items = reviews.slice(0, Math.min(max, limit));
+
+      if (!items.length) {
         setStatus('empty', 'No reviews to display yet.');
         return;
       }
 
       hideStatus();
 
-      // Initial render/recalc
-      hardRecalcAndSnap();
+      track.innerHTML = '';
+      items.forEach(r => track.appendChild(cardEl(r)));
 
-      // Bind UI
-      bindButtons();
-      bindHoverPause();
-
-      // Infinite wrap fix
-      track.addEventListener('transitionend', onTransitionEnd);
-
-      // Resize: rebuild + snap (prevents clipped partial cards)
-      let resizeTimer = null;
-      window.addEventListener('resize', () => {
-        if (resizeTimer) clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-          stopAuto();
-          hardRecalcAndSnap();
-          startAuto();
-        }, 120);
+      // Ensure correct snap positions after render
+      requestAnimationFrame(() => {
+        applyClones();
       });
 
-      // Start auto
+      if (prevBtn) prevBtn.addEventListener('click', () => { stopAuto(); scrollPrev(); startAuto(); });
+      if (nextBtn) nextBtn.addEventListener('click', () => { stopAuto(); scrollNext(); startAuto(); });
+
+      // Pause on hover
+      if (frame) {
+        frame.addEventListener('mouseenter', () => { isHover = true; });
+        frame.addEventListener('mouseleave', () => { isHover = false; });
+      }
+
+      // Infinite loop correction
+      viewport.addEventListener('scroll', () => {
+        // throttle-ish
+        window.requestAnimationFrame(onScrollLoopFix);
+      }, { passive: true });
+
+      // Rebuild clones on resize (cardsPerView changes)
+      window.addEventListener('resize', () => {
+        // preserve the “real” position by snapping to the nearest page width
+        stopAuto();
+        requestAnimationFrame(() => {
+          applyClones();
+          startAuto();
+        });
+      });
+
       startAuto();
     } catch (e) {
       setStatus('error', 'Reviews are temporarily unavailable.');
