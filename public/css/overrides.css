@@ -1552,6 +1552,43 @@ div .faq-accordion .faq__item .faq__content {
 .form-status--info { border-color: rgba(0,0,0,.18); }
 
 /* =========================================================
+   REVIEWS GRID HEADER – title left, button right
+   ========================================================= */
+
+.reviews-grid__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+}
+
+.reviews-grid__header h2 {
+  margin: 0;
+}
+
+/* On small screens, keep it nice */
+@media (max-width: 640px) {
+  .reviews-grid__header {
+    align-items: flex-start;
+  }
+  .reviews-grid__header .btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* =========================================================
+   REVIEWS GRID – add a bit more body padding to increase height
+   ========================================================= */
+
+.reviews-grid__masonry > .review-card .review-card__text {
+  padding-top: 8px;     /* makes box feel taller */
+  padding-bottom: 10px; /* makes box feel taller */
+}
+
+/* =========================================================
    GOOGLE-STYLE REVIEWS – MASONRY GRID
    Matches screenshot exactly
    ========================================================= */
@@ -1635,5 +1672,83 @@ div .faq-accordion .faq__item .faq__content {
 }
 
 .review-card__text a:hover {
+  text-decoration: underline;
+}
+
+/* =========================================================
+   REVIEWS SLIDER – white cards over image (NO avatar)
+   ========================================================= */
+
+.reviews-slider .review-card--slider {
+  background: #fff !important;
+  border-radius: 18px;
+  padding: 16px 16px 12px;
+  border: 1px solid rgba(255,255,255,.70);
+  box-shadow: 0 14px 34px rgba(0,0,0,.22);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Meta: name + time + stars */
+.reviews-slider .review-card--slider .review-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  margin-bottom: 8px;
+}
+
+.reviews-slider .review-card--slider .review-card__name {
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.2;
+}
+
+.reviews-slider .review-card--slider .review-card__time {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.reviews-slider .review-card--slider .review-card__stars {
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: #fbbc04; /* Google gold */
+}
+
+/* Review text */
+.reviews-slider .review-card--slider .review-card__text {
+  font-size: 14px;
+  line-height: 1.55;
+  color: #374151;
+  margin-top: 6px;
+}
+
+/* Clamp for slider consistency */
+.reviews-slider .review-card--slider .review-card__text--clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 4; /* truncate long reviews */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Footer */
+.reviews-slider .review-card--slider .review-card__footer {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,0,0,.08);
+}
+
+/* Google link should be Google blue */
+.reviews-slider .review-card--slider .review-card__google {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #1a73e8 !important; /* Google blue */
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.reviews-slider .review-card--slider .review-card__google:hover {
   text-decoration: underline;
 }
