@@ -21,8 +21,8 @@ type Feed = {
 };
 
 const {
-  feed = { bio: null, reviews: [] },
-  feedError = false,
+  feed: feedProp,
+  feedError: feedErrorProp = false,
   max = 50,
   initial = 9,
   step = 9,
@@ -35,6 +35,28 @@ const {
   step?: number;
   title?: string;
 };
+
+// If no feed provided, fetch from the site's API.
+let feed: Feed = feedProp ?? { bio: null, reviews: [] };
+let feedError = feedErrorProp;
+
+if (!feedProp) {
+  const apiUrl = new URL("/api/reviews", Astro.url);
+  try {
+    const res = await fetch(apiUrl.toString(), { headers: { Accept: "application/json" } });
+    if (!res.ok) throw new Error(String(res.status));
+    const json = (await res.json()) as any;
+    if (json && json.ok === false) {
+      feedError = true;
+      feed = { bio: null, reviews: [] };
+    } else {
+      feed = json as Feed;
+    }
+  } catch {
+    feedError = true;
+    feed = { bio: null, reviews: [] };
+  }
+}
 
 const bio = feed.bio ?? {};
 const reviews = (feed.reviews ?? []).slice(0, max);
