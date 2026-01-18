@@ -106,8 +106,8 @@ const ACCEPT = ".pdf,.doc,.docx";
     const removeBtn = document.getElementById("resume_remove_btn");
     const statusEl = form.querySelector("[data-form-status]");
 
-    const DEFAULT_MAX_UPLOAD_BYTES = {MAX_UPLOAD_BYTES};
-    const maxBytes = Number(fileInput?.dataset?.maxBytes || 0) || DEFAULT_MAX_UPLOAD_BYTES;
+    // Avoid injecting build-time variables into inline JS; read from data attribute with a safe fallback.
+    const maxBytes = Number(fileInput?.dataset?.maxBytes || '0') || (20 * 1024 * 1024);
 
     function setFilename(file) {
       if (!filenameEl) return;
@@ -138,6 +138,7 @@ const ACCEPT = ".pdf,.doc,.docx";
       removeBtn.addEventListener("click", (e) => {
         e.preventDefault();
         clearFile();
+        clearStatus();
       });
     }
 
@@ -162,9 +163,9 @@ const ACCEPT = ".pdf,.doc,.docx";
         fileInput.files = data.files;
       } catch {}
 
+      clearStatus();
       setFilename(file);
       document.getElementById("frm_field_89_container")?.classList.remove("frm_blank_field");
-      clearStatus();
     }
 
     if (dropzone && fileInput) {

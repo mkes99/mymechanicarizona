@@ -1551,164 +1551,203 @@ div .faq-accordion .faq__item .faq__content {
 .form-status--error { border-color: rgba(220,0,0,.25); }
 .form-status--info { border-color: rgba(0,0,0,.18); }
 
+/* =========================================================
+   GOOGLE-STYLE REVIEWS – MASONRY GRID
+   Matches screenshot exactly
+   ========================================================= */
 
-/* ==========================================
-   REVIEWS GRID (masonry) — distinct styling
-   Uses your component classes:
-   .reviews-grid, .reviews-grid__masonry, .review-card
-   ========================================== */
+.reviews-grid__masonry > .review-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px 16px;
+  margin: 0 0 18px;
 
-.reviews-grid {
-  margin-top: 18px;
+  border: 1px solid rgba(0,0,0,.08);
+  box-shadow: 0 8px 22px rgba(0,0,0,.12);
+
+  display: inline-block;
+  width: 100%;
+  break-inside: avoid;
 }
 
-.reviews-grid__header {
+/* Header row */
+.review-card__header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
-}
-
-.reviews-grid__masonry {
-  column-count: 3;
-  column-gap: 18px;
-}
-
-@media (max-width: 1100px) {
-  .reviews-grid__masonry { column-count: 2; }
-}
-@media (max-width: 640px) {
-  .reviews-grid__masonry { column-count: 1; }
-}
-
-/* The card nodes are direct children (injected) */
-.reviews-grid__masonry > .review-card {
-  display: inline-block;           /* required for columns masonry */
-  width: 100%;
-  margin: 0 0 18px;
-  break-inside: avoid;
-  -webkit-column-break-inside: avoid;
-  page-break-inside: avoid;
-
-  /* GRID style (calmer than slider) */
-  background: #fff;
-  border-radius: 14px;
-  padding: 14px 14px;
-  border: 1px solid rgba(0,0,0,.10);
-  box-shadow: 0 10px 22px rgba(0,0,0,.10);
-}
-
-.reviews-grid__masonry > .review-card .review-card__top {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.reviews-grid__masonry > .review-card .review-card__name {
-  font-weight: 800;
-  color: #111;
-  line-height: 1.2;
-}
-
-.reviews-grid__masonry > .review-card .review-card__stars {
-  font-weight: 800;
-  color: #111;
-  letter-spacing: 0.4px;
-  white-space: nowrap;
-}
-
-.reviews-grid__masonry > .review-card .review-card__text {
-  font-size: 14px;
-  line-height: 1.55;
-  color: #222;
-  margin-top: 6px;
-}
-
-.reviews-grid__actions {
-  display: flex;
-  justify-content: center;
-  margin-top: 16px;
-}
-
-.reviews-grid__status {
-  margin: 12px 0 0;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(0,0,0,.12);
-  background: #fff;
-  font-weight: 800;
-}
-
-.reviews-grid__status--error { border-color: rgba(220,0,0,.25); }
-.reviews-grid__status--empty { border-color: rgba(0,0,0,.18); }
-
-/* ==========================================
-   REVIEWS SLIDER — distinct styling (hero)
-   White cards over image
-   Targets: .reviews-slider ... .review-card
-   ========================================== */
-
-.reviews-slider {
-  margin-top: 22px;
-}
-
-.reviews-slider .review-card {
-  background: #fff !important;
-  border-radius: 16px;
-  padding: 18px 18px;
-  border: 1px solid rgba(255,255,255,.70);
-  box-shadow: 0 14px 34px rgba(0,0,0,.22);
-}
-
-.reviews-slider .review-card__top {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
   gap: 12px;
   margin-bottom: 10px;
 }
 
-.reviews-slider .review-card__name {
-  font-weight: 900;
-  color: #111 !important;
+/* Avatar */
+.review-card__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  overflow: hidden;
+  flex: 0 0 auto;
+  background: #eee;
+}
+
+.review-card__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Name + time + stars */
+.review-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.review-card__name {
+  font-weight: 700;
+  color: #1f2937; /* near Google text color */
   line-height: 1.2;
 }
 
-.reviews-slider .review-card__stars {
-  font-weight: 900;
-  color: #111 !important;
-  letter-spacing: 0.4px;
-  white-space: nowrap;
+.review-card__time {
+  font-size: 13px;
+  color: #6b7280;
 }
 
-.reviews-slider .review-card__text {
+.review-card__stars {
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: #fbbc04; /* Google gold */
+}
+
+/* Body text */
+.review-card__text {
   font-size: 14px;
   line-height: 1.55;
-  color: #111 !important;
-  margin-top: 8px;
+  color: #374151;
+  margin-top: 6px;
 }
 
-/* Slick spacing + arrows (only if slick is active) */
-.reviews-slider .slick-list { margin: 0 -10px; }
-.reviews-slider .slick-slide { padding: 0 10px; }
+/* Optional "See more" link if you later clamp text */
+.review-card__text a {
+  font-weight: 600;
+  color: #2563eb;
+  text-decoration: none;
+}
 
-.reviews-slider .slick-prev,
-.reviews-slider .slick-next {
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
+.review-card__text a:hover {
+  text-decoration: underline;
+}
+
+/* =========================================================
+   REVIEWS SLIDER – Google-style card (no share icon)
+   ========================================================= */
+
+.reviews-slider .review-card--slider {
+  background: #fff !important;
+  border-radius: 18px;
+  padding: 16px 16px 12px;
   border: 1px solid rgba(255,255,255,.70);
-  background: #fff;
-  box-shadow: 0 12px 26px rgba(0,0,0,.22);
-  z-index: 2;
+  box-shadow: 0 14px 34px rgba(0,0,0,.22);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-.reviews-slider .slick-prev:before,
-.reviews-slider .slick-next:before {
-  color: rgba(0,0,0,.75);
-  font-size: 18px;
+/* Header row */
+.reviews-slider .review-card--slider .review-card__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+/* Avatar */
+.reviews-slider .review-card--slider .review-card__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  overflow: hidden;
+  flex: 0 0 auto;
+  background: #eee;
+}
+
+.reviews-slider .review-card--slider .review-card__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Name + time + stars */
+.reviews-slider .review-card--slider .review-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.reviews-slider .review-card--slider .review-card__name {
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.2;
+}
+
+.reviews-slider .review-card--slider .review-card__time {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.reviews-slider .review-card--slider .review-card__stars {
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: #fbbc04; /* Google gold */
+}
+
+/* Text */
+.reviews-slider .review-card--slider .review-card__text {
+  font-size: 14px;
+  line-height: 1.55;
+  color: #374151;
+  margin-top: 6px;
+}
+
+/* Clamp for slider: keeps cards even */
+.reviews-slider .review-card--slider .review-card__text--clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;          /* adjust to taste */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Footer row */
+.reviews-slider .review-card--slider .review-card__footer {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,0,0,.08);
+}
+
+.reviews-slider .review-card--slider .review-card__google {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #374151;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.reviews-slider .review-card--slider .review-card__google:hover {
+  text-decoration: underline;
+}
+
+/* Simple “G” mark (no external assets) */
+.reviews-slider .review-card--slider .review-card__gmark {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 14px;
+  background: rgba(0,0,0,.06);
+  color: rgba(0,0,0,.70);
 }

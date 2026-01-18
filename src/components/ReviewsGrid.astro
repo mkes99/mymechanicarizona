@@ -1,9 +1,9 @@
 ---
 const {
   apiPath = "/api/reviews",
-  max = 50,
-  initial = 9,
-  step = 9,
+  max = 100,
+  initial = 20,
+  step = 20,
   writeReviewUrl = "https://search.google.com/local/writereview?placeid=ChIJIRIHWwp01oYRVv-SOeBXy5o",
 } = Astro.props;
 ---
@@ -55,22 +55,60 @@ const {
   }
 
   function renderCard(r) {
-    const name = r.reviewer_name || 'Anonymous';
-    const text = r.review_text || '';
-    const rating = r.rating || 0;
+    const name =
+      r.reviewer_name ||
+      r.author_name ||
+      r.name ||
+      'Anonymous';
+
+    const text =
+      r.review_text ||
+      r.text ||
+      r.content ||
+      '';
+
+    const rating = Number(r.rating || r.stars || 0);
+
+    const when =
+      r.relative_time_description ||
+      r.relative_time ||
+      r.timeago ||
+      '';
+
+    const avatar =
+      r.reviewer_photo_url ||
+      r.profile_photo_url ||
+      r.avatar ||
+      '';
 
     const div = document.createElement('div');
     div.className = 'review-card';
+
     div.innerHTML = `
-      <div class="review-card__top">
-        <div class="review-card__name">${escapeHtml(name)}</div>
-        <div class="review-card__stars">${escapeHtml(renderStars(rating))}</div>
+      <div class="review-card__header">
+        <div class="review-card__avatar">
+          ${
+            avatar
+              ? `<img src="${escapeHtml(avatar)}" alt="${escapeHtml(name)}" loading="lazy" referrerpolicy="no-referrer" />`
+              : ''
+          }
+        </div>
+
+        <div class="review-card__meta">
+          <div class="review-card__name">${escapeHtml(name)}</div>
+          ${when ? `<div class="review-card__time">${escapeHtml(when)}</div>` : ''}
+          <div class="review-card__stars">${escapeHtml(renderStars(rating))}</div>
+        </div>
       </div>
-      <div class="review-card__text">${escapeHtml(text)}</div>
+
+      <div class="review-card__text">
+        ${escapeHtml(text)}
+      </div>
     `;
+
     return div;
   }
-
+  
   function escapeHtml(s) {
     return String(s)
       .replaceAll('&','&amp;')

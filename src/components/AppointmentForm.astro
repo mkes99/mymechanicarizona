@@ -686,7 +686,8 @@ import vehicles from "../data/vehicles.json";
 
 		if (!dropzone || !input || !list) return;
 
-		const maxBytes = Number(input.dataset?.maxBytes || "0") || {MAX_UPLOAD_BYTES};
+		// Avoid injecting build-time variables into inline JS; read from data attribute with a safe fallback.
+		const maxBytes = Number(input.dataset?.maxBytes || "0") || (20 * 1024 * 1024);
 
 		const showUploadError = (msg) => {
 			if (!statusEl) return;
