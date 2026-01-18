@@ -5,6 +5,8 @@
  * - Option A: HTML5 validation + data-validated gate (no Formidable JS validation).
  */
 const FORM_ID = "form_appointmentform";
+// Client-side max upload size guard (server may enforce lower limits depending on deployment).
+const MAX_UPLOAD_BYTES = 20 * 1024 * 1024; // 20MB
 import vehicles from "../data/vehicles.json";
 ---
 
@@ -422,6 +424,7 @@ import vehicles from "../data/vehicles.json";
 										name="file17[]"
 										id="field_djuda"
 										data-frmfile="17"
+										data-max-bytes={MAX_UPLOAD_BYTES}
 										multiple="multiple"
 										data-sectionid="24"
 										data-invmsg="File Upload is invalid"
@@ -444,6 +447,10 @@ import vehicles from "../data/vehicles.json";
 									>
 									<div class="frm_small_text">
 										Maximum upload size: 67.11MB
+									</div>
+									<div class="frm_small_text" id="appointment_files" aria-live="polite"></div>
+									<div class="frm_small_text">
+										<button type="button" class="btn btn-border btn-invert" id="appointment_files_remove_all" style="display:none; padding:6px 10px; font-size:12px;">Remove files</button>
 									</div>
 								</div>
 							</div>
@@ -471,6 +478,7 @@ import vehicles from "../data/vehicles.json";
 							data-invmsg="Paragraph is invalid"
 							aria-invalid="false"></textarea>
 					</div>
+					<input type="hidden" name="recaptcha_token" value="" />
 					<div
 						id="frm_field_104_container"
 						class="frm_form_field form-field"
@@ -661,6 +669,158 @@ import vehicles from "../data/vehicles.json";
 				);
 			});
 		});
+	})();
+</script>
+
+<script is:inline>
+	(() => {
+		// Multi-file upload UX for Appointment form.
+		const form = document.getElementById("form_appointmentform");
+		if (!form) return;
+
+		const dropzone = document.getElementById("file17_dropzone");
+		const input = document.getElementById("field_djuda");
+		const list = document.getElementById("appointment_files");
+		const removeAllBtn = document.getElementById("appointment_files_remove_all");
+		const statusEl = form.querySelector("[data-form-status]");
+
+		if (!dropzone || !input || !list) return;
+
+		const maxBytes = Number(input.dataset?.maxBytes || "0") || {MAX_UPLOAD_BYTES};
+
+		const showUploadError = (msg) => {
+			if (!statusEl) return;
+			statusEl.style.display = "block";
+			statusEl.className = "form-status form-status--error";
+			statusEl.textContent = msg;
+		};
+		const clearStatus = () => {
+			if (!statusEl) return;
+			statusEl.style.display = "none";
+			statusEl.textContent = "";
+		};
+
+		const setFiles = (files) => {
+			try {
+				const dt = new DataTransfer();
+				files.forEach((f) => dt.items.add(f));
+				input.files = dt.files;
+			} catch (_) {
+				// If the browser blocks programmatic assignment, we still render UI,
+				// but removal won't work reliably.
+			}
+		};
+
+		const getFiles = () => Array.from(input.files || []);
+
+		const clearFiles = () => {
+			input.value = "";
+			list.textContent = "";
+			if (removeAllBtn) removeAllBtn.style.display = "none";
+		};
+
+		const removeAt = (idx) => {
+			const files = getFiles();
+			files.splice(idx, 1);
+			setFiles(files);
+			render();
+		};
+
+		const render = () => {
+			list.textContent = "";
+			const files = getFiles();
+			if (!files.length) {
+				if (removeAllBtn) removeAllBtn.style.display = "none";
+				return;
+			}
+
+			files.forEach((f, i) => {
+				const row = document.createElement("div");
+				row.style.display = "flex";
+				row.style.alignItems = "center";
+				row.style.gap = "10px";
+				row.style.marginTop = "6px";
+
+				const name = document.createElement("span");
+				name.textContent = f.name;
+				name.style.flex = "1";
+				name.style.overflow = "hidden";
+				name.style.textOverflow = "ellipsis";
+				name.style.whiteSpace = "nowrap";
+
+				const btn = document.createElement("button");
+				btn.type = "button";
+				btn.className = "btn btn-border btn-invert";
+				btn.style.padding = "6px 10px";
+				btn.style.fontSize = "12px";
+				btn.textContent = "Remove";
+				btn.addEventListener("click", (e) => {
+					e.preventDefault();
+					removeAt(i);
+				});
+
+				row.appendChild(name);
+				row.appendChild(btn);
+				list.appendChild(row);
+			});
+
+			if (removeAllBtn) removeAllBtn.style.display = "inline-block";
+		};
+
+		const filterBySize = (files) => {
+			if (!maxBytes) return files;
+			const ok = [];
+			let rejected = 0;
+			files.forEach((f) => {
+				if (f.size > maxBytes) rejected += 1;
+				else ok.push(f);
+			});
+			if (rejected) {
+				showUploadError(`One or more files exceed the upload limit. Please keep each file under ${Math.round(maxBytes / (1024 * 1024))}MB.`);
+			} else {
+				clearStatus();
+			}
+			return ok;
+		};
+
+		const addFiles = (incoming) => {
+			const current = getFiles();
+			const merged = current.concat(Array.from(incoming || []));
+			const ok = filterBySize(merged);
+			setFiles(ok);
+			render();
+		};
+
+		// Click anywhere in the dropzone to open picker.
+		dropzone.addEventListener("click", () => input.click());
+		dropzone.addEventListener("keydown", (e) => {
+			if (e.key === "Enter" || e.key === " ") input.click();
+		});
+
+		// Change from file picker.
+		input.addEventListener("change", () => {
+			addFiles(input.files);
+		});
+
+		// Drag/drop.
+		dropzone.addEventListener("dragover", (e) => {
+			e.preventDefault();
+		});
+		dropzone.addEventListener("drop", (e) => {
+			e.preventDefault();
+			if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
+		});
+
+		if (removeAllBtn) {
+			removeAllBtn.addEventListener("click", (e) => {
+				e.preventDefault();
+				clearFiles();
+				clearStatus();
+			});
+		}
+
+		// Initial render if something is prefilled (usually not).
+		render();
 	})();
 </script>
 

@@ -1552,22 +1552,119 @@ div .faq-accordion .faq__item .faq__content {
 .form-status--info { border-color: rgba(0,0,0,.18); }
 
 
-/* =========================================================
-   REVIEWS — Masonry Grid + Slider (white cards over image)
-   ========================================================= */
+/* ==========================================
+   REVIEWS GRID (masonry) — distinct styling
+   Uses your component classes:
+   .reviews-grid, .reviews-grid__masonry, .review-card
+   ========================================== */
 
-/* ---------- Shared review card look ---------- */
-.mm-review-card,
-.review-card {
-  background: #fff !important; /* critical for slider over image */
-  border: 1px solid rgba(0, 0, 0, 0.10);
-  border-radius: 14px;
-  padding: 16px 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+.reviews-grid {
+  margin-top: 18px;
 }
 
-.mm-review-card__top,
-.review-card__top {
+.reviews-grid__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.reviews-grid__masonry {
+  column-count: 3;
+  column-gap: 18px;
+}
+
+@media (max-width: 1100px) {
+  .reviews-grid__masonry { column-count: 2; }
+}
+@media (max-width: 640px) {
+  .reviews-grid__masonry { column-count: 1; }
+}
+
+/* The card nodes are direct children (injected) */
+.reviews-grid__masonry > .review-card {
+  display: inline-block;           /* required for columns masonry */
+  width: 100%;
+  margin: 0 0 18px;
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
+
+  /* GRID style (calmer than slider) */
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px 14px;
+  border: 1px solid rgba(0,0,0,.10);
+  box-shadow: 0 10px 22px rgba(0,0,0,.10);
+}
+
+.reviews-grid__masonry > .review-card .review-card__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.reviews-grid__masonry > .review-card .review-card__name {
+  font-weight: 800;
+  color: #111;
+  line-height: 1.2;
+}
+
+.reviews-grid__masonry > .review-card .review-card__stars {
+  font-weight: 800;
+  color: #111;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.reviews-grid__masonry > .review-card .review-card__text {
+  font-size: 14px;
+  line-height: 1.55;
+  color: #222;
+  margin-top: 6px;
+}
+
+.reviews-grid__actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.reviews-grid__status {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: #fff;
+  font-weight: 800;
+}
+
+.reviews-grid__status--error { border-color: rgba(220,0,0,.25); }
+.reviews-grid__status--empty { border-color: rgba(0,0,0,.18); }
+
+/* ==========================================
+   REVIEWS SLIDER — distinct styling (hero)
+   White cards over image
+   Targets: .reviews-slider ... .review-card
+   ========================================== */
+
+.reviews-slider {
+  margin-top: 22px;
+}
+
+.reviews-slider .review-card {
+  background: #fff !important;
+  border-radius: 16px;
+  padding: 18px 18px;
+  border: 1px solid rgba(255,255,255,.70);
+  box-shadow: 0 14px 34px rgba(0,0,0,.22);
+}
+
+.reviews-slider .review-card__top {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -1575,112 +1672,43 @@ div .faq-accordion .faq__item .faq__content {
   margin-bottom: 10px;
 }
 
-.mm-review-card__name,
-.review-card__name {
-  font-weight: 800;
-  line-height: 1.2;
+.reviews-slider .review-card__name {
+  font-weight: 900;
   color: #111 !important;
+  line-height: 1.2;
 }
 
-.mm-review-card__stars,
-.review-card__stars {
-  font-weight: 800;
+.reviews-slider .review-card__stars {
+  font-weight: 900;
+  color: #111 !important;
   letter-spacing: 0.4px;
   white-space: nowrap;
-  color: #111 !important;
 }
 
-.mm-review-card__text,
-.review-card__text {
+.reviews-slider .review-card__text {
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.55;
   color: #111 !important;
+  margin-top: 8px;
 }
 
-.mm-review-card__meta,
-.review-card__meta {
-  margin-top: 10px;
-  font-size: 12px;
-  opacity: 0.75;
-  color: #111 !important;
-}
+/* Slick spacing + arrows (only if slick is active) */
+.reviews-slider .slick-list { margin: 0 -10px; }
+.reviews-slider .slick-slide { padding: 0 10px; }
 
-/* ---------- Masonry Grid (CSS columns) ---------- */
-.mm-reviews-grid {
-  margin-top: 18px;
-}
-
-.mm-reviews-masonry {
-  column-count: 3;
-  column-gap: 22px;
-}
-
-@media (max-width: 1024px) {
-  .mm-reviews-masonry { column-count: 2; }
-}
-@media (max-width: 640px) {
-  .mm-reviews-masonry { column-count: 1; }
-}
-
-.mm-reviews-masonry > * {
-  break-inside: avoid;
-  -webkit-column-break-inside: avoid;
-  page-break-inside: avoid;
-  display: inline-block;
-  width: 100%;
-  margin: 0 0 22px;
-}
-
-.mm-reviews-actions {
-  display: flex;
-  justify-content: center;
-  margin-top: 18px;
-}
-
-/* ---------- Slider ---------- */
-.mm-reviews-slider {
-  margin-top: 22px;
-}
-
-/* If slick is active, it wraps slides; this keeps spacing */
-.mm-reviews-slider__track .mm-review-slide {
-  padding: 10px;
-}
-
-.mm-reviews-slider .mm-review-card,
-.mm-reviews-slider .review-card {
-  height: 100%;
-}
-
-/* Slick arrows (if theme doesn't style them nicely) */
-.mm-reviews-slider .slick-prev,
-.mm-reviews-slider .slick-next {
-  width: 38px;
-  height: 38px;
+.reviews-slider .slick-prev,
+.reviews-slider .slick-next {
+  width: 40px;
+  height: 40px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.70);
+  border: 1px solid rgba(255,255,255,.70);
   background: #fff;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 12px 26px rgba(0,0,0,.22);
   z-index: 2;
 }
 
-.mm-reviews-slider .slick-prev:before,
-.mm-reviews-slider .slick-next:before {
-  color: rgba(0, 0, 0, 0.75);
+.reviews-slider .slick-prev:before,
+.reviews-slider .slick-next:before {
+  color: rgba(0,0,0,.75);
   font-size: 18px;
-}
-
-/* Fallback slider (no slick): horizontal scroll snap */
-.mm-reviews-slider__track {
-  display: flex;
-  gap: 18px;
-  overflow-x: auto;
-  padding-bottom: 6px;
-  scroll-snap-type: x mandatory;
-}
-
-.mm-reviews-slider__track .mm-review-slide {
-  min-width: 280px;
-  max-width: 360px;
-  scroll-snap-align: start;
 }

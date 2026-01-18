@@ -69,6 +69,9 @@ const ACCEPT = ".pdf,.doc,.docx";
                 <span class="frm_compact_text"><button type="button">Choose File</button></span>
                 <div class="frm_small_text">Maximum upload size: 20MB</div>
                 <div class="frm_small_text" id="resume_filename" aria-live="polite"></div>
+                <div class="frm_small_text">
+                  <button type="button" class="btn btn-border btn-invert" id="resume_remove_btn" style="display:none; padding:6px 10px; font-size:12px;">Remove file</button>
+                </div>
               </div>
             </div>
           </div>
@@ -100,6 +103,8 @@ const ACCEPT = ".pdf,.doc,.docx";
     const dropzone = document.getElementById("file89_dropzone");
     const fileInput = document.getElementById("field_n3sjm");
     const filenameEl = document.getElementById("resume_filename");
+    const removeBtn = document.getElementById("resume_remove_btn");
+    const statusEl = form.querySelector("[data-form-status]");
 
     const DEFAULT_MAX_UPLOAD_BYTES = {MAX_UPLOAD_BYTES};
     const maxBytes = Number(fileInput?.dataset?.maxBytes || 0) || DEFAULT_MAX_UPLOAD_BYTES;
@@ -107,12 +112,33 @@ const ACCEPT = ".pdf,.doc,.docx";
     function setFilename(file) {
       if (!filenameEl) return;
       filenameEl.textContent = file ? `Selected: ${file.name}` : "";
+      if (removeBtn) removeBtn.style.display = file ? "inline-block" : "none";
     }
 
     function clearFile() {
       if (!fileInput) return;
       fileInput.value = "";
       setFilename(null);
+    }
+
+    function showUploadError(msg) {
+      if (!statusEl) return;
+      statusEl.style.display = "block";
+      statusEl.className = "form-status form-status--error";
+      statusEl.textContent = msg;
+    }
+
+    function clearStatus() {
+      if (!statusEl) return;
+      statusEl.style.display = "none";
+      statusEl.textContent = "";
+    }
+
+    if (removeBtn) {
+      removeBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        clearFile();
+      });
     }
 
     function isFileOk(file) {
@@ -126,6 +152,7 @@ const ACCEPT = ".pdf,.doc,.docx";
       if (!isFileOk(file)) {
         clearFile();
         document.getElementById("frm_field_89_container")?.classList.add("frm_blank_field");
+        showUploadError(`File is too large. Please keep it under ${Math.round(maxBytes / (1024 * 1024))}MB.`);
         return;
       }
 
@@ -137,6 +164,7 @@ const ACCEPT = ".pdf,.doc,.docx";
 
       setFilename(file);
       document.getElementById("frm_field_89_container")?.classList.remove("frm_blank_field");
+      clearStatus();
     }
 
     if (dropzone && fileInput) {
