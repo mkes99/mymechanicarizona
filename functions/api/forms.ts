@@ -1,4 +1,9 @@
 export async function onRequestPost({ request, env }: any) {
+  console.log("[api/forms] hit", {
+    url: request.url,
+    ct: request.headers.get("content-type"),
+    referer: request.headers.get("referer"),
+  });
   try {
     const contentType = request.headers.get("content-type") || "";
     let form: FormData;
