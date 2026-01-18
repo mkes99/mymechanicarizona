@@ -2,7 +2,7 @@
 const {
   apiPath = "/api/reviews",
   max = 50,
-  limit = 16, // render up to this many cards total
+  limit = 24,          // total cards to render in the slider
   autoplay = true,
   autoplayMs = 5500,
   writeReviewUrl = "https://search.google.com/local/writereview?placeid=ChIJIRIHWwp01oYRVv-SOeBXy5o",
@@ -22,8 +22,7 @@ const {
   <div class="reviews-slider__header">
     <h2 class="reviews-slider__title">{title}</h2>
 
-    <!-- keep YOUR button markup/classes -->
-    <a class="btn border-btn btn-wide" href={writeReviewUrl} target="_blank" rel="noopener">
+    <a class="btn btn-border" href={writeReviewUrl} target="_blank" rel="noopener">
       <span>Write a review</span>
     </a>
   </div>
@@ -52,7 +51,7 @@ const {
 
   const api = root.getAttribute('data-api') || '/api/reviews';
   const max = Number(root.getAttribute('data-max') || '50');
-  const limit = Number(root.getAttribute('data-limit') || '16');
+  const limit = Number(root.getAttribute('data-limit') || '24');
   const autoplay = (root.getAttribute('data-autoplay') || '0') === '1';
   const autoplayMs = Number(root.getAttribute('data-autoplay-ms') || '5500') || 5500;
 
@@ -66,6 +65,7 @@ const {
   let items = [];
   let page = 0;
   let timer = null;
+  let isHover = false;
 
   function setStatus(type, msg) {
     if (!status) return;
@@ -127,7 +127,7 @@ const {
         <div class="review-card__stars">${escapeHtml(renderStars(rating))}</div>
       </div>
 
-      <div class="review-card__text review-card__text--clamp">
+      <div class="review-card__text review-card__text--scroll">
         ${escapeHtml(text)}
       </div>
 
@@ -153,28 +153,56 @@ const {
     return Math.max(1, Math.ceil(items.length / per));
   }
 
-  function updateButtons() {
-    if (!prevBtn || !nextBtn) return;
-    const total = pagesCount();
-    prevBtn.disabled = (page <= 0);
-    nextBtn.disabled = (page >= total - 1);
+  // Measure a single slide width accurately, including gap
+  function getPageStepPx() {
+    if (!track) return 0;
+    const per = getCardsPerView();
+    const first = track.children && track.children[0];
+    if (!first) return 0;
+
+    const style = window.getComputedStyle(track);
+    const gap = parseFloat(style.columnGap || style.gap || '0') || 0;
+
+    const cardRect = first.getBoundingClientRect();
+    const cardW = cardRect.width || 0;
+
+    // page width = N cards + (N-1) gaps
+    return (cardW * per) + (gap * Math.max(0, per - 1));
   }
 
-  function applyTransform() {
-    if (!track) return;
-    const total = pagesCount();
-    if (page > total - 1) page = total - 1;
+  function updateButtons() {
+    // Infinite: never disabled
+    if (prevBtn) prevBtn.disabled = false;
+    if (nextBtn) nextBtn.disabled = false;
+  }
 
-    const pageWidth = viewport ? viewport.clientWidth : 0;
-    const x = pageWidth * page;
+  function applyTransform(animate = true) {
+    if (!track) return;
+
+    const total = pagesCount();
+    if (total <= 1) {
+      track.style.transform = 'translate3d(0,0,0)';
+      updateButtons();
+      return;
+    }
+
+    // wrap page infinitely
+    if (page < 0) page = total - 1;
+    if (page > total - 1) page = 0;
+
+    const stepPx = getPageStepPx();
+    const x = stepPx * page;
+
+    track.style.transition = animate ? 'transform 350ms ease' : 'none';
     track.style.transform = `translate3d(${-x}px, 0, 0)`;
     updateButtons();
   }
 
   function go(deltaPages) {
     const total = pagesCount();
-    page = Math.max(0, Math.min(total - 1, page + deltaPages));
-    applyTransform();
+    if (total <= 1) return;
+    page += deltaPages;
+    applyTransform(true);
   }
 
   function stopAuto() {
@@ -187,11 +215,10 @@ const {
   function startAuto() {
     stopAuto();
     if (!autoplay) return;
+
     timer = setInterval(() => {
-      const total = pagesCount();
-      if (total <= 1) return;
-      page = (page + 1) % total;
-      applyTransform();
+      if (isHover) return;
+      go(1);
     }, autoplayMs);
   }
 
@@ -218,18 +245,26 @@ const {
       if (prevBtn) prevBtn.addEventListener('click', () => { stopAuto(); go(-1); startAuto(); });
       if (nextBtn) nextBtn.addEventListener('click', () => { stopAuto(); go(1); startAuto(); });
 
-      window.addEventListener('resize', () => applyTransform());
-
+      // Pause on hover over the whole slider frame
       if (frame) {
-        frame.addEventListener('mouseenter', stopAuto);
-        frame.addEventListener('mouseleave', startAuto);
+        frame.addEventListener('mouseenter', () => { isHover = true; });
+        frame.addEventListener('mouseleave', () => { isHover = false; });
       }
+
+      // Recalculate exact step on resize (fixes partial-cards)
+      window.addEventListener('resize', () => {
+        // snap without animation to the nearest page using new measurements
+        applyTransform(false);
+        requestAnimationFrame(() => applyTransform(false));
+      });
 
       page = 0;
       requestAnimationFrame(() => {
-        applyTransform();
+        applyTransform(false);
         startAuto();
       });
+
+      updateButtons();
     } catch (e) {
       setStatus('error', 'Reviews are temporarily unavailable.');
     }
