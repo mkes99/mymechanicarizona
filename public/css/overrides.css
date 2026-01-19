@@ -1551,7 +1551,6 @@ div .faq-accordion .faq__item .faq__content {
 .form-status--error { border-color: rgba(220,0,0,.25); }
 .form-status--info { border-color: rgba(0,0,0,.18); }
 
-
 /* =========================================================
    REVIEWS – SHARED TOKENS
    ========================================================= */
@@ -1611,23 +1610,6 @@ div .faq-accordion .faq__item .faq__content {
 }
 @media (max-width: 640px) {
   .reviews-grid__masonry { column-count: 1 !important; }
-}
-
-/* Card container in masonry */
-.reviews-grid__masonry > .review-card {
-  background: #fff;
-  border-radius: var(--review-radius);
-  padding: 18px 18px;
-  margin: 0 0 18px;
-
-  border: var(--review-border);
-  box-shadow: var(--review-shadow-grid);
-
-  display: inline-block !important;
-  width: 100% !important;
-  break-inside: avoid;
-  -webkit-column-break-inside: avoid;
-  page-break-inside: avoid;
 }
 
 /* =========================================================
@@ -1853,16 +1835,6 @@ div .faq-accordion .faq__item .faq__content {
   color: var(--review-google-gold);
 }
 
-/* grid text breathing */
-.reviews-grid__masonry > .review-card .review-card__text {
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--review-text);
-  margin-top: 6px;
-  padding-top: 10px;
-  padding-bottom: 12px;
-}
-
 /* Status blocks */
 .reviews-grid__status,
 .reviews-slider__status {
@@ -1872,4 +1844,95 @@ div .faq-accordion .faq__item .faq__content {
   border: 1px solid rgba(0,0,0,.12);
   background: #fff;
   font-weight: 800;
+}
+
+/* Optional: white text for the block title area when used over dark image */
+.reviews-section .block-title h2,
+.reviews-section .block-title .block-title__description {
+  color: #ffffff;
+}
+
+/* =========================================================
+   REVIEWS GRID – APPLY SLIDER CARD TREATMENT
+   (same visual language as slider cards)
+   ========================================================= */
+
+/* Make masonry cards use the slider look */
+.reviews-grid__masonry > .review-card {
+  background: #fff !important;
+  background-color: #fff !important;
+
+  border-radius: var(--review-radius) !important;
+  padding: 16px 16px 12px !important;
+
+  /* match slider look */
+  border: 1px solid rgba(255,255,255,.70) !important;
+  box-shadow: var(--review-shadow-slider) !important;
+
+  /* keep masonry behavior */
+  display: inline-block !important;
+  width: 100% !important;
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* Use the same internal layout (meta top, body grows, footer pinned) */
+.reviews-grid__masonry > .review-card {
+  display: flex !important;
+  flex-direction: column;
+}
+
+/* Meta spacing like slider */
+.reviews-grid__masonry > .review-card .review-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  margin-bottom: 8px;
+}
+
+/* If grid uses .review-card__text, make it scroll like slider (taller allowance) */
+.reviews-grid__masonry > .review-card .review-card__text {
+  flex: 1 1 auto;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+
+  /* grid can be taller than slider; show more before scroll */
+  max-height: 12.5em; /* ~8–9 lines; tweak if desired */
+  padding-right: 8px;
+
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--review-text);
+  margin-top: 6px;
+  padding-top: 10px;
+  padding-bottom: 12px;
+}
+
+/* Optional: nicer scrollbar */
+.reviews-grid__masonry > .review-card .review-card__text::-webkit-scrollbar {
+  width: 8px;
+}
+.reviews-grid__masonry > .review-card .review-card__text::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,.18);
+  border-radius: 999px;
+}
+
+/* Footer pinned & styled like slider */
+.reviews-grid__masonry > .review-card .review-card__footer {
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,0,0,.08);
+  flex: 0 0 auto;
+}
+
+/* Google link in grid: match slider */
+.reviews-grid__masonry > .review-card .review-card__google {
+  color: var(--review-google-blue) !important;
+  font-weight: 700;
+  text-decoration: none;
+}
+.reviews-grid__masonry > .review-card .review-card__google:hover {
+  text-decoration: underline;
 }
