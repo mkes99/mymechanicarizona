@@ -1936,3 +1936,53 @@ div .faq-accordion .faq__item .faq__content {
 .reviews-grid__masonry > .review-card .review-card__google:hover {
   text-decoration: underline;
 }
+
+
+/* =========================================================
+   REVIEWS GRID – SPACING + SHADOW FIXES
+   Paste at END of overrides.css
+   ========================================================= */
+
+/* Add breathing room above/below the grid section */
+.reviews-grid {
+  padding-top: 28px;
+  padding-bottom: 28px;
+}
+
+/* If your theme uses a generic section wrapper, this helps too */
+.reviews-grid__masonry {
+  margin-top: 8px;
+  margin-bottom: 10px;
+}
+
+/* Fix the “weird” shadow in masonry:
+   - multi-column + box-shadow can look harsh/aliased
+   - soften shadow and keep it consistent */
+.reviews-grid__masonry > .review-card {
+  box-shadow: 0 10px 28px rgba(0,0,0,.10) !important; /* softer than slider */
+  border: 1px solid rgba(0,0,0,.08) !important;       /* normal border (not white) */
+  background: #fff !important;
+
+  /* reduce visual “bulge” where shadow clips in columns */
+  overflow: hidden;          /* keeps rounded corners clean */
+  border-radius: var(--review-radius);
+}
+
+/* OPTIONAL: If you copied slider’s “white border”, remove it for grid cards */
+.reviews-grid__masonry > .review-card {
+  border-color: rgba(0,0,0,.08) !important;
+}
+
+/* If the section is touching adjacent content, force margin */
+.reviews-grid {
+  margin-top: 22px;
+  margin-bottom: 22px;
+}
+
+/* Mobile: slightly less padding so it doesn't feel huge */
+@media (max-width: 640px) {
+  .reviews-grid {
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+}
