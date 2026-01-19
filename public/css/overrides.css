@@ -1987,151 +1987,59 @@ div .faq-accordion .faq__item .faq__content {
     padding-bottom: 18px;
   }
 }
+
 /* =========================================================
-   MOBILE MENU HARDENING (for your #slidemenu + mm panels)
-   Paste at END of overrides.css
+   MOBILE MENU: FORCE TRUE OFF-CANVAS OPEN/CLOSE
    ========================================================= */
 
-/* 1) When menu is open, lock page scroll */
+/* Put the menu above everything */
+#slidemenu {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  height: 100vh !important;
+  width: min(86vw, 360px) !important;
+  z-index: 99999 !important;
+
+  /* CLOSED STATE (default) */
+  transform: translateX(-110%) !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+
+  transition: transform 280ms ease, visibility 0s linear 280ms !important;
+}
+
+/* OPEN STATE */
+#slidemenu.slide-active {
+  transform: translateX(0) !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+
+  transition: transform 280ms ease !important;
+}
+
+/* Overlay must sit behind the menu, above the page */
+.darkout-menu {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99998 !important;
+
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+
+  transition: opacity 200ms ease, visibility 0s linear 200ms !important;
+}
+
+.darkout-menu.slide-active {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+
+  transition: opacity 200ms ease !important;
+}
+
+/* Optional: lock page scroll when menu open */
 body.slide-active {
   overflow: hidden !important;
-  height: 100% !important;
-  touch-action: none;
-}
-
-/* 2) Make the slide menu a true top layer */
-#slide-nav,
-#slidemenu {
-  position: relative;
-}
-
-/* IMPORTANT: Force slidemenu to sit above everything on mobile */
-@media (max-width: 1024px) {
-  #slidemenu {
-    position: fixed !important;
-    top: 0;
-    left: 0;
-    height: 100dvh !important;
-    width: min(86vw, 360px) !important;
-
-    z-index: 99999 !important; /* beats header/hero stacking contexts */
-    overflow: hidden !important; /* inner panels will scroll */
-    background: #1f1f1f; /* match your dark menu */
-    -webkit-overflow-scrolling: touch;
-
-    /* If theme already slides it, we don't fight its transform here;
-       we only guarantee top-layer + sizing. */
-  }
-}
-
-/* 3) Overlay: ensure it is behind menu but above page */
-@media (max-width: 1024px) {
-  .darkout-menu {
-    position: fixed !important;
-    inset: 0 !important;
-    z-index: 99998 !important;
-  }
-}
-
-/* 4) Close button always clickable and visible */
-@media (max-width: 1024px) {
-  #slidemenu .close-menu {
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 100000 !important;
-
-    display: flex !important;
-    justify-content: flex-end !important;
-    align-items: center !important;
-
-    padding: 14px 14px !important;
-    height: 56px !important;
-
-    /* keep it from being covered visually */
-    background: linear-gradient(
-      to bottom,
-      rgba(31, 31, 31, 1),
-      rgba(31, 31, 31, 0.88)
-    ) !important;
-  }
-
-  /* Make the icon a real hit target */
-  #slidemenu .close-menu .icon-close-cross {
-    display: inline-flex;
-    width: 44px;
-    height: 44px;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 10px;
-    cursor: pointer;
-
-    /* your theme yellow-ish */
-    color: #f5c84b;
-    font-size: 26px;
-    line-height: 1;
-  }
-}
-
-/* 5) The injected mobile nav needs to fill and scroll */
-@media (max-width: 1024px) {
-  #slidemenu nav.panel-menu {
-    height: calc(100dvh - 56px) !important; /* subtract sticky close row */
-    overflow: hidden !important;
-    display: block !important;
-  }
-
-  #slidemenu nav.panel-menu .mmpanels {
-    height: 100% !important;
-    overflow: hidden !important;
-    position: relative !important;
-  }
-
-  /* Each panel becomes the scroll container */
-  #slidemenu nav.panel-menu .mmpanel {
-    height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 24px;
-  }
-
-  /* Make each link row reliably tappable and not clipped */
-  #slidemenu nav.panel-menu .mmpanel ul {
-    margin: 0 !important;
-    padding: 0 !important;
-    list-style: none !important;
-  }
-
-  #slidemenu nav.panel-menu .mmpanel li > a {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 12px;
-
-    padding: 14px 16px !important;
-    text-decoration: none !important;
-    width: 100% !important;
-  }
-
-  /* If theme is applying weird transforms on parents, isolate the menu layer */
-  #slidemenu,
-  #slidemenu * {
-    box-sizing: border-box;
-  }
-
-  #slidemenu {
-    isolation: isolate;
-  }
-}
-
-/* 6) Prevent the hamburger / header pieces from overlaying the open menu */
-@media (max-width: 1024px) {
-  /* If something is still sitting above, it’s usually a header wrapper with z-index. */
-  header.page-header-2,
-  header.page-header-2 .header-topline,
-  header.page-header-2 .navbar,
-  header.page-header-2 .header-row {
-    z-index: auto !important;
-  }
 }
