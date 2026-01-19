@@ -1951,8 +1951,8 @@ div .faq-accordion .faq__item .faq__content {
 
 /* If your theme uses a generic section wrapper, this helps too */
 .reviews-grid__masonry {
-  margin-top: 18px;
-  margin-bottom: 20px;
+  margin-top: 8px;
+  margin-bottom: 10px;
 }
 
 /* Fix the “weird” shadow in masonry:
@@ -1966,6 +1966,7 @@ div .faq-accordion .faq__item .faq__content {
   /* reduce visual “bulge” where shadow clips in columns */
   overflow: hidden;          /* keeps rounded corners clean */
   border-radius: var(--review-radius);
+  margin-bottom: 20px;
 }
 
 /* OPTIONAL: If you copied slider’s “white border”, remove it for grid cards */
@@ -1985,4 +1986,121 @@ div .faq-accordion .faq__item .faq__content {
     padding-top: 18px;
     padding-bottom: 18px;
   }
+}
+
+
+/* ============================
+   MOBILE MENU HARDENING
+   Add/adjust selectors to match your markup
+   ============================ */
+
+/* When menu is open, prevent background scroll */
+html.menu-open,
+body.menu-open {
+  overflow: hidden;
+  height: 100%;
+}
+
+/* Overlay */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(0, 0, 0, 0.65);
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+/* Panel */
+.mobile-menu-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+
+  width: min(86vw, 360px);
+  height: 100dvh; /* better on mobile than 100vh */
+  background: #1f1f1f; /* adjust to your theme */
+  color: #fff;
+
+  transform: translate3d(-100%, 0, 0);
+  transition: transform 220ms ease;
+
+  /* IMPORTANT: allow menu to scroll */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Open state */
+html.menu-open .mobile-menu-overlay,
+body.menu-open .mobile-menu-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+html.menu-open .mobile-menu-panel,
+body.menu-open .mobile-menu-panel {
+  transform: translate3d(0, 0, 0);
+}
+
+/* Close button area (stays accessible) */
+.mobile-menu-close {
+  position: sticky; /* stays visible when scrolling the menu */
+  top: 0;
+  z-index: 10000;
+
+  display: flex;
+  justify-content: flex-end;
+  padding: 14px;
+
+  background: linear-gradient(to bottom, rgba(31,31,31,1), rgba(31,31,31,0.85));
+}
+
+/* the actual X button */
+.mobile-menu-close button {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 0;
+  background: transparent;
+  color: #f5c84b; /* your yellow */
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Menu content scroll area */
+.mobile-menu-content {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 24px;
+}
+
+/* Make sure links are full-width tappable */
+.mobile-menu-content a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 14px 16px;
+  color: #fff;
+  text-decoration: none;
+}
+
+/* Prevent any site-wide transforms from messing stacking order */
+.mobile-menu-overlay,
+.mobile-menu-panel {
+  transform-style: flat;
+}
+
+/* Optional: if your header/hero uses transforms and wins stacking,
+   force menu into its own top stacking context. */
+.mobile-menu-panel,
+.mobile-menu-overlay {
+  isolation: isolate;
 }
