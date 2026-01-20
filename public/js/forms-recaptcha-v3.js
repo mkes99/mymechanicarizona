@@ -1,5 +1,4 @@
-<script is:inline>
-  (() => {
+(() => {
     const form = document.getElementById("form_application");
     if (!form) return;
 
@@ -13,6 +12,8 @@
 
     if (!dropzone || !fileInput || !filenameEl) return;
 
+    const fieldWrap = document.getElementById(FIELD_WRAP_ID);
+
     // Read max size from data attr with fallback
     const maxBytes =
       Number(fileInput.getAttribute("data-max-bytes") || "0") || 20 * 1024 * 1024;
@@ -25,8 +26,6 @@
 
     // Own the state (Safari-safe). We'll best-effort sync to input.files.
     let selectedFile = null;
-
-    const fieldWrap = document.getElementById(FIELD_WRAP_ID);
 
     const showUploadError = (msg) => {
       if (!statusEl) return;
@@ -48,50 +47,6 @@
       if (kb < 1024) return `${kb.toFixed(1)} KB`;
       const mb = kb / 1024;
       return `${mb.toFixed(1)} MB`;
-    };
-
-    // ✅ Always store the truth on the input for Safari-safe submit handling
-    const syncStore = () => {
-      // Global submit handler reads fileInput._mmFile and appends to FormData
-      fileInput._mmFile = selectedFile || null;
-    };
-
-    // Best-effort: sync our state back into the real <input type="file">
-    const syncToInput = () => {
-      // Always update Safari-safe store
-      syncStore();
-
-      try {
-        if (!selectedFile) {
-          fileInput.value = "";
-          return;
-        }
-        const dt = new DataTransfer();
-        dt.items.add(selectedFile);
-        fileInput.files = dt.files;
-      } catch (_) {
-        // Safari may block programmatic assignment; that's OK.
-      }
-    };
-
-    const setUI = () => {
-      if (!selectedFile) {
-        filenameEl.textContent = "";
-        if (removeBtn) removeBtn.style.display = "none";
-        return;
-      }
-
-      filenameEl.textContent = `Selected: ${selectedFile.name} (${formatBytes(selectedFile.size)})`;
-      if (removeBtn) removeBtn.style.display = "inline-block";
-    };
-
-    const clearFile = () => {
-      selectedFile = null;
-      try {
-        fileInput.value = "";
-      } catch (_) {}
-      syncToInput(); // ✅ also updates store
-      setUI();
     };
 
     const extOf = (name) => {
@@ -119,12 +74,58 @@
         return {
           ok: false,
           msg: `File is too large. Please keep it under ${Math.round(
-            maxBytes / (1024 * 1024),
+            maxBytes / (1024 * 1024)
           )}MB.`,
         };
       }
 
       return { ok: true, msg: "" };
+    };
+
+    // ✅ Always store the truth on the input for Safari-safe submit handling
+    const syncStore = () => {
+      // Global submit handler reads fileInput._mmFile and appends to FormData
+      fileInput._mmFile = selectedFile || null;
+    };
+
+    // Best-effort: sync our state back into the real <input type="file">
+    const syncToInput = () => {
+      syncStore();
+
+      try {
+        if (!selectedFile) {
+          fileInput.value = "";
+          return;
+        }
+        const dt = new DataTransfer();
+        dt.items.add(selectedFile);
+        fileInput.files = dt.files;
+      } catch (_) {
+        // Safari may block programmatic assignment; that's OK.
+      }
+    };
+
+    const setUI = () => {
+      if (!selectedFile) {
+        filenameEl.textContent = "";
+        if (removeBtn) removeBtn.style.display = "none";
+        return;
+      }
+
+      filenameEl.textContent = `Selected: ${selectedFile.name} (${formatBytes(
+        selectedFile.size
+      )})`;
+
+      if (removeBtn) removeBtn.style.display = "inline-block";
+    };
+
+    const clearFile = () => {
+      selectedFile = null;
+      try {
+        fileInput.value = "";
+      } catch (_) {}
+      syncToInput();
+      setUI();
     };
 
     const assignFile = (file) => {
@@ -141,7 +142,7 @@
       clearStatus();
       fieldWrap?.classList.remove("frm_blank_field");
 
-      syncToInput(); // ✅ updates store + best-effort input.files
+      syncToInput();
       setUI();
     };
 
@@ -173,7 +174,7 @@
       openPicker(e);
     });
 
-    // Also wire the existing buttons inside the zone
+    // Wire existing buttons inside the zone
     dropzone.querySelectorAll("button").forEach((btn) => {
       btn.addEventListener("click", openPicker);
     });
@@ -195,7 +196,7 @@
       assignFile(f);
     });
 
-    // --- Clear error on re-pick ---
+    // Clear error on re-pick
     fileInput.addEventListener("click", () => {
       clearStatus();
     });
@@ -210,4 +211,3 @@
     syncStore();
     setUI();
   })();
-</script>
