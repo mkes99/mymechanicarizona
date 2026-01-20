@@ -147,9 +147,9 @@ const ACCEPT = ".pdf,.doc,.docx";
       return `${mb.toFixed(1)} MB`;
     };
 
-    // ✅ NEW: Always store the truth on the input for Safari-safe submit handling
+    // ✅ Always store the truth on the input for Safari-safe submit handling
     const syncStore = () => {
-      // Global submit handler can read fileInput._mmFile and append to FormData
+      // Global submit handler reads fileInput._mmFile and appends to FormData
       fileInput._mmFile = selectedFile || null;
     };
 
@@ -172,16 +172,13 @@ const ACCEPT = ".pdf,.doc,.docx";
     };
 
     const setUI = () => {
-      // Show “Selected: … (size)” and toggle remove button
       if (!selectedFile) {
         filenameEl.textContent = "";
         if (removeBtn) removeBtn.style.display = "none";
         return;
       }
 
-      filenameEl.textContent = `Selected: ${selectedFile.name} (${formatBytes(
-        selectedFile.size,
-      )})`;
+      filenameEl.textContent = `Selected: ${selectedFile.name} (${formatBytes(selectedFile.size)})`;
       if (removeBtn) removeBtn.style.display = "inline-block";
     };
 
@@ -265,12 +262,10 @@ const ACCEPT = ".pdf,.doc,.docx";
     }
 
     // --- Click handling ---
-    // Only open picker when clicking the dropzone *but not* clicking buttons inside it.
+    // Only open picker when clicking the dropzone but NOT clicking buttons inside it.
     dropzone.addEventListener("click", (e) => {
       const t = e.target;
-      // Don’t hijack clicks on the remove button
       if (t && t.closest && t.closest("#resume_remove_btn")) return;
-      // Don’t hijack other buttons inside the dropzone
       if (t && t.closest && t.closest("button")) return;
       openPicker(e);
     });
@@ -297,12 +292,18 @@ const ACCEPT = ".pdf,.doc,.docx";
       assignFile(f);
     });
 
-    // --- Optional: clear error on re-pick ---
+    // --- Clear error on re-pick ---
     fileInput.addEventListener("click", () => {
       clearStatus();
     });
 
-    // ✅ NEW: initialize store
+    // Clear UI when global form script clears fields
+    form.addEventListener("mm:form:cleared", () => {
+      clearFile();
+      fieldWrap?.classList.add("frm_blank_field");
+    });
+
+    // ✅ Initialize store + UI
     syncStore();
     setUI();
   })();

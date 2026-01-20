@@ -572,7 +572,8 @@ import vehicles from "../data/vehicles.json";
 
     let selectedFiles = [];
 
-    const maxBytes = Number(input.getAttribute("data-max-bytes") || "0") || 20 * 1024 * 1024;
+    const maxBytes =
+      Number(input.getAttribute("data-max-bytes") || "0") || 20 * 1024 * 1024;
 
     const showUploadError = (msg) => {
       if (!statusEl) return;
@@ -596,9 +597,9 @@ import vehicles from "../data/vehicles.json";
       return `${mb.toFixed(1)} MB`;
     };
 
-    // ✅ NEW: Always store the "truth" on the input for Safari-safe submit handling
+    // ✅ Always keep the "truth" on the input for Safari-safe submit handling
     const syncStore = () => {
-      // Global submit handler will look for input._mmFiles
+      // Global submit handler reads input._mmFiles
       input._mmFiles = selectedFiles.slice();
     };
 
@@ -606,13 +607,13 @@ import vehicles from "../data/vehicles.json";
       // Always update Safari-safe store
       syncStore();
 
-      // Best-effort: try to reflect into input.files for browsers that allow it
+      // Best-effort: reflect into input.files (works in most browsers, may fail in Safari)
       try {
         const dt = new DataTransfer();
         selectedFiles.forEach((f) => dt.items.add(f));
         input.files = dt.files;
       } catch (_) {
-        // Safari may block assigning to input.files — that's fine.
+        // Safari may block assigning to input.files — that's OK.
       }
     };
 
@@ -628,6 +629,7 @@ import vehicles from "../data/vehicles.json";
     const filterBySize = (files) => {
       if (!maxBytes) return files;
       let rejected = 0;
+
       const ok = files.filter((f) => {
         if (f.size > maxBytes) {
           rejected += 1;
@@ -645,6 +647,7 @@ import vehicles from "../data/vehicles.json";
       } else {
         clearStatus();
       }
+
       return ok;
     };
 
@@ -677,11 +680,11 @@ import vehicles from "../data/vehicles.json";
         size.className = "mm-file-size";
         size.textContent = formatBytes(f.size);
 
-        // ✅ CHANGE: use a <button> (better click reliability than <a> inside dropzones)
+        // ✅ Use a real <button> for reliable taps/clicks on mobile
         const btn = document.createElement("a");
         btn.type = "button";
         btn.className = "mm-file-remove";
-        btn.textContent = "X";
+        btn.textContent = "Remove";
         btn.addEventListener("click", (e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -704,8 +707,7 @@ import vehicles from "../data/vehicles.json";
       if (!add.length) return;
 
       selectedFiles = filterBySize(dedupe(selectedFiles.concat(add)));
-
-      syncToInput(); // ✅ will also update input._mmFiles
+      syncToInput(); // updates input._mmFiles too
       render();
     };
 
@@ -714,7 +716,7 @@ import vehicles from "../data/vehicles.json";
       try {
         input.value = "";
       } catch (_) {}
-      syncToInput(); // ✅ clears input._mmFiles too
+      syncToInput(); // clears input._mmFiles too
       render();
       clearStatus();
     };
@@ -727,10 +729,12 @@ import vehicles from "../data/vehicles.json";
       input.click();
     };
 
-    dropzone.querySelectorAll("[data-mm-file-btn]").forEach((b) =>
-      b.addEventListener("click", openPicker),
-    );
+    // Click any element marked as the "file button"
+    dropzone
+      .querySelectorAll("[data-mm-file-btn]")
+      .forEach((b) => b.addEventListener("click", openPicker));
 
+    // Keyboard accessibility
     dropzone.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         const t = e.target;
@@ -739,20 +743,23 @@ import vehicles from "../data/vehicles.json";
       }
     });
 
+    // Input change
     input.addEventListener("change", () => {
       addFiles(input.files);
-      // Clearing ensures selecting the same file again triggers "change"
+      // Allow selecting the same file again to trigger change
       try {
         input.value = "";
       } catch (_) {}
     });
 
+    // Drag/drop
     dropzone.addEventListener("dragover", (e) => e.preventDefault());
     dropzone.addEventListener("drop", (e) => {
       e.preventDefault();
       if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
     });
 
+    // Remove all
     if (removeAllBtn) {
       removeAllBtn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -761,7 +768,12 @@ import vehicles from "../data/vehicles.json";
       });
     }
 
-    // ✅ NEW: initialize store (important if form submits without touching dropzone)
+    // Clear UI when global form script clears fields
+    form.addEventListener("mm:form:cleared", () => {
+      clearFiles();
+    });
+
+    // Initialize store (important if form submits without touching dropzone)
     syncStore();
     render();
   })();

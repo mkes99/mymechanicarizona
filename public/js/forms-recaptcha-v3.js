@@ -1,4 +1,15 @@
- (() => {
+---
+/**
+ * forms-recaptcha-v3.js (global client script)
+ * - Finds all forms with `data-mm-form` and POSTs them to /api/forms
+ * - Loads reCAPTCHA v3 once (if site key exists on <html data-recaptcha-sitekey="...">)
+ * - Validates required fields using Formidable-style `.frm_required_field` wrappers
+ * - Supports Safari-safe Dropzone state by appending files from:
+ *   - input._mmFiles (Array<File>) for multi-file
+ *   - input._mmFile (File) for single-file
+ * - Avoids double-binding (modal reinits / partial hydration)
+ */
+(() => {
   function getSiteKey() {
     return document.documentElement.getAttribute("data-recaptcha-sitekey") || "";
   }
@@ -79,7 +90,7 @@
 
   function validateForm(form) {
     const requiredFields = Array.from(
-      form.querySelectorAll(".frm_form_field.frm_required_field")
+      form.querySelectorAll(".frm_form_field.frm_required_field"),
     ).filter(isActuallyVisible);
 
     let ok = true;
@@ -91,7 +102,7 @@
       // Skip hidden required wrappers
       if (!isActuallyVisible(field)) continue;
 
-      // File required
+      // File required (supports Safari-safe dropzones)
       if ((control.type || "").toLowerCase() === "file") {
         const hasFile =
           (control.files && control.files.length > 0) ||
@@ -158,23 +169,25 @@
   }
 
   function forceAttachMmFiles(form, fd) {
-    // If your dropzone scripts store files on the input element (Safari-safe),
-    // make sure they actually go into FormData.
+    // If dropzone scripts store files on the input element (Safari-safe),
+    // ensure they are appended into FormData.
     const fileInputs = Array.from(form.querySelectorAll('input[type="file"]'));
 
     for (const input of fileInputs) {
+      const name = input.name;
+      if (!name) continue;
+
       // Multi: input._mmFiles = [File, ...]
       if (Array.isArray(input._mmFiles) && input._mmFiles.length) {
-        // Remove any existing entries for this name and re-append
-        fd.delete(input.name);
-        input._mmFiles.forEach((f) => fd.append(input.name, f));
+        fd.delete(name);
+        for (const f of input._mmFiles) fd.append(name, f);
         continue;
       }
 
       // Single: input._mmFile = File
       if (input._mmFile) {
-        fd.delete(input.name);
-        fd.append(input.name, input._mmFile);
+        fd.delete(name);
+        fd.append(name, input._mmFile);
       }
     }
   }
@@ -258,15 +271,12 @@
             if (ct.includes("application/json")) {
               data = await res.json().catch(() => ({}));
             } else {
-              // try text for debugging, but don't spam UI
               const text = await res.text().catch(() => "");
               data = { ok: false, error: text ? "Server returned non-JSON response." : "" };
             }
 
             if (!res.ok || !data || data.ok !== true) {
-              const msg =
-                (data && (data.error || data.message)) ||
-                "Something went wrong. Please try again.";
+              const msg = (data && (data.error || data.message)) || "Something went wrong. Please try again.";
               showStatus(form, "error", msg);
               return;
             }
@@ -303,7 +313,7 @@
               el.value = "";
             });
 
-            // Optional: if your dropzones show filenames elsewhere, you can dispatch an event
+            // Let dropzones (or other UI) react to clearing
             form.dispatchEvent(new CustomEvent("mm:form:cleared"));
           } catch (err) {
             console.error("[forms] submit failed:", err);
@@ -312,7 +322,7 @@
             if (submitBtn) submitBtn.disabled = false;
           }
         },
-        true
+        true,
       );
     });
   }
