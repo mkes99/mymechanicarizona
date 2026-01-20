@@ -3866,6 +3866,7 @@ body.slide-active .darkout-menu {
 
 #pageContent.slide-active {
     padding-top: 0;
+    z-index: 0;
 }
 
 .navbar-header {
@@ -3887,13 +3888,13 @@ body.slide-active .darkout-menu {
     position: relative;
 }
 
-.header-info-mobile.slide-active,
+/* .header-info-mobile.slide-active,
 #slidemenu.slide-active,
 #pageContent.slide-active,
 .page-footer.slide-active,
 .page-header-1 .header-row.slide-active {
     left: 270px;
-}
+} */
 
 .page-footer.slide-active {
     z-index: 9999;
