@@ -147,8 +147,17 @@ const ACCEPT = ".pdf,.doc,.docx";
       return `${mb.toFixed(1)} MB`;
     };
 
+    // ✅ NEW: Always store the truth on the input for Safari-safe submit handling
+    const syncStore = () => {
+      // Global submit handler can read fileInput._mmFile and append to FormData
+      fileInput._mmFile = selectedFile || null;
+    };
+
     // Best-effort: sync our state back into the real <input type="file">
     const syncToInput = () => {
+      // Always update Safari-safe store
+      syncStore();
+
       try {
         if (!selectedFile) {
           fileInput.value = "";
@@ -158,8 +167,7 @@ const ACCEPT = ".pdf,.doc,.docx";
         dt.items.add(selectedFile);
         fileInput.files = dt.files;
       } catch (_) {
-        // Safari may block programmatic assignment; that's OK
-        // because the user still picked the file via the real input.
+        // Safari may block programmatic assignment; that's OK.
       }
     };
 
@@ -182,7 +190,7 @@ const ACCEPT = ".pdf,.doc,.docx";
       try {
         fileInput.value = "";
       } catch (_) {}
-      syncToInput();
+      syncToInput(); // ✅ also updates store
       setUI();
     };
 
@@ -233,9 +241,7 @@ const ACCEPT = ".pdf,.doc,.docx";
       clearStatus();
       fieldWrap?.classList.remove("frm_blank_field");
 
-      // If the file came from drag/drop (not from the input),
-      // attempt to sync it into the input for submission.
-      syncToInput();
+      syncToInput(); // ✅ updates store + best-effort input.files
       setUI();
     };
 
@@ -269,7 +275,7 @@ const ACCEPT = ".pdf,.doc,.docx";
       openPicker(e);
     });
 
-    // Also wire the existing “Drop… click to upload” button inside the zone
+    // Also wire the existing buttons inside the zone
     dropzone.querySelectorAll("button").forEach((btn) => {
       btn.addEventListener("click", openPicker);
     });
@@ -288,17 +294,16 @@ const ACCEPT = ".pdf,.doc,.docx";
     dropzone.addEventListener("drop", (e) => {
       e.preventDefault();
       const f = e.dataTransfer?.files?.[0] || null;
-      // If user drops, we own it and sync best-effort
       assignFile(f);
     });
 
     // --- Optional: clear error on re-pick ---
     fileInput.addEventListener("click", () => {
-      // If they are re-opening picker, clear status but keep selected until changed
       clearStatus();
     });
 
-    // Initial state
+    // ✅ NEW: initialize store
+    syncStore();
     setUI();
   })();
 </script>

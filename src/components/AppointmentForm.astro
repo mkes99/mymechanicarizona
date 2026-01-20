@@ -9,7 +9,6 @@
  */
 const FORM_ID = "form_appointmentform";
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024; // 20MB
-const DateLoadValue = new Date().toISOString().split("T")[0];
 import vehicles from "../data/vehicles.json";
 ---
 
@@ -597,12 +596,24 @@ import vehicles from "../data/vehicles.json";
       return `${mb.toFixed(1)} MB`;
     };
 
+    // ✅ NEW: Always store the "truth" on the input for Safari-safe submit handling
+    const syncStore = () => {
+      // Global submit handler will look for input._mmFiles
+      input._mmFiles = selectedFiles.slice();
+    };
+
     const syncToInput = () => {
+      // Always update Safari-safe store
+      syncStore();
+
+      // Best-effort: try to reflect into input.files for browsers that allow it
       try {
         const dt = new DataTransfer();
         selectedFiles.forEach((f) => dt.items.add(f));
         input.files = dt.files;
-      } catch (_) {}
+      } catch (_) {
+        // Safari may block assigning to input.files — that's fine.
+      }
     };
 
     const dedupe = (files) => {
@@ -618,12 +629,19 @@ import vehicles from "../data/vehicles.json";
       if (!maxBytes) return files;
       let rejected = 0;
       const ok = files.filter((f) => {
-        if (f.size > maxBytes) { rejected += 1; return false; }
+        if (f.size > maxBytes) {
+          rejected += 1;
+          return false;
+        }
         return true;
       });
 
       if (rejected) {
-        showUploadError(`One or more files exceed the upload limit. Please keep each file under ${Math.round(maxBytes / (1024 * 1024))}MB.`);
+        showUploadError(
+          `One or more files exceed the upload limit. Please keep each file under ${Math.round(
+            maxBytes / (1024 * 1024),
+          )}MB.`,
+        );
       } else {
         clearStatus();
       }
@@ -633,7 +651,9 @@ import vehicles from "../data/vehicles.json";
     const setButtonLabel = () => {
       const btns = dropzone.querySelectorAll("[data-mm-file-btn]");
       const n = selectedFiles.length;
-      btns.forEach((b) => { b.textContent = n ? `Add files (${n})` : "Choose File"; });
+      btns.forEach((b) => {
+        b.textContent = n ? `Add files (${n})` : "Choose File";
+      });
     };
 
     const render = () => {
@@ -657,6 +677,7 @@ import vehicles from "../data/vehicles.json";
         size.className = "mm-file-size";
         size.textContent = formatBytes(f.size);
 
+        // ✅ CHANGE: use a <button> (better click reliability than <a> inside dropzones)
         const btn = document.createElement("a");
         btn.type = "button";
         btn.className = "mm-file-remove";
@@ -681,25 +702,34 @@ import vehicles from "../data/vehicles.json";
     const addFiles = (incoming) => {
       const add = Array.from(incoming || []);
       if (!add.length) return;
+
       selectedFiles = filterBySize(dedupe(selectedFiles.concat(add)));
-      syncToInput();
+
+      syncToInput(); // ✅ will also update input._mmFiles
       render();
     };
 
     const clearFiles = () => {
       selectedFiles = [];
-      try { input.value = ""; } catch (_) {}
-      syncToInput();
+      try {
+        input.value = "";
+      } catch (_) {}
+      syncToInput(); // ✅ clears input._mmFiles too
       render();
       clearStatus();
     };
 
     const openPicker = (e) => {
-      if (e) { e.preventDefault(); e.stopPropagation(); }
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
       input.click();
     };
 
-    dropzone.querySelectorAll("[data-mm-file-btn]").forEach((b) => b.addEventListener("click", openPicker));
+    dropzone.querySelectorAll("[data-mm-file-btn]").forEach((b) =>
+      b.addEventListener("click", openPicker),
+    );
 
     dropzone.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
@@ -711,7 +741,10 @@ import vehicles from "../data/vehicles.json";
 
     input.addEventListener("change", () => {
       addFiles(input.files);
-      try { input.value = ""; } catch (_) {}
+      // Clearing ensures selecting the same file again triggers "change"
+      try {
+        input.value = "";
+      } catch (_) {}
     });
 
     dropzone.addEventListener("dragover", (e) => e.preventDefault());
@@ -728,6 +761,8 @@ import vehicles from "../data/vehicles.json";
       });
     }
 
+    // ✅ NEW: initialize store (important if form submits without touching dropzone)
+    syncStore();
     render();
   })();
 </script>

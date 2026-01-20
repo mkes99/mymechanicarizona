@@ -1,19 +1,40 @@
-(() => {
+ (() => {
   function getSiteKey() {
-    return document.documentElement.getAttribute('data-recaptcha-sitekey') || '';
+    return document.documentElement.getAttribute("data-recaptcha-sitekey") || "";
   }
 
   function loadRecaptcha(siteKey) {
     return new Promise((resolve, reject) => {
       if (!siteKey) return resolve(null);
-      if (window.grecaptcha && window.grecaptcha.execute) return resolve(window.grecaptcha);
 
-      const s = document.createElement('script');
+      // Already loaded
+      if (window.grecaptcha && typeof window.grecaptcha.execute === "function") {
+        return resolve(window.grecaptcha);
+      }
+
+      // If a script is already in-flight, poll briefly
+      const existing = document.querySelector('script[data-mm-recaptcha="1"]');
+      if (existing) {
+        const start = Date.now();
+        const t = setInterval(() => {
+          if (window.grecaptcha && typeof window.grecaptcha.execute === "function") {
+            clearInterval(t);
+            resolve(window.grecaptcha);
+          } else if (Date.now() - start > 8000) {
+            clearInterval(t);
+            resolve(null);
+          }
+        }, 50);
+        return;
+      }
+
+      const s = document.createElement("script");
+      s.dataset.mmRecaptcha = "1";
       s.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
       s.async = true;
       s.defer = true;
       s.onload = () => resolve(window.grecaptcha || null);
-      s.onerror = () => reject(new Error('reCAPTCHA script failed to load'));
+      s.onerror = () => reject(new Error("reCAPTCHA script failed to load"));
       document.head.appendChild(s);
     });
   }
@@ -21,8 +42,8 @@
   function ensureHidden(form, name) {
     let input = form.querySelector(`input[name="${name}"]`);
     if (!input) {
-      input = document.createElement('input');
-      input.type = 'hidden';
+      input = document.createElement("input");
+      input.type = "hidden";
       input.name = name;
       form.appendChild(input);
     }
@@ -30,21 +51,37 @@
   }
 
   function getControl(field) {
-    return field.querySelector('input, textarea, select');
+    return field.querySelector("input, textarea, select");
   }
 
   function markField(field, ok) {
-    field.classList.toggle('frm_blank_field', !ok);
+    field.classList.toggle("frm_blank_field", !ok);
     const control = getControl(field);
-    if (control) control.setAttribute('aria-invalid', ok ? 'false' : 'true');
+    if (control) control.setAttribute("aria-invalid", ok ? "false" : "true");
   }
 
   function isEmail(s) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s || '').trim());
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s || "").trim());
+  }
+
+  function isActuallyVisible(el) {
+    if (!el) return false;
+    if (el.hasAttribute("hidden")) return false;
+    if (el.closest("[hidden]")) return false;
+
+    const cs = window.getComputedStyle(el);
+    if (!cs) return true;
+    if (cs.display === "none" || cs.visibility === "hidden") return false;
+
+    // Handles offscreen / zero-size wrappers
+    return el.getClientRects().length > 0;
   }
 
   function validateForm(form) {
-    const requiredFields = Array.from(form.querySelectorAll('.frm_form_field.frm_required_field'));
+    const requiredFields = Array.from(
+      form.querySelectorAll(".frm_form_field.frm_required_field")
+    ).filter(isActuallyVisible);
+
     let ok = true;
 
     for (const field of requiredFields) {
@@ -52,24 +89,27 @@
       if (!control) continue;
 
       // Skip hidden required wrappers
-      const style = window.getComputedStyle(field);
-      if (style && style.display === 'none') continue;
+      if (!isActuallyVisible(field)) continue;
 
-      // file
-      if (control.type === 'file') {
-        const hasFile = control.files && control.files.length > 0;
+      // File required
+      if ((control.type || "").toLowerCase() === "file") {
+        const hasFile =
+          (control.files && control.files.length > 0) ||
+          (Array.isArray(control._mmFiles) && control._mmFiles.length > 0) ||
+          !!control._mmFile;
+
         markField(field, !!hasFile);
         if (!hasFile) ok = false;
         continue;
       }
 
-      const value = (control.value || '').trim();
+      const value = (control.value || "").trim();
       let fieldOk = !!value;
 
       // honor Formidable-style hints
-      const invMsg = control.getAttribute('data-invmsg') || '';
-      const type = (control.getAttribute('type') || '').toLowerCase();
-      if (fieldOk && (type === 'email' || /email/i.test(invMsg))) {
+      const invMsg = control.getAttribute("data-invmsg") || "";
+      const type = (control.getAttribute("type") || "").toLowerCase();
+      if (fieldOk && (type === "email" || /email/i.test(invMsg))) {
         fieldOk = isEmail(value);
       }
 
@@ -81,28 +121,71 @@
   }
 
   function showStatus(form, type, message) {
-    const el = form.querySelector('[data-form-status]');
+    const el = form.querySelector("[data-form-status]");
     if (!el) return;
-    el.style.display = 'block';
+    el.style.display = "block";
     el.className = `form-status form-status--${type}`;
     el.textContent = message;
   }
 
   function clearStatus(form) {
-    const el = form.querySelector('[data-form-status]');
+    const el = form.querySelector("[data-form-status]");
     if (!el) return;
-    el.style.display = 'none';
-    el.textContent = '';
+    el.style.display = "none";
+    el.textContent = "";
+  }
+
+  async function getRecaptchaToken({ siteKey, grecaptcha }) {
+    if (!siteKey || !grecaptcha) return "";
+
+    // IMPORTANT: wait for ready() before execute()
+    try {
+      await new Promise((resolve) => {
+        if (typeof grecaptcha.ready === "function") {
+          grecaptcha.ready(resolve);
+        } else {
+          resolve();
+        }
+      });
+    } catch (_) {}
+
+    try {
+      return await grecaptcha.execute(siteKey, { action: "submit" });
+    } catch (err) {
+      console.warn("[forms] reCAPTCHA execute failed:", err);
+      return "";
+    }
+  }
+
+  function forceAttachMmFiles(form, fd) {
+    // If your dropzone scripts store files on the input element (Safari-safe),
+    // make sure they actually go into FormData.
+    const fileInputs = Array.from(form.querySelectorAll('input[type="file"]'));
+
+    for (const input of fileInputs) {
+      // Multi: input._mmFiles = [File, ...]
+      if (Array.isArray(input._mmFiles) && input._mmFiles.length) {
+        // Remove any existing entries for this name and re-append
+        fd.delete(input.name);
+        input._mmFiles.forEach((f) => fd.append(input.name, f));
+        continue;
+      }
+
+      // Single: input._mmFile = File
+      if (input._mmFile) {
+        fd.delete(input.name);
+        fd.append(input.name, input._mmFile);
+      }
+    }
   }
 
   async function attach() {
     const siteKey = getSiteKey();
 
-    const forms = Array.from(document.querySelectorAll('form[data-mm-form]'))
-      .filter((f) => {
-        const action = (f.getAttribute('action') || '').trim();
-        return action === '' || action === '/api/forms' || action.endsWith('/api/forms');
-      });
+    const forms = Array.from(document.querySelectorAll("form[data-mm-form]")).filter((f) => {
+      const action = (f.getAttribute("action") || "").trim();
+      return action === "" || action === "/api/forms" || action.endsWith("/api/forms");
+    });
 
     if (!forms.length) return;
 
@@ -110,42 +193,42 @@
     try {
       grecaptcha = await loadRecaptcha(siteKey);
     } catch (e) {
-      console.warn('[forms] reCAPTCHA could not load:', e);
+      console.warn("[forms] reCAPTCHA could not load:", e);
       grecaptcha = null;
     }
 
     forms.forEach((form) => {
-      // Guard: prevent double-binding (can happen with partial hydration / modal reinits)
-      if (form.dataset.mmBound === '1') return;
-      form.dataset.mmBound = '1';
+      // Guard: prevent double-binding (partial hydration / modal reinits)
+      if (form.dataset.mmBound === "1") return;
+      form.dataset.mmBound = "1";
 
-      // Force our endpoint
-      form.setAttribute('method', 'post');
-      form.setAttribute('action', '/api/forms');
-      form.setAttribute('novalidate', 'novalidate');
+      // Force our endpoint + multipart
+      form.setAttribute("method", "post");
+      form.setAttribute("action", "/api/forms");
+      form.setAttribute("enctype", "multipart/form-data");
+      form.setAttribute("novalidate", "novalidate");
 
       // Friendly form name for routing/subject
       const formName =
-        form.getAttribute('data-form-name') ||
-        form.getAttribute('id') ||
-        form.getAttribute('name') ||
+        form.getAttribute("data-form-name") ||
+        form.getAttribute("id") ||
+        form.getAttribute("name") ||
         document.title ||
-        'Form';
-      ensureHidden(form, 'form_name').value = formName;
+        "Form";
 
-      // Submit interception (CAPTURE beats Formidable/jQuery handlers)
+      ensureHidden(form, "form_name").value = formName;
+
+      // CAPTURE beats other handlers
       form.addEventListener(
-        'submit',
+        "submit",
         async (e) => {
-          // IMPORTANT: stop ALL other submit handlers (prevents recursive loops / call stack issues)
           e.preventDefault();
           e.stopImmediatePropagation();
 
           clearStatus(form);
 
-          // Validate required fields (Formidable class-driven)
           if (!validateForm(form)) {
-            showStatus(form, 'error', 'Please fill out the required fields.');
+            showStatus(form, "error", "Please fill out the required fields.");
             return;
           }
 
@@ -153,56 +236,78 @@
           if (submitBtn) submitBtn.disabled = true;
 
           try {
-            // Add reCAPTCHA token if possible
-            if (siteKey && grecaptcha) {
-              try {
-                const token = await grecaptcha.execute(siteKey, { action: 'submit' });
-                ensureHidden(form, 'recaptcha_token').value = token;
-              } catch (err) {
-                console.warn('[forms] reCAPTCHA execute failed:', err);
-              }
-            }
+            // reCAPTCHA token
+            const token = await getRecaptchaToken({ siteKey, grecaptcha });
+            if (token) ensureHidden(form, "recaptcha_token").value = token;
 
+            // Build FormData (includes normal file inputs)
             const fd = new FormData(form);
-            const res = await fetch('/api/forms', {
-              method: 'POST',
-              headers: { Accept: 'application/json' },
+
+            // Critical: include Safari-safe stored files (if present)
+            forceAttachMmFiles(form, fd);
+
+            const res = await fetch("/api/forms", {
+              method: "POST",
+              headers: { Accept: "application/json" },
               body: fd,
             });
 
-            const data = await res.json().catch(() => ({}));
+            // Don’t assume JSON on error pages / proxies
+            let data = {};
+            const ct = (res.headers.get("content-type") || "").toLowerCase();
+            if (ct.includes("application/json")) {
+              data = await res.json().catch(() => ({}));
+            } else {
+              // try text for debugging, but don't spam UI
+              const text = await res.text().catch(() => "");
+              data = { ok: false, error: text ? "Server returned non-JSON response." : "" };
+            }
 
             if (!res.ok || !data || data.ok !== true) {
-              const msg = (data && (data.error || data.message)) || 'Something went wrong. Please try again.';
-              showStatus(form, 'error', msg);
+              const msg =
+                (data && (data.error || data.message)) ||
+                "Something went wrong. Please try again.";
+              showStatus(form, "error", msg);
               return;
             }
 
-            showStatus(form, 'success', data.message || 'Thanks! We received your submission.');
+            showStatus(form, "success", data.message || "Thanks! We received your submission.");
 
-            // Clear fields on success (but keep hidden WP fields)
-            form.querySelectorAll('input, textarea, select').forEach((el) => {
-              const name = el.getAttribute('name') || '';
-              const type = (el.getAttribute('type') || '').toLowerCase();
-              if (type === 'hidden') return;
-              if (name === 'recaptcha_token') return;
-              if (type === 'file') {
-                el.value = '';
+            // Clear on success (leave hidden fields)
+            form.querySelectorAll("input, textarea, select").forEach((el) => {
+              const name = el.getAttribute("name") || "";
+              const type = (el.getAttribute("type") || "").toLowerCase();
+              if (type === "hidden") return;
+              if (name === "recaptcha_token") return;
+
+              if (type === "file") {
+                try {
+                  el.value = "";
+                } catch (_) {}
+                // also clear Safari-safe stores
+                el._mmFiles = [];
+                el._mmFile = null;
                 return;
               }
-              if (el.tagName === 'SELECT') {
+
+              if (el.tagName === "SELECT") {
                 el.selectedIndex = 0;
                 return;
               }
-              if (type === 'checkbox' || type === 'radio') {
+
+              if (type === "checkbox" || type === "radio") {
                 el.checked = false;
                 return;
               }
-              el.value = '';
+
+              el.value = "";
             });
+
+            // Optional: if your dropzones show filenames elsewhere, you can dispatch an event
+            form.dispatchEvent(new CustomEvent("mm:form:cleared"));
           } catch (err) {
-            console.error('[forms] submit failed:', err);
-            showStatus(form, 'error', 'Network error. Please try again.');
+            console.error("[forms] submit failed:", err);
+            showStatus(form, "error", "Network error. Please try again.");
           } finally {
             if (submitBtn) submitBtn.disabled = false;
           }
@@ -212,8 +317,8 @@
     });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', attach);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", attach);
   } else {
     attach();
   }
