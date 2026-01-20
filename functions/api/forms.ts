@@ -16,13 +16,19 @@ const IGNORE_KEYS = new Set([
   "frm_submit_entry_4",
   "frm_submit_entry_5",
   "frm_submit_entry_6",
+
   // reCAPTCHA
   "recaptcha_token",
   "g-recaptcha-response",
-  // honeypot (your forms use this id/name)
+
+  // honeypot
   "honeypot",
+
   // empty placeholder
   "item_meta[0]",
+
+  // optional client-side attachment fallbacks (if you implement them)
+  "mm_attachments_json",
 ]);
 
 function isNoiseKey(key: string) {
@@ -41,8 +47,7 @@ function escapeHtml(s: string) {
     .replaceAll("'", "&#039;");
 }
 
-// Map the Formidable `item_meta[...]` keys into human field names (per form)
-// Generated from your Astro form markup.
+// Map Formidable `item_meta[...]` keys into human field names (per form)
 const ITEM_META_MAP: Record<string, Record<string, string>> = {
   "Contact Form": {
     "item_meta[1]": "First Name",
@@ -65,7 +70,7 @@ const ITEM_META_MAP: Record<string, Record<string, string>> = {
     "item_meta[16]": "Vehicle Model",
     "item_meta[28]": "Vehicle Not Listed Info",
     "item_meta[27][]": "Vehicle Not Listed",
-    "item_meta[11]": "Appointment Details",
+    "item_meta[11]": "Appointment Date",
     "item_meta[26]": "Appointment Time",
     "item_meta[96]": "Services Requested",
     "item_meta[17][]": "File Upload",
@@ -108,7 +113,7 @@ const ITEM_META_MAP: Record<string, Record<string, string>> = {
 function prettyLabel(formName: string, key: string) {
   const map = ITEM_META_MAP[formName];
   if (map && map[key]) return map[key];
-  // A reasonable fallback
+
   return key
     .replace(/^item_meta\[(.+?)\]$/, "Field $1")
     .replace(/_/g, " ")
@@ -121,32 +126,40 @@ function toText(rows: FieldRow[], meta: { referer: string; ip: string; userAgent
   return lines.join("\n");
 }
 
-function toHtml(rows: FieldRow[], title: string, meta: { referer: string; ip: string; userAgent: string }) {
-  const htmlRows = rows
+/**
+ * ✅ New HTML layout:
+ * - No table
+ * - No duplicated form title (subject already has it)
+ */
+function toHtml(
+  rows: FieldRow[],
+  meta: { formName: string; referer: string; ip: string; userAgent: string },
+) {
+  const blocks = rows
     .map(
-      (r) =>
-        `<tr>` +
-        `<td style="padding:8px 10px;border:1px solid #e6e6e6;font-weight:700;white-space:nowrap;">${escapeHtml(
-          r.label
-        )}</td>` +
-        `<td style="padding:8px 10px;border:1px solid #e6e6e6;">${escapeHtml(r.value)}</td>` +
-        `</tr>`
+      (r) => `
+  <div style="padding:10px 12px;border:1px solid #e9e9e9;border-radius:10px;margin:0 0 10px;background:#fff;">
+    <div style="font-size:12px;letter-spacing:.02em;color:#666;text-transform:uppercase;font-weight:700;margin:0 0 4px;">
+      ${escapeHtml(r.label)}
+    </div>
+    <div style="font-size:15px;color:#111;white-space:pre-wrap;word-break:break-word;">
+      ${escapeHtml(r.value)}
+    </div>
+  </div>`.trim(),
     )
     .join("");
 
-  return (
-    `
-<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.45;color:#111;">
-  <h2 style="margin:0 0 12px;">${escapeHtml(title)}</h2>
-  <table style="border-collapse:collapse;width:100%;max-width:760px;">${htmlRows}</table>
-  <p style="margin:12px 0 0;font-size:12px;color:#666;">
-    <strong>Page:</strong> ${escapeHtml(meta.referer)}<br/>
-    <strong>IP:</strong> ${escapeHtml(meta.ip)}<br/>
-    <strong>UA:</strong> ${escapeHtml(meta.userAgent)}
-  </p>
-</div>
-    `.trim()
-  );
+  return `
+<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.45;color:#111;background:#f6f6f6;padding:16px;">
+  <div style="max-width:760px;margin:0 auto;">
+    <div style="margin:0 0 12px;">
+      <div style="font-size:18px;font-weight:800;">New submission</div>
+      <div style="font-size:13px;color:#666;">Form: <strong>${escapeHtml(meta.formName)}</strong></div>
+    </div>
+
+    ${blocks || `<div style="color:#666;">No fields provided.</div>`}
+  </div>
+</div>`.trim();
 }
 
 function findReplyTo(rows: FieldRow[]) {
@@ -155,6 +168,50 @@ function findReplyTo(rows: FieldRow[]) {
     if (r.label.toLowerCase().includes("email") && emailRe.test(r.value.trim())) return r.value.trim();
   }
   return "";
+}
+
+function arrayBufferToBase64(buf: ArrayBuffer) {
+  // Avoids stack blowups from String.fromCharCode(...huge)
+  const bytes = new Uint8Array(buf);
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
+/**
+ * Optional client fallback format:
+ * form.append("mm_attachments_json", JSON.stringify([
+ *   { filename, contentBase64 }, ...
+ * ]))
+ */
+function parseClientAttachmentsJson(form: FormData, maxBytes: number) {
+  const out: { filename: string; content: string }[] = [];
+  const raw = String(form.get("mm_attachments_json") || "").trim();
+  if (!raw) return out;
+
+  try {
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return out;
+
+    for (const item of arr) {
+      const filename = String(item?.filename || "").trim();
+      const contentBase64 = String(item?.contentBase64 || "").trim();
+      if (!filename || !contentBase64) continue;
+
+      // approximate decoded size for base64: 3/4 of length
+      const approxBytes = Math.floor((contentBase64.length * 3) / 4);
+      if (approxBytes > maxBytes) continue;
+
+      out.push({ filename, content: contentBase64 });
+    }
+  } catch {
+    // ignore
+  }
+
+  return out;
 }
 
 export async function onRequestPost({ request, env }: any) {
@@ -173,10 +230,7 @@ export async function onRequestPost({ request, env }: any) {
     const formName = (form.get("form_name") || "Form").toString();
     const recaptchaToken = (form.get("recaptcha_token") || "").toString();
 
-    // Verify reCAPTCHA v3
-    // Optional local/dev bypass:
-    // - only works when CF_PAGES_BRANCH is NOT "main"
-    // - requires env.RECAPTCHA_BYPASS === "true"
+    // Verify reCAPTCHA v3 (with optional preview bypass)
     const branch = env.CF_PAGES_BRANCH || "";
     const allowBypass = branch !== "main" && String(env.RECAPTCHA_BYPASS || "").toLowerCase() === "true";
 
@@ -210,9 +264,8 @@ export async function onRequestPost({ request, env }: any) {
       }
     }
 
-    // Determine routing (preview vs prod)
+    // Routing
     const mailTo = branch === "main" ? env.MAIL_TO_PROD : env.MAIL_TO_PREVIEW;
-
     if (!mailTo) {
       return new Response(JSON.stringify({ ok: false, error: "Missing MAIL_TO_PROD/MAIL_TO_PREVIEW" }), {
         status: 500,
@@ -233,8 +286,10 @@ export async function onRequestPost({ request, env }: any) {
     for (const [key, value] of form.entries()) {
       if (isNoiseKey(key)) continue;
       if (value instanceof File) continue; // attachments handled below
+
       const v = String(value ?? "").trim();
       if (!v) continue;
+
       const label = prettyLabel(formName, key);
       const arr = grouped.get(label) || [];
       arr.push(v);
@@ -248,16 +303,17 @@ export async function onRequestPost({ request, env }: any) {
     const referer = request.headers.get("referer") || "";
     const userAgent = request.headers.get("user-agent") || "";
     const ip = request.headers.get("cf-connecting-ip") || "";
-    const subject = `[MyMechanicAZ] ${formName}`;
 
+    const subject = `[MyMechanicAZ] ${formName}`;
     const text = toText(rows, { referer, ip, userAgent });
-    const html = toHtml(rows, subject, { referer, ip, userAgent });
+    const html = toHtml(rows, { formName, referer, ip, userAgent });
     const replyToEmail = findReplyTo(rows);
 
     // Attachments (Resend accepts base64)
-    const attachments: any[] = [];
+    const attachments: { filename: string; content: string }[] = [];
     const maxBytes = Number(env.MAX_UPLOAD_BYTES || 20 * 1024 * 1024);
 
+    // (A) Normal multipart files
     for (const [, value] of form.entries()) {
       if (!(value instanceof File)) continue;
       if (!value.name) continue;
@@ -270,8 +326,13 @@ export async function onRequestPost({ request, env }: any) {
       }
 
       const buf = await value.arrayBuffer();
-      const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-      attachments.push({ filename: value.name, content: b64 });
+      attachments.push({ filename: value.name, content: arrayBufferToBase64(buf) });
+    }
+
+    // (B) Optional client-provided base64 fallback (if you implement it)
+    // This helps when Safari blocks input.files assignment and you decide to send base64 yourself.
+    for (const a of parseClientAttachmentsJson(form, maxBytes)) {
+      attachments.push(a);
     }
 
     const resendKey = env.RESEND_API_KEY;
