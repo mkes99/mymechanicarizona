@@ -100,82 +100,205 @@ const ACCEPT = ".pdf,.doc,.docx";
     const form = document.getElementById("form_application");
     if (!form) return;
 
+    const FIELD_WRAP_ID = "frm_field_89_container";
+
     const dropzone = document.getElementById("file89_dropzone");
     const fileInput = document.getElementById("field_n3sjm");
     const filenameEl = document.getElementById("resume_filename");
     const removeBtn = document.getElementById("resume_remove_btn");
     const statusEl = form.querySelector("[data-form-status]");
 
-    // Avoid injecting build-time variables into inline JS; read from data attribute with a safe fallback.
-    const maxBytes = Number(fileInput?.dataset?.maxBytes || '0') || (20 * 1024 * 1024);
+    if (!dropzone || !fileInput || !filenameEl) return;
 
-    function setFilename(file) {
-      if (!filenameEl) return;
-      filenameEl.textContent = file ? `Selected: ${file.name}` : "";
-      if (removeBtn) removeBtn.style.display = file ? "inline-block" : "none";
-    }
+    // Read max size from data attr with fallback
+    const maxBytes =
+      Number(fileInput.getAttribute("data-max-bytes") || "0") || 20 * 1024 * 1024;
 
-    function clearFile() {
-      if (!fileInput) return;
-      fileInput.value = "";
-      setFilename(null);
-    }
+    // Accept list from input (".pdf,.doc,.docx") -> [".pdf", ".doc", ".docx"]
+    const acceptList = (fileInput.getAttribute("accept") || "")
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
 
-    function showUploadError(msg) {
+    // Own the state (Safari-safe). We'll best-effort sync to input.files.
+    let selectedFile = null;
+
+    const fieldWrap = document.getElementById(FIELD_WRAP_ID);
+
+    const showUploadError = (msg) => {
       if (!statusEl) return;
       statusEl.style.display = "block";
       statusEl.className = "form-status form-status--error";
       statusEl.textContent = msg;
-    }
+    };
 
-    function clearStatus() {
+    const clearStatus = () => {
       if (!statusEl) return;
       statusEl.style.display = "none";
       statusEl.textContent = "";
-    }
+    };
 
-    if (removeBtn) {
-      removeBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        clearFile();
-        clearStatus();
-      });
-    }
+    const formatBytes = (n) => {
+      const b = Number(n || 0);
+      if (b < 1024) return `${b} B`;
+      const kb = b / 1024;
+      if (kb < 1024) return `${kb.toFixed(1)} KB`;
+      const mb = kb / 1024;
+      return `${mb.toFixed(1)} MB`;
+    };
 
-    function isFileOk(file) {
-      if (!file) return false;
-      if (maxBytes && file.size > maxBytes) return false;
-      return true;
-    }
+    // Best-effort: sync our state back into the real <input type="file">
+    const syncToInput = () => {
+      try {
+        if (!selectedFile) {
+          fileInput.value = "";
+          return;
+        }
+        const dt = new DataTransfer();
+        dt.items.add(selectedFile);
+        fileInput.files = dt.files;
+      } catch (_) {
+        // Safari may block programmatic assignment; that's OK
+        // because the user still picked the file via the real input.
+      }
+    };
 
-    function assignFile(file) {
-      if (!fileInput) return;
-      if (!isFileOk(file)) {
-        clearFile();
-        document.getElementById("frm_field_89_container")?.classList.add("frm_blank_field");
-        showUploadError(`File is too large. Please keep it under ${Math.round(maxBytes / (1024 * 1024))}MB.`);
+    const setUI = () => {
+      // Show “Selected: … (size)” and toggle remove button
+      if (!selectedFile) {
+        filenameEl.textContent = "";
+        if (removeBtn) removeBtn.style.display = "none";
         return;
       }
 
+      filenameEl.textContent = `Selected: ${selectedFile.name} (${formatBytes(
+        selectedFile.size,
+      )})`;
+      if (removeBtn) removeBtn.style.display = "inline-block";
+    };
+
+    const clearFile = () => {
+      selectedFile = null;
       try {
-        const data = new DataTransfer();
-        data.items.add(file);
-        fileInput.files = data.files;
-      } catch {}
+        fileInput.value = "";
+      } catch (_) {}
+      syncToInput();
+      setUI();
+    };
 
+    const extOf = (name) => {
+      const i = String(name || "").lastIndexOf(".");
+      return i >= 0 ? String(name).slice(i).toLowerCase() : "";
+    };
+
+    const isAllowedByAccept = (file) => {
+      if (!acceptList.length) return true;
+      const ext = extOf(file?.name);
+      return acceptList.includes(ext);
+    };
+
+    const validateFile = (file) => {
+      if (!file) return { ok: false, msg: "Please choose a file." };
+
+      if (!isAllowedByAccept(file)) {
+        return {
+          ok: false,
+          msg: `Invalid file type. Please upload one of: ${acceptList.join(", ")}`,
+        };
+      }
+
+      if (maxBytes && file.size > maxBytes) {
+        return {
+          ok: false,
+          msg: `File is too large. Please keep it under ${Math.round(
+            maxBytes / (1024 * 1024),
+          )}MB.`,
+        };
+      }
+
+      return { ok: true, msg: "" };
+    };
+
+    const assignFile = (file) => {
+      const { ok, msg } = validateFile(file);
+
+      if (!ok) {
+        clearFile();
+        fieldWrap?.classList.add("frm_blank_field");
+        showUploadError(msg);
+        return;
+      }
+
+      selectedFile = file;
       clearStatus();
-      setFilename(file);
-      document.getElementById("frm_field_89_container")?.classList.remove("frm_blank_field");
-    }
+      fieldWrap?.classList.remove("frm_blank_field");
 
-    if (dropzone && fileInput) {
-      dropzone.addEventListener("click", () => fileInput.click());
-      fileInput.addEventListener("change", () => assignFile(fileInput.files?.[0]));
-      dropzone.addEventListener("dragover", e => e.preventDefault());
-      dropzone.addEventListener("drop", e => {
+      // If the file came from drag/drop (not from the input),
+      // attempt to sync it into the input for submission.
+      syncToInput();
+      setUI();
+    };
+
+    const openPicker = (e) => {
+      if (e) {
         e.preventDefault();
-        assignFile(e.dataTransfer?.files?.[0]);
+        e.stopPropagation();
+      }
+      fileInput.click();
+    };
+
+    // --- Remove button ---
+    if (removeBtn) {
+      removeBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        clearFile();
+        clearStatus();
+        fieldWrap?.classList.add("frm_blank_field");
       });
     }
+
+    // --- Click handling ---
+    // Only open picker when clicking the dropzone *but not* clicking buttons inside it.
+    dropzone.addEventListener("click", (e) => {
+      const t = e.target;
+      // Don’t hijack clicks on the remove button
+      if (t && t.closest && t.closest("#resume_remove_btn")) return;
+      // Don’t hijack other buttons inside the dropzone
+      if (t && t.closest && t.closest("button")) return;
+      openPicker(e);
+    });
+
+    // Also wire the existing “Drop… click to upload” button inside the zone
+    dropzone.querySelectorAll("button").forEach((btn) => {
+      btn.addEventListener("click", openPicker);
+    });
+
+    // --- Input change ---
+    fileInput.addEventListener("change", () => {
+      const f = fileInput.files?.[0] || null;
+      assignFile(f);
+    });
+
+    // --- Drag/drop ---
+    dropzone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+    });
+
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      const f = e.dataTransfer?.files?.[0] || null;
+      // If user drops, we own it and sync best-effort
+      assignFile(f);
+    });
+
+    // --- Optional: clear error on re-pick ---
+    fileInput.addEventListener("click", () => {
+      // If they are re-opening picker, clear status but keep selected until changed
+      clearStatus();
+    });
+
+    // Initial state
+    setUI();
   })();
 </script>
