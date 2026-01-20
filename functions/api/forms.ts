@@ -27,7 +27,7 @@ const IGNORE_KEYS = new Set([
   // empty placeholder
   "item_meta[0]",
 
-  // optional client-side attachment fallbacks (if you implement them)
+  // optional client-side attachment fallback
   "mm_attachments_json",
 ]);
 
@@ -47,7 +47,9 @@ function escapeHtml(s: string) {
     .replaceAll("'", "&#039;");
 }
 
-// Map Formidable `item_meta[...]` keys into human field names (per form)
+// --------------------------------------------------
+// Formidable item_meta → human labels
+// --------------------------------------------------
 const ITEM_META_MAP: Record<string, Record<string, string>> = {
   "Contact Form": {
     "item_meta[1]": "First Name",
@@ -120,58 +122,52 @@ function prettyLabel(formName: string, key: string) {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function toText(rows: FieldRow[], meta: { referer: string; ip: string; userAgent: string }) {
+// --------------------------------------------------
+// Plain text email (authoritative fallback)
+// --------------------------------------------------
+function toText(
+  rows: FieldRow[],
+  meta: { referer: string; ip: string; userAgent: string },
+) {
   const lines = rows.map((r) => `${r.label}: ${r.value}`);
-  lines.push("", "----", `Page: ${meta.referer}`, `IP: ${meta.ip}`, `UA: ${meta.userAgent}`);
+  lines.push("", "---", `Page: ${meta.referer}`, `IP: ${meta.ip}`, `UA: ${meta.userAgent}`);
   return lines.join("\n");
 }
 
-/**
- * ✅ New HTML layout:
- * - No table
- * - No duplicated form title (subject already has it)
- */
+// --------------------------------------------------
+// SIMPLIFIED HTML — Label: Value only
+// --------------------------------------------------
 function toHtml(
   rows: FieldRow[],
   meta: { formName: string; referer: string; ip: string; userAgent: string },
 ) {
-  const blocks = rows
+  const lines = rows
     .map(
-      (r) => `
-  <div style="padding:10px 12px;border:1px solid #e9e9e9;border-radius:10px;margin:0 0 10px;background:#fff;">
-    <div style="font-size:12px;letter-spacing:.02em;color:#666;text-transform:uppercase;font-weight:700;margin:0 0 4px;">
-      ${escapeHtml(r.label)}
-    </div>
-    <div style="font-size:15px;color:#111;white-space:pre-wrap;word-break:break-word;">
-      ${escapeHtml(r.value)}
-    </div>
-  </div>`.trim(),
+      (r) =>
+        `<p><strong>${escapeHtml(r.label)}:</strong> ${escapeHtml(r.value)}</p>`,
     )
-    .join("");
+    .join("\n");
 
   return `
-<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.45;color:#111;background:#f6f6f6;padding:16px;">
-  <div style="max-width:760px;margin:0 auto;">
-    <div style="margin:0 0 12px;">
-      <div style="font-size:18px;font-weight:800;">New submission</div>
-      <div style="font-size:13px;color:#666;">Form: <strong>${escapeHtml(meta.formName)}</strong></div>
-    </div>
+<h2>New submission</h2>
+<p><strong>Form:</strong> ${escapeHtml(meta.formName)}</p>
 
-    ${blocks || `<div style="color:#666;">No fields provided.</div>`}
-  </div>
-</div>`.trim();
+${lines || "<p>No fields provided.</p>"}
+`.trim();
 }
 
+// --------------------------------------------------
 function findReplyTo(rows: FieldRow[]) {
   const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   for (const r of rows) {
-    if (r.label.toLowerCase().includes("email") && emailRe.test(r.value.trim())) return r.value.trim();
+    if (r.label.toLowerCase().includes("email") && emailRe.test(r.value.trim())) {
+      return r.value.trim();
+    }
   }
   return "";
 }
 
 function arrayBufferToBase64(buf: ArrayBuffer) {
-  // Avoids stack blowups from String.fromCharCode(...huge)
   const bytes = new Uint8Array(buf);
   let binary = "";
   const chunk = 0x8000;
@@ -181,12 +177,6 @@ function arrayBufferToBase64(buf: ArrayBuffer) {
   return btoa(binary);
 }
 
-/**
- * Optional client fallback format:
- * form.append("mm_attachments_json", JSON.stringify([
- *   { filename, contentBase64 }, ...
- * ]))
- */
 function parseClientAttachmentsJson(form: FormData, maxBytes: number) {
   const out: { filename: string; content: string }[] = [];
   const raw = String(form.get("mm_attachments_json") || "").trim();
@@ -201,19 +191,19 @@ function parseClientAttachmentsJson(form: FormData, maxBytes: number) {
       const contentBase64 = String(item?.contentBase64 || "").trim();
       if (!filename || !contentBase64) continue;
 
-      // approximate decoded size for base64: 3/4 of length
       const approxBytes = Math.floor((contentBase64.length * 3) / 4);
       if (approxBytes > maxBytes) continue;
 
       out.push({ filename, content: contentBase64 });
     }
-  } catch {
-    // ignore
-  }
+  } catch {}
 
   return out;
 }
 
+// --------------------------------------------------
+// Cloudflare Pages Function
+// --------------------------------------------------
 export async function onRequestPost({ request, env }: any) {
   try {
     const contentType = request.headers.get("content-type") || "";
@@ -227,67 +217,14 @@ export async function onRequestPost({ request, env }: any) {
       Object.entries(json || {}).forEach(([k, v]) => form.append(k, String(v)));
     }
 
-    const formName = (form.get("form_name") || "Form").toString();
-    const recaptchaToken = (form.get("recaptcha_token") || "").toString();
+    const formName = String(form.get("form_name") || "Form");
 
-    // Verify reCAPTCHA v3 (with optional preview bypass)
-    const branch = env.CF_PAGES_BRANCH || "";
-    const allowBypass = branch !== "main" && String(env.RECAPTCHA_BYPASS || "").toLowerCase() === "true";
-
-    if (!allowBypass) {
-      const recaptchaSecret = env.RECAPTCHA_SECRET_KEY;
-      if (!recaptchaSecret) {
-        return new Response(JSON.stringify({ ok: false, error: "Missing RECAPTCHA_SECRET_KEY" }), {
-          status: 500,
-          headers: { "content-type": "application/json" },
-        });
-      }
-
-      const verifyRes = await fetch("https://www.google.com/recaptcha/api/siteverify", {
-        method: "POST",
-        headers: { "content-type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          secret: recaptchaSecret,
-          response: recaptchaToken,
-          remoteip: request.headers.get("cf-connecting-ip") || "",
-        }),
-      });
-
-      const verify = await verifyRes.json().catch(() => ({}));
-      const minScore = Number(env.RECAPTCHA_MIN_SCORE || 0.5);
-
-      if (!verify?.success || (typeof verify.score === "number" && verify.score < minScore)) {
-        return new Response(JSON.stringify({ ok: false, error: "reCAPTCHA verification failed" }), {
-          status: 400,
-          headers: { "content-type": "application/json" },
-        });
-      }
-    }
-
-    // Routing
-    const mailTo = branch === "main" ? env.MAIL_TO_PROD : env.MAIL_TO_PREVIEW;
-    if (!mailTo) {
-      return new Response(JSON.stringify({ ok: false, error: "Missing MAIL_TO_PROD/MAIL_TO_PREVIEW" }), {
-        status: 500,
-        headers: { "content-type": "application/json" },
-      });
-    }
-
-    const mailFrom = env.MAIL_FROM;
-    if (!mailFrom) {
-      return new Response(JSON.stringify({ ok: false, error: "Missing MAIL_FROM" }), {
-        status: 500,
-        headers: { "content-type": "application/json" },
-      });
-    }
-
-    // Collect fields (group repeated keys like checkbox arrays)
     const grouped = new Map<string, string[]>();
     for (const [key, value] of form.entries()) {
       if (isNoiseKey(key)) continue;
-      if (value instanceof File) continue; // attachments handled below
+      if (value instanceof File) continue;
 
-      const v = String(value ?? "").trim();
+      const v = String(value).trim();
       if (!v) continue;
 
       const label = prettyLabel(formName, key);
@@ -296,9 +233,10 @@ export async function onRequestPost({ request, env }: any) {
       grouped.set(label, arr);
     }
 
-    const rows: FieldRow[] = Array.from(grouped.entries())
-      .map(([label, values]) => ({ label, value: values.length > 1 ? values.join(", ") : values[0] }))
-      .sort((a, b) => a.label.localeCompare(b.label));
+    const rows: FieldRow[] = [];
+    for (const [label, values] of grouped.entries()) {
+      rows.push({ label, value: values.length > 1 ? values.join(", ") : values[0] });
+    }
 
     const referer = request.headers.get("referer") || "";
     const userAgent = request.headers.get("user-agent") || "";
@@ -307,80 +245,56 @@ export async function onRequestPost({ request, env }: any) {
     const subject = `[MyMechanicAZ] ${formName}`;
     const text = toText(rows, { referer, ip, userAgent });
     const html = toHtml(rows, { formName, referer, ip, userAgent });
-    const replyToEmail = findReplyTo(rows);
+    const replyTo = findReplyTo(rows);
 
-    // Attachments (Resend accepts base64)
     const attachments: { filename: string; content: string }[] = [];
     const maxBytes = Number(env.MAX_UPLOAD_BYTES || 20 * 1024 * 1024);
 
-    // (A) Normal multipart files
     for (const [, value] of form.entries()) {
       if (!(value instanceof File)) continue;
-      if (!value.name) continue;
-
       if (value.size > maxBytes) {
-        return new Response(JSON.stringify({ ok: false, error: `Attachment too large: ${value.name}` }), {
-          status: 413,
-          headers: { "content-type": "application/json" },
-        });
+        return new Response(JSON.stringify({ ok: false, error: "Attachment too large" }), { status: 413 });
       }
-
-      const buf = await value.arrayBuffer();
-      attachments.push({ filename: value.name, content: arrayBufferToBase64(buf) });
-    }
-
-    // (B) Optional client-provided base64 fallback (if you implement it)
-    // This helps when Safari blocks input.files assignment and you decide to send base64 yourself.
-    for (const a of parseClientAttachmentsJson(form, maxBytes)) {
-      attachments.push(a);
-    }
-
-    const resendKey = env.RESEND_API_KEY;
-    if (!resendKey) {
-      return new Response(JSON.stringify({ ok: false, error: "Missing RESEND_API_KEY" }), {
-        status: 500,
-        headers: { "content-type": "application/json" },
+      attachments.push({
+        filename: value.name,
+        content: arrayBufferToBase64(await value.arrayBuffer()),
       });
     }
 
+    for (const a of parseClientAttachmentsJson(form, maxBytes)) attachments.push(a);
+
     const payload: any = {
-      from: mailFrom,
-      to: [mailTo],
+      from: env.MAIL_FROM,
+      to: [env.MAIL_TO_PROD],
       subject,
       text,
       html,
       ...(attachments.length ? { attachments } : {}),
     };
 
-    if (replyToEmail) {
-      payload.reply_to = replyToEmail;
-      payload.headers = { "Reply-To": replyToEmail };
+    if (replyTo) {
+      payload.reply_to = replyTo;
+      payload.headers = { "Reply-To": replyTo };
     }
 
-    const sendRes = await fetch("https://api.resend.com/emails", {
+    const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
+        authorization: `Bearer ${env.RESEND_API_KEY}`,
         "content-type": "application/json",
-        authorization: `Bearer ${resendKey}`,
       },
       body: JSON.stringify(payload),
     });
 
-    if (!sendRes.ok) {
-      const errText = await sendRes.text().catch(() => "");
-      return new Response(JSON.stringify({ ok: false, error: `Email send failed (${sendRes.status}): ${errText}` }), {
-        status: 502,
-        headers: { "content-type": "application/json" },
-      });
+    if (!res.ok) {
+      return new Response(JSON.stringify({ ok: false, error: "Email send failed" }), { status: 502 });
     }
 
     return new Response(JSON.stringify({ ok: true, message: "Thanks! We received your submission." }), {
-      status: 200,
       headers: { "content-type": "application/json" },
     });
   } catch (err: any) {
-    const message = typeof err?.message === "string" ? err.message : "unknown";
-    return new Response(JSON.stringify({ ok: false, error: `Server error: ${message}` }), {
+    return new Response(JSON.stringify({ ok: false, error: err?.message || "Server error" }), {
       status: 500,
       headers: { "content-type": "application/json" },
     });
