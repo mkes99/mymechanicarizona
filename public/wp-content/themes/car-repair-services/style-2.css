@@ -3896,9 +3896,9 @@ body.slide-active .darkout-menu {
     left: 270px;
 } */
 
-.page-footer.slide-active {
+/* .page-footer.slide-active {
     z-index: 9999;
-}
+} */
 
 @media (max-width: 991px) {
     #slide-nav .container {

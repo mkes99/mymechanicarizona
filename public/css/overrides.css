@@ -2043,3 +2043,16 @@ div .faq-accordion .faq__item .faq__content {
 body.slide-active {
   overflow: hidden !important;
 }
+
+.slide-active .mm-fullscreen-bg {
+    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.55);
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    z-index: 21;
+    display: block;
+}
