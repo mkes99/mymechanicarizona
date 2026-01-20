@@ -9,6 +9,7 @@
  */
 const FORM_ID = "form_appointmentform";
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024; // 20MB
+const DateLoadValue = new Date().toISOString().split("T")[0];
 import vehicles from "../data/vehicles.json";
 ---
 
@@ -215,27 +216,36 @@ import vehicles from "../data/vehicles.json";
           <div id="frm_field_24_container" class="frm_form_field frm_section_heading form-field frm4">
             <h5 class="frm_pos_top frm_section_spacing">Appointment Details</h5>
 
-            <div
-              id="frm_field_11_container"
-              class="frm_form_field form-field form-icon calendar-icon frm_required_field frm_none_container frm12 frm_first"
-            >
-              <label for="field_fm2dt" id="field_fm2dt_label" class="frm_primary_label">
-                Date <span class="frm_required" aria-hidden="true">*</span>
-              </label>
-              <input
-                type="text"
-                id="field_fm2dt"
-                name="item_meta[11]"
-                value=""
-                data-sectionid="24"
-                maxlength="10"
-                data-reqmsg="Date cannot be blank."
-                data-invmsg="Date is invalid"
-                class="frm_date"
-                readonly="readonly"
-                aria-invalid="false"
-              />
-            </div>
+         <div
+  id="frm_field_11_container"
+  class="frm_form_field form-field form-icon calendar-icon frm_required_field frm_none_container frm12 frm_first mm-date-wrap"
+>
+  <label for="field_fm2dt_proxy" id="field_fm2dt_label" class="frm_primary_label">
+    Date <span class="frm_required" aria-hidden="true">*</span>
+  </label>
+
+  <!-- VISIBLE field (always shows something) -->
+  <input
+    type="text"
+    id="field_fm2dt_proxy"
+    class="mm-date-proxy"
+    placeholder="Select date"
+    readonly
+    aria-hidden="false"
+  />
+
+  <!-- REAL field (used for submission + opens native picker) -->
+  <input
+    type="date"
+    id="field_fm2dt"
+    name="item_meta[11]"
+    data-sectionid="24"
+    data-reqmsg="Date cannot be blank."
+    data-invmsg="Date is invalid"
+    class="frm_date mm-date-real"
+    aria-invalid="false"
+  />
+</div>
 
             <div id="frm_field_26_container" class="frm_form_field form-field form-icon clock-icon frm_required_field frm_none_container">
               <label for="field_bk1vq" id="field_bk1vq_label" class="frm_primary_label">
@@ -286,16 +296,10 @@ import vehicles from "../data/vehicles.json";
                 style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;"
               />
 
-              <div class="frm_dropzone frm_multi_upload frm_clearfix" id="file17_dropzone" role="group" tabindex="0">
-                <div class="dz-message needsclick">
-                  <span class="frm_icon_font frm_upload_icon"></span>
-
-                  <span class="frm_upload_text">
-                    <button type="button" class="mm-file-btn" data-mm-file-btn>Choose File</button>
-                  </span>
-                </div>
+              <div class="frm_dropzone frm_multi_upload frm_clearfix" id="file17_dropzone" role="group" tabindex="0" >
+                <div class="dz-message needsclick" data-mm-file-btn></div>
               </div>
-			   <div class="frm_small_text">Maximum upload size: 20MB each</div>
+			   <div class="frm_small_text text-center">Maximum upload size: 20MB each</div>
 			  <div class="frm_small_text" id="appointment_files" aria-live="polite"></div>
             </div>
           </div>
@@ -361,6 +365,10 @@ import vehicles from "../data/vehicles.json";
     line-height: 24px;
   }
 
+  #frm_field_17_container .frm_small_text {
+	font-size: 10px;
+  }
+
   
 #file17_dropzone .dz-message {
     font-size: 14px;
@@ -378,14 +386,6 @@ import vehicles from "../data/vehicles.json";
     line-height: 50px;
 }
 
-/* FIX: dz-message cannot be fixed height if we render a file list inside it */
-#file17_dropzone .dz-message {
-  height: auto !important;
-  line-height: normal !important;
-  padding: 12px 14px !important;
-  display: block !important;
-}
-
 /* Make the "Choose/Add files" row feel like Formidable */
 #file17_dropzone .dz-message .frm_upload_text,
 #file17_dropzone .dz-message .frm_compact_text {
@@ -398,7 +398,6 @@ import vehicles from "../data/vehicles.json";
   display: block;
   margin-top: 6px;
   line-height: 1.35;
-  font-size: 10px;
 }
 
 /* OPTIONAL (if you want Formidable-style “file tag” look closer)
@@ -412,10 +411,6 @@ import vehicles from "../data/vehicles.json";
   cursor: pointer;
 }
 
-#file17_dropzone:focus {
-  outline: 2px solid rgba(26,115,232,.35);
-  outline-offset: 2px;
-}
 /* File list container spacing */
 #appointment_files {
   margin-top: 8px;
@@ -461,20 +456,13 @@ import vehicles from "../data/vehicles.json";
     opacity: 0.75;
     white-space: nowrap;
   }
+
   :global(#appointment_files .mm-file-remove) {
     white-space: nowrap;
-    padding: 6px 10px;
     font-size: 12px;
 	padding: 0 5px !important;
 	border: none;
-  }
-
-  /* Your theme sets dz-message to fixed height; override to allow file list below */
-  :global(#file17_dropzone .dz-message) {
-    height: auto !important;
-    line-height: normal !important;
-    padding: 12px 14px !important;
-    display: block !important;
+	cursor: pointer
   }
 
   :global(#file17_dropzone .dz-message .mm-file-btn) {
@@ -486,118 +474,88 @@ import vehicles from "../data/vehicles.json";
 	border: none
   }
 
-  :global(#file17_dropzone:focus) {
-    outline: 2px solid rgba(26, 115, 232, 0.35);
-    outline-offset: 2px;
-  }
-
   /* If Formidable compact mode hides small text globally, force our list visible */
   :global(.frm_compact #file17_dropzone #appointment_files),
   :global(.frm_compact #file17_dropzone #appointment_files_remove_all) {
     display: block !important;
   }
-</style>
 
+  :global(.mm-date-wrap) {
+  position: relative;
+}
+
+/* Visible proxy gets your normal styling */
+:global(.mm-date-proxy) {
+  width: 100%;
+}
+
+/* Real date sits on top, but invisible. Tap opens picker. */
+:global(.mm-date-real) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+</style>
 <script is:inline>
   (() => {
     const form = document.getElementById("form_appointmentform");
     if (!form) return;
 
-    // Datepicker (native) for Formidable date fields (no WP datepicker).
-    const dateEl = form.querySelector("#field_fm2dt");
-    if (dateEl) {
-      dateEl.removeAttribute("readonly");
-      try { dateEl.type = "date"; } catch (_) {}
+    const real = form.querySelector("#field_fm2dt");
+    const proxy = form.querySelector("#field_fm2dt_proxy");
+    if (!real || !proxy) return;
 
-      // Convert mm/dd/yyyy -> yyyy-mm-dd if needed
-      const toISO = (v) => {
-        const m = /^\s*(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})\s*$/.exec(v || "");
-        if (!m) return v;
-        const mm = String(m[1]).padStart(2, "0");
-        const dd = String(m[2]).padStart(2, "0");
-        return `${m[3]}-${mm}-${dd}`;
-      };
-      if (dateEl.value && dateEl.value.includes("/")) dateEl.value = toISO(dateEl.value);
+    const isMobile =
+      window.matchMedia &&
+      window.matchMedia("(hover: none) and (pointer: coarse)").matches;
 
-      const openPicker = () => {
-        if (typeof dateEl.showPicker === "function") {
-          try { dateEl.showPicker(); } catch (_) {}
-        }
-      };
-      dateEl.addEventListener("focus", openPicker);
-      dateEl.addEventListener("click", openPicker);
-    }
-
-    const REQUIRED_SELECTOR = ".frm_form_field.frm_required_field";
-    const isVisible = (el) => {
-      if (!el) return false;
-      if (el.hasAttribute("hidden")) return false;
-      if (el.closest("[hidden]")) return false;
-      const cs = window.getComputedStyle(el);
-      if (cs.display === "none" || cs.visibility === "hidden") return false;
-      return el.getClientRects().length > 0;
+    const isoToDisplay = (iso) => {
+      // iso: yyyy-mm-dd
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+      if (!m) return "";
+      const y = Number(m[1]);
+      const mo = Number(m[2]) - 1;
+      const d = Number(m[3]);
+      const dt = new Date(y, mo, d);
+      // This will display in user locale; if you want strict MM/DD/YYYY let me know.
+      return dt.toLocaleDateString();
     };
 
-    const requiredContainers = Array.from(form.querySelectorAll(REQUIRED_SELECTOR)).filter(isVisible);
-    const getField = (container) => container.querySelector("input, textarea, select");
-    const isEmpty = (el) => (el.value ?? "").trim() === "";
+    const syncProxy = () => {
+      proxy.value = real.value ? isoToDisplay(real.value) : "";
+    };
 
-    const validateContainer = (container) => {
-      if (!isVisible(container)) return true;
-      const el = getField(container);
-      if (!el) return true;
-
-      let valid = true;
-
-      if (el.type === "checkbox" || el.type === "radio") {
-        valid = !!form.querySelector(`[name="${el.name}"]:checked`);
-      } else if (el.type === "file") {
-        valid = el.files && el.files.length > 0;
-      } else {
-        valid = !isEmpty(el);
-
-        if (valid && el.type === "email") {
-          valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value.trim());
-        }
-
-        const pattern = el.getAttribute("pattern");
-        if (valid && pattern) {
-          try { valid = new RegExp(`^${pattern}$`).test(el.value); } catch (_) {}
-        }
+    // Set today's date on mobile if empty (but do NOT override user)
+    const setTodayIfEmpty = () => {
+      if (!isMobile) return;
+      if (!real.value) {
+        real.value = new Date().toISOString().slice(0, 10);
       }
-
-      container.classList.toggle("frm_blank_field", !valid);
-      el.setAttribute("aria-invalid", (!valid).toString());
-      return valid;
+      syncProxy();
     };
 
-    const validateForm = () => {
-      let ok = true;
-      requiredContainers.forEach((c) => { if (!validateContainer(c)) ok = false; });
-      return ok;
-    };
+    // Tap proxy opens picker via real input
+    proxy.addEventListener("click", () => real.showPicker?.() || real.click());
+    proxy.addEventListener("focus", () => real.showPicker?.() || real.click());
 
-    form.addEventListener("submit", (e) => {
-      const ok = validateForm();
-      if (!ok) {
-        e.preventDefault();
-        e.stopPropagation();
-        const first = form.querySelector(".frm_blank_field");
-        if (first && first.scrollIntoView) {
-          first.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      }
-    }, true);
+    real.addEventListener("change", syncProxy);
+    real.addEventListener("input", syncProxy);
 
-    requiredContainers.forEach((c) => {
-      const el = getField(c);
-      if (!el) return;
-      ["input", "change", "blur"].forEach((evt) => {
-        el.addEventListener(evt, () => {
-          if (c.classList.contains("frm_blank_field")) validateContainer(c);
-        }, { passive: true });
-      });
+    // If form is inside the bootstrap modal, run when it opens
+    document.addEventListener("shown.bs.modal", (e) => {
+      if (e?.target?.id === "appointmentForm") setTodayIfEmpty();
     });
+
+    // Initial
+    setTodayIfEmpty();
+    syncProxy();
   })();
 </script>
 
@@ -700,10 +658,10 @@ import vehicles from "../data/vehicles.json";
         size.className = "mm-file-size";
         size.textContent = formatBytes(f.size);
 
-        const btn = document.createElement("button");
+        const btn = document.createElement("a");
         btn.type = "button";
-        btn.className = "btn btn-border btn-invert mm-file-remove";
-        btn.textContent = "x";
+        btn.className = "mm-file-remove";
+        btn.textContent = "X";
         btn.addEventListener("click", (e) => {
           e.preventDefault();
           e.stopPropagation();
