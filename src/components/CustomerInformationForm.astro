@@ -19,17 +19,18 @@ import vehiclesData from "../data/vehicles.json";
 <!-- Formidable wrapper -->
 <div
 	class="frm_forms with_frm_style frm_style_formidable-style"
-	data-token="6175db04c788b56068a0069e43debc77"
 	id="frm_form_4_container"
 >
 	<form
-		class="frm-show-form frm_pro_form"
-		data-token="6175db04c788b56068a0069e43debc77"
-		data-validated="false"
 		enctype="multipart/form-data"
 		id="form_customerinformation"
 		method="post"
 		action="/api/forms"
+		class="frm-show-form mm-form"
+		data-mm-form
+		data-form-name="Customer Information Form"
+		id={FORM_ID}
+		novalidate
 		data-vehicles={JSON.stringify(vehiclesData)}
 	>
 		<div class="frm_form_fields">
