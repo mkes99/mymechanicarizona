@@ -7,6 +7,7 @@
  *   - input._mmFiles (Array<File>) for multi-file
  *   - input._mmFile (File) for single-file
  * - Avoids double-binding (modal reinits / partial hydration)
+ * - Binds forms added later (Bootstrap modal / injected HTML) via MutationObserver
  */
 (() => {
   function getSiteKey() {
@@ -17,12 +18,10 @@
     return new Promise((resolve, reject) => {
       if (!siteKey) return resolve(null);
 
-      // Already loaded
       if (window.grecaptcha && typeof window.grecaptcha.execute === "function") {
         return resolve(window.grecaptcha);
       }
 
-      // If a script is already in-flight, poll briefly
       const existing = document.querySelector('script[data-mm-recaptcha="1"]');
       if (existing) {
         const start = Date.now();
@@ -83,7 +82,6 @@
     if (!cs) return true;
     if (cs.display === "none" || cs.visibility === "hidden") return false;
 
-    // Handles offscreen / zero-size wrappers
     return el.getClientRects().length > 0;
   }
 
@@ -93,15 +91,13 @@
     ).filter(isActuallyVisible);
 
     let ok = true;
+    let firstBad = null;
 
     for (const field of requiredFields) {
       const control = getControl(field);
       if (!control) continue;
-
-      // Skip hidden required wrappers
       if (!isActuallyVisible(field)) continue;
 
-      // File required (supports Safari-safe dropzones)
       if ((control.type || "").toLowerCase() === "file") {
         const hasFile =
           (control.files && control.files.length > 0) ||
@@ -109,14 +105,16 @@
           !!control._mmFile;
 
         markField(field, !!hasFile);
-        if (!hasFile) ok = false;
+        if (!hasFile) {
+          ok = false;
+          if (!firstBad) firstBad = field;
+        }
         continue;
       }
 
       const value = (control.value || "").trim();
       let fieldOk = !!value;
 
-      // honor Formidable-style hints
       const invMsg = control.getAttribute("data-invmsg") || "";
       const type = (control.getAttribute("type") || "").toLowerCase();
       if (fieldOk && (type === "email" || /email/i.test(invMsg))) {
@@ -124,7 +122,14 @@
       }
 
       markField(field, fieldOk);
-      if (!fieldOk) ok = false;
+      if (!fieldOk) {
+        ok = false;
+        if (!firstBad) firstBad = field;
+      }
+    }
+
+    if (!ok && firstBad) {
+      firstBad.scrollIntoView?.({ behavior: "smooth", block: "center" });
     }
 
     return ok;
@@ -148,14 +153,10 @@
   async function getRecaptchaToken({ siteKey, grecaptcha }) {
     if (!siteKey || !grecaptcha) return "";
 
-    // IMPORTANT: wait for ready() before execute()
     try {
       await new Promise((resolve) => {
-        if (typeof grecaptcha.ready === "function") {
-          grecaptcha.ready(resolve);
-        } else {
-          resolve();
-        }
+        if (typeof grecaptcha.ready === "function") grecaptcha.ready(resolve);
+        else resolve();
       });
     } catch (_) {}
 
@@ -168,22 +169,18 @@
   }
 
   function forceAttachMmFiles(form, fd) {
-    // If dropzone scripts store files on the input element (Safari-safe),
-    // ensure they are appended into FormData.
     const fileInputs = Array.from(form.querySelectorAll('input[type="file"]'));
 
     for (const input of fileInputs) {
       const name = input.name;
       if (!name) continue;
 
-      // Multi: input._mmFiles = [File, ...]
       if (Array.isArray(input._mmFiles) && input._mmFiles.length) {
         fd.delete(name);
         for (const f of input._mmFiles) fd.append(name, f);
         continue;
       }
 
-      // Single: input._mmFile = File
       if (input._mmFile) {
         fd.delete(name);
         fd.append(name, input._mmFile);
@@ -191,14 +188,52 @@
     }
   }
 
+  async function readResponse(res) {
+    const ct = (res.headers.get("content-type") || "").toLowerCase();
+    if (ct.includes("application/json")) {
+      const data = await res.json().catch(() => ({}));
+      return { data, ok: res.ok && data.ok === true };
+    }
+    const text = await res.text().catch(() => "");
+    // If server responds 200/204 with non-json, treat as success.
+    return { data: { ok: res.ok, message: "" , error: text }, ok: res.ok };
+  }
+
+  function clearFormControls(form) {
+    form.querySelectorAll("input, textarea, select").forEach((el) => {
+      const name = el.getAttribute("name") || "";
+      const type = (el.getAttribute("type") || "").toLowerCase();
+      if (type === "hidden") return;
+      if (name === "recaptcha_token") return;
+
+      if (type === "file") {
+        try { el.value = ""; } catch (_) {}
+        el._mmFiles = [];
+        el._mmFile = null;
+        return;
+      }
+
+      if (el.tagName === "SELECT") {
+        el.selectedIndex = 0;
+        return;
+      }
+
+      if (type === "checkbox" || type === "radio") {
+        el.checked = false;
+        return;
+      }
+
+      el.value = "";
+    });
+
+    form.dispatchEvent(new CustomEvent("mm:form:cleared"));
+  }
+
   async function attach() {
     const siteKey = getSiteKey();
 
-    const forms = Array.from(document.querySelectorAll("form[data-mm-form]")).filter((f) => {
-      const action = (f.getAttribute("action") || "").trim();
-      return action === "" || action === "/api/forms" || action.endsWith("/api/forms");
-    });
-
+    // ✅ Bind ALL forms that opt-in, regardless of action
+    const forms = Array.from(document.querySelectorAll("form[data-mm-form]"));
     if (!forms.length) return;
 
     let grecaptcha = null;
@@ -209,18 +244,19 @@
       grecaptcha = null;
     }
 
-    forms.forEach((form) => {
-      // Guard: prevent double-binding (partial hydration / modal reinits)
+    const bindOne = (form) => {
+      if (!form || form.nodeType !== 1) return;
+      if (!form.matches("form[data-mm-form]")) return;
+
       if (form.dataset.mmBound === "1") return;
       form.dataset.mmBound = "1";
 
-      // Force our endpoint + multipart
+      // ✅ Force endpoint/method so we never GET /api/forms
       form.setAttribute("method", "post");
       form.setAttribute("action", "/api/forms");
       form.setAttribute("enctype", "multipart/form-data");
       form.setAttribute("novalidate", "novalidate");
 
-      // Friendly form name for routing/subject
       const formName =
         form.getAttribute("data-form-name") ||
         form.getAttribute("id") ||
@@ -230,12 +266,14 @@
 
       ensureHidden(form, "form_name").value = formName;
 
-      // CAPTURE beats other handlers
       form.addEventListener(
         "submit",
         async (e) => {
           e.preventDefault();
           e.stopImmediatePropagation();
+
+          // match your styling gate convention
+          form.dataset.validated = "true";
 
           clearStatus(form);
 
@@ -248,14 +286,10 @@
           if (submitBtn) submitBtn.disabled = true;
 
           try {
-            // reCAPTCHA token
             const token = await getRecaptchaToken({ siteKey, grecaptcha });
             if (token) ensureHidden(form, "recaptcha_token").value = token;
 
-            // Build FormData (includes normal file inputs)
             const fd = new FormData(form);
-
-            // Critical: include Safari-safe stored files (if present)
             forceAttachMmFiles(form, fd);
 
             const res = await fetch("/api/forms", {
@@ -264,56 +298,18 @@
               body: fd,
             });
 
-            // Don’t assume JSON on error pages / proxies
-            let data = {};
-            const ct = (res.headers.get("content-type") || "").toLowerCase();
-            if (ct.includes("application/json")) {
-              data = await res.json().catch(() => ({}));
-            } else {
-              const text = await res.text().catch(() => "");
-              data = { ok: false, error: text ? "Server returned non-JSON response." : "" };
-            }
+            const { data, ok } = await readResponse(res);
 
-            if (!res.ok || !data || data.ok !== true) {
+            if (!ok) {
               const msg =
                 (data && (data.error || data.message)) ||
-                "Something went wrong. Please try again.";
+                `Something went wrong. Please try again. (${res.status})`;
               showStatus(form, "error", msg);
               return;
             }
 
             showStatus(form, "success", data.message || "Thanks! We received your submission.");
-
-            // Clear on success (leave hidden fields)
-            form.querySelectorAll("input, textarea, select").forEach((el) => {
-              const name = el.getAttribute("name") || "";
-              const type = (el.getAttribute("type") || "").toLowerCase();
-              if (type === "hidden") return;
-              if (name === "recaptcha_token") return;
-
-              if (type === "file") {
-                try { el.value = ""; } catch (_) {}
-                // also clear Safari-safe stores
-                el._mmFiles = [];
-                el._mmFile = null;
-                return;
-              }
-
-              if (el.tagName === "SELECT") {
-                el.selectedIndex = 0;
-                return;
-              }
-
-              if (type === "checkbox" || type === "radio") {
-                el.checked = false;
-                return;
-              }
-
-              el.value = "";
-            });
-
-            // Let dropzones (or other UI) react to clearing
-            form.dispatchEvent(new CustomEvent("mm:form:cleared"));
+            clearFormControls(form);
           } catch (err) {
             console.error("[forms] submit failed:", err);
             showStatus(form, "error", "Network error. Please try again.");
@@ -323,7 +319,30 @@
         },
         true
       );
-    });
+    };
+
+    forms.forEach(bindOne);
+
+    // MutationObserver: bind future inserted forms (modal/injected)
+    if (!window.MM_FORMS) window.MM_FORMS = {};
+    window.MM_FORMS.refresh = attach;
+    window.MM_FORMS.bindForm = bindOne;
+
+    if (!window.MM_FORMS._observerAttached && "MutationObserver" in window) {
+      window.MM_FORMS._observerAttached = true;
+
+      const obs = new MutationObserver((mutations) => {
+        for (const m of mutations) {
+          for (const node of m.addedNodes || []) {
+            if (!node || node.nodeType !== 1) continue;
+            if (node.matches && node.matches("form[data-mm-form]")) bindOne(node);
+            node.querySelectorAll?.("form[data-mm-form]")?.forEach(bindOne);
+          }
+        }
+      });
+
+      obs.observe(document.body, { childList: true, subtree: true });
+    }
   }
 
   if (document.readyState === "loading") {
