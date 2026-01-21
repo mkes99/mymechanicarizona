@@ -297,6 +297,24 @@ export async function onRequestPost({ request, env }: any) {
       const verify = await verifyRes.json().catch(() => ({}));
       const minScore = Number(env.RECAPTCHA_MIN_SCORE || 0.5);
 
+      const isPreview = (env.CF_PAGES_BRANCH || "") !== "main";
+
+if (!verify?.success || (typeof verify.score === "number" && verify.score < minScore)) {
+  return new Response(
+    JSON.stringify({
+      ok: false,
+      error: "reCAPTCHA verification failed",
+      ...(isPreview
+        ? {
+            minScore,
+            verify, // <-- includes: success, score, hostname, action, error-codes
+          }
+        : {}),
+    }),
+    { status: 400, headers: { "content-type": "application/json" } },
+  );
+}
+
       if (!verify?.success || (typeof verify.score === "number" && verify.score < minScore)) {
         return new Response(JSON.stringify({ ok: false, error: "reCAPTCHA verification failed" }), {
           status: 400,
