@@ -1923,98 +1923,98 @@ import vehiclesData from "../data/vehicles.json";
   // ----------------------------
   // ✅ Submission + status (same style as your other forms)
   // ----------------------------
-  form.addEventListener(
-    "submit",
-    async (e) => {
-      // Gate invalid submission (same as contact form)
-      const ok = validateForm();
-      if (!ok) {
-        e.preventDefault();
-        e.stopPropagation();
-        const first = form.querySelector(".frm_blank_field");
-        first?.scrollIntoView?.({ behavior: "smooth", block: "center" });
-        return;
-      }
+//   form.addEventListener(
+//     "submit",
+//     async (e) => {
+//       // Gate invalid submission (same as contact form)
+//       const ok = validateForm();
+//       if (!ok) {
+//         e.preventDefault();
+//         e.stopPropagation();
+//         const first = form.querySelector(".frm_blank_field");
+//         first?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+//         return;
+//       }
 
-      // If your global script is already handling POST + reCAPTCHA,
-      // you can stop here and let it continue.
-      //
-      // BUT: you said you need statuses; this local submit will take over
-      // and show status consistently.
+//       // If your global script is already handling POST + reCAPTCHA,
+//       // you can stop here and let it continue.
+//       //
+//       // BUT: you said you need statuses; this local submit will take over
+//       // and show status consistently.
 
-      e.preventDefault();
-      e.stopPropagation();
+//       e.preventDefault();
+//       e.stopPropagation();
 
-      // Turn on validation styling after first submit attempt (matches your CSS gate)
-      form.dataset.validated = "true";
+//       // Turn on validation styling after first submit attempt (matches your CSS gate)
+//       form.dataset.validated = "true";
 
-      clearStatus();
-      setBusy(true);
+//       clearStatus();
+//       setBusy(true);
 
-      try {
-        // Ensure action exists (you already hit this issue)
-        const action = form.getAttribute("action") || "/api/forms";
-        const method = (form.getAttribute("method") || "POST").toUpperCase();
+//       try {
+//         // Ensure action exists (you already hit this issue)
+//         const action = form.getAttribute("action") || "/api/forms";
+//         const method = (form.getAttribute("method") || "POST").toUpperCase();
 
-        const fd = new FormData(form);
+//         const fd = new FormData(form);
 
-        // Ensure server gets stable name for routing/label mapping
-        if (!fd.get("form_name")) {
-          fd.set("form_name", form.dataset.formName || "Customer Information Form");
-        }
+//         // Ensure server gets stable name for routing/label mapping
+//         if (!fd.get("form_name")) {
+//           fd.set("form_name", form.dataset.formName || "Customer Information Form");
+//         }
 
-        const res = await fetch(action, {
-          method,
-          headers: { Accept: "application/json" },
-          body: fd,
-        });
+//         const res = await fetch(action, {
+//           method,
+//           headers: { Accept: "application/json" },
+//           body: fd,
+//         });
 
-        // tolerate non-json
-        let data = {};
-        const ct = (res.headers.get("content-type") || "").toLowerCase();
-        if (ct.includes("application/json")) data = await res.json().catch(() => ({}));
-        else {
-          const txt = await res.text().catch(() => "");
-          data = { ok: false, error: txt && txt.length < 400 ? txt : "" };
-        }
+//         // tolerate non-json
+//         let data = {};
+//         const ct = (res.headers.get("content-type") || "").toLowerCase();
+//         if (ct.includes("application/json")) data = await res.json().catch(() => ({}));
+//         else {
+//           const txt = await res.text().catch(() => "");
+//           data = { ok: false, error: txt && txt.length < 400 ? txt : "" };
+//         }
 
-        if (!res.ok || !data?.ok) {
-          showStatus(false, data?.error || `Submission failed (${res.status}).`);
-          return;
-        }
+//         if (!res.ok || !data?.ok) {
+//           showStatus(false, data?.error || `Submission failed (${res.status}).`);
+//           return;
+//         }
 
-        showStatus(true, data?.message || "Thanks! We received your submission.");
+//         showStatus(true, data?.message || "Thanks! We received your submission.");
 
-        // Clear non-hidden fields (keep hidden plumbing + recaptcha field)
-        form.querySelectorAll("input, textarea, select").forEach((el) => {
-          const type = (el.getAttribute("type") || "").toLowerCase();
-          const name = el.getAttribute("name") || "";
-          if (type === "hidden") return;
-          if (name === "recaptcha_token") return;
+//         // Clear non-hidden fields (keep hidden plumbing + recaptcha field)
+//         form.querySelectorAll("input, textarea, select").forEach((el) => {
+//           const type = (el.getAttribute("type") || "").toLowerCase();
+//           const name = el.getAttribute("name") || "";
+//           if (type === "hidden") return;
+//           if (name === "recaptcha_token") return;
 
-          if (type === "checkbox" || type === "radio") el.checked = false;
-          else if (el.tagName === "SELECT") el.selectedIndex = 0;
-          else el.value = "";
+//           if (type === "checkbox" || type === "radio") el.checked = false;
+//           else if (el.tagName === "SELECT") el.selectedIndex = 0;
+//           else el.value = "";
 
-          el.setAttribute("aria-invalid", "false");
-          el.closest(".frm_form_field")?.classList?.remove("frm_blank_field");
-        });
+//           el.setAttribute("aria-invalid", "false");
+//           el.closest(".frm_form_field")?.classList?.remove("frm_blank_field");
+//         });
 
-        // Re-apply conditionals after clearing
-        applyVehicleNotListed();
-        applyReturning();
-        applyReferral();
-        applyWarningOther();
-        applyConcerns();
-        syncProxy();
-      } catch (err) {
-        console.error("[customer-information] submit failed:", err);
-        showStatus(false, "Network/server error. Please try again.");
-      } finally {
-        setBusy(false);
-      }
-    },
-    true
-  );
+//         // Re-apply conditionals after clearing
+//         applyVehicleNotListed();
+//         applyReturning();
+//         applyReferral();
+//         applyWarningOther();
+//         applyConcerns();
+//         syncProxy();
+//       } catch (err) {
+//         console.error("[customer-information] submit failed:", err);
+//         showStatus(false, "Network/server error. Please try again.");
+//       } finally {
+//         setBusy(false);
+//       }
+//     },
+//     true
+//   );
 })();
 </script>
