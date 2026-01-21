@@ -29,6 +29,7 @@ import vehiclesData from "../data/vehicles.json";
 		enctype="multipart/form-data"
 		id="form_customerinformation"
 		method="post"
+		action="/api/forms"
 		data-vehicles={JSON.stringify(vehiclesData)}
 	>
 		<div class="frm_form_fields">
@@ -1972,7 +1973,7 @@ import vehiclesData from "../data/vehicles.json";
 	})();
 </script>
 
-<script is:inline>
+<!-- <script is:inline>
   (() => {
     const FORM_ID = "form_customerinformation";
     const form = document.getElementById(FORM_ID);
@@ -2055,4 +2056,4 @@ import vehiclesData from "../data/vehicles.json";
       true,
     );
   })();
-</script>
+</script> -->
