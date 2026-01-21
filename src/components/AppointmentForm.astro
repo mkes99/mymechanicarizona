@@ -1,852 +1,907 @@
 ---
 /**
  * AppointmentForm.astro
- * - Extracted from Footer appointment popup (Form ID: 3).
- * - Option A: HTML5 validation + data-validated gate (no Formidable JS validation).
+ * - Appointment popup (Form ID: 3)
+ * - Working multi-file picker via “Choose File”
+ * - Formidable-like file list UI (remove individual + remove all)
+ * - Size guard (per file)
+ * - Native date input (no placeholder)
  */
 const FORM_ID = "form_appointmentform";
+const MAX_UPLOAD_BYTES = 20 * 1024 * 1024; // 20MB
 import vehicles from "../data/vehicles.json";
 ---
 
 <div
-	class="frm_forms with_frm_style frm_style_formidable-style"
-	id="frm_form_3_container"
-	data-token="6175db04c788b56068a0069e43debc77"
+  class="frm_forms with_frm_style frm_style_formidable-style"
+  id="frm_form_3_container"
 >
-	<form
-		enctype="multipart/form-data"
-		method="post"
-		action="/api/forms"
-		class="frm-show-form frm_pro_form"
-		id="form_appointmentform"
-		data-vehicles={JSON.stringify(vehicles)}
-		data-token="6175db04c788b56068a0069e43debc77"
-		data-validated="false"
-		novalidate
-	>
-		<div class="frm_form_fields">
-			<fieldset>
-				<legend class="frm_screen_reader">Appointment Form</legend>
+  <form
+    enctype="multipart/form-data"
+    method="post"
+    action="/api/forms"
+    class="frm-show-form mm-form"
+    data-mm-form
+    data-form-name="Appointment Form"
+    id={FORM_ID}
+    data-vehicles={JSON.stringify(vehicles)}
+    novalidate
+  >
+    <div class="frm_form_fields">
+      <fieldset>
+        <legend class="frm_screen_reader">Appointment Form</legend>
 
-				<div class="frm_fields_container">
-					<input type="hidden" name="frm_action" value="create" />
-					<input type="hidden" name="form_id" value="3" />
-					<input
-						type="hidden"
-						name="frm_hide_fields_3"
-						id="frm_hide_fields_3"
-						value=""
-					/>
-					<input
-						type="hidden"
-						name="form_key"
-						value="appointmentform"
-					/>
-					<input type="hidden" name="item_meta[0]" value="" />
-					<input
-						type="hidden"
-						id="frm_submit_entry_3"
-						name="frm_submit_entry_3"
-						value="cb96dd78bf"
-					/><input
-						type="hidden"
-						name="_wp_http_referer"
-						value="/"
-					/><div
-						id="frm_field_20_container"
-						class="frm_form_field frm_section_heading form-field frm4 frm_first"
-					>
-						<h5 class="frm_pos_top frm_section_spacing">
-							Contact Info
-						</h5>
+        <div class="frm_fields_container">
+          <input type="hidden" name="frm_action" value="create" />
+          <input type="hidden" name="form_id" value="3" />
+          <input type="hidden" name="frm_hide_fields_3" id="frm_hide_fields_3" value="" />
+          <input type="hidden" name="form_key" value="appointmentform" />
+          <input type="hidden" name="item_meta[0]" value="" />
+          <input type="hidden" id="frm_submit_entry_3" name="frm_submit_entry_3" value="cb96dd78bf" />
+          <input type="hidden" name="_wp_http_referer" value="/" />
 
-						<div
-							id="frm_field_10_container"
-							class="frm_form_field form-field frm_required_field frm_none_container frm12 frm_first"
-						>
-							<label
-								for="field_2g0ta"
-								id="field_2g0ta_label"
-								class="frm_primary_label"
-								>Your name
-								<span class="frm_required" aria-hidden="true"
-									>*</span
-								>
-							</label>
-							<input
-								type="text"
-								id="field_2g0ta"
-								name="item_meta[10]"
-								value=""
-								data-sectionid="20"
-								placeholder="Your name"
-								data-reqmsg="Your name cannot be blank."
-								data-invmsg="Text is invalid"
-								aria-invalid="false"
-							/>
-						</div>
-						<div
-							id="frm_field_18_container"
-							class="frm_form_field form-field frm_none_container frm12 frm_first"
-						>
-							<label
-								for="field_ruisa"
-								id="field_ruisa_label"
-								class="frm_primary_label"
-								>Phone number
-								<span class="frm_required" aria-hidden="true"
-								></span>
-							</label>
-							<input
-								type="tel"
-								id="field_ruisa"
-								name="item_meta[18]"
-								value=""
-								data-sectionid="20"
-								data-frmmask="(999)-999-9999"
-								placeholder="Your phone number"
-								data-invmsg="Phone is invalid"
-								aria-invalid="false"
-								pattern="\(\d\d\d\)-\d\d\d-\d\d\d\d$"
-							/>
-						</div>
-						<div
-							id="frm_field_15_container"
-							class="frm_form_field form-field frm_required_field frm_none_container frm12 frm_first"
-						>
-							<label
-								for="field_sztql"
-								id="field_sztql_label"
-								class="frm_primary_label"
-								>Email
-								<span class="frm_required" aria-hidden="true"
-									>*</span
-								>
-							</label>
-							<input
-								type="email"
-								id="field_sztql"
-								name="item_meta[15]"
-								value=""
-								data-sectionid="20"
-								placeholder="Your email"
-								data-reqmsg="Email cannot be blank."
-								data-invmsg="Email is invalid"
-								aria-invalid="false"
-							/>
-						</div>
-					</div>
-					<div
-						id="frm_field_22_container"
-						class="frm_form_field frm_section_heading form-field frm4"
-					>
-						<h5 class="frm_pos_top frm_section_spacing">
-							Car Detail
-						</h5>
+          <div id="frm_field_20_container" class="frm_form_field frm_section_heading form-field frm4 frm_first">
+            <h5 class="frm_pos_top frm_section_spacing">Contact Info</h5>
 
-						<div
-							id="frm_field_9_container"
-							class="frm_form_field form-field form-icon arrow-icon frm_none_container frm12 frm_first"
-						>
-							<label
-								for="field_ospp1"
-								id="field_ospp1_label"
-								class="frm_primary_label"
-								>Select vehicle year
-								<span class="frm_required" aria-hidden="true"
-								></span>
-							</label>
-							<select
-								name="item_meta[9]"
-								id="field_ospp1"
-								data-sectionid="22"
-								data-placeholder="Select Vehicle Year"
-								placeholder="Select Vehicle Year"
-								data-invmsg="Select vehicle year is invalid"
-								aria-invalid="false"
-							>
-								<option value="">Select Vehicle Year</option>
-								<option value="1990">1990</option>
-								<option value="1991">1991</option>
-								<option value="1992">1992</option>
-								<option value="1993">1993</option>
-								<option value="1994">1994</option>
-								<option value="1995">1995</option>
-								<option value="1996">1996</option>
-								<option value="1997">1997</option>
-								<option value="1998">1998</option>
-								<option value="1999">1999</option>
-								<option value="2000">2000</option>
-								<option value="2001">2001</option>
-								<option value="2002">2002</option>
-								<option value="2003">2003</option>
-								<option value="2004">2004</option>
-								<option value="2005">2005</option>
-								<option value="2006">2006</option>
-								<option value="2007">2007</option>
-								<option value="2008">2008</option>
-								<option value="2009">2009</option>
-								<option value="2010">2010</option>
-								<option value="2011">2011</option>
-								<option value="2012">2012</option>
-								<option value="2013">2013</option>
-								<option value="2014">2014</option>
-								<option value="2015">2015</option>
-								<option value="2016">2016</option>
-								<option value="2017">2017</option>
-								<option value="2018">2018</option>
-								<option value="2019">2019</option>
-								<option value="2020">2020</option>
-								<option value="2021">2021</option>
-								<option value="2022">2022</option>
-								<option value="2023">2023</option>
-								<option value="2024">2024</option>
-							</select>
-						</div>
-						<div
-							id="frm_field_13_container"
-							class="frm_form_field form-field form-icon arrow-icon frm_none_container frm12 frm_first"
-						>
-							<label
-								for="field_jr7jc"
-								id="field_jr7jc_label"
-								class="frm_primary_label"
-								>Select vehicle make
-								<span class="frm_required" aria-hidden="true"
-								></span>
-							</label>
-							<select
-								name="item_meta[13]"
-								id="field_jr7jc"
-								data-sectionid="22"
-								data-placeholder="Select vehicle make"
-								placeholder="Select vehicle make"
-								data-invmsg="Select vehicle make is invalid"
-								aria-invalid="false"
-							>
-								<option value="">Select vehicle make</option>
-							</select>
-						</div>
-						<div
-							id="frm_field_16_container"
-							class="frm_form_field form-field form-icon arrow-icon frm_none_container frm12 frm_first"
-						>
-							<label
-								for="field_fwpmx"
-								id="field_fwpmx_label"
-								class="frm_primary_label"
-								>Select vehicle model
-								<span class="frm_required" aria-hidden="true"
-								></span>
-							</label>
-							<select
-								name="item_meta[16]"
-								id="field_fwpmx"
-								data-sectionid="22"
-								data-placeholder="Select vehicle model"
-								placeholder="Select vehicle model"
-								data-invmsg="Select vehicle model is invalid"
-								aria-invalid="false"
-							>
-								<option value="">Select vehicle model</option>
-							</select>
-						</div>
-						<div
-							id="frm_field_28_container"
-							class="frm_form_field form-field frm_none_container"
-						>
-							<label
-								for="field_u1ohh"
-								id="field_u1ohh_label"
-								class="frm_primary_label"
-								>Vehicle is not listed information
-								<span class="frm_required" aria-hidden="true"
-								></span>
-							</label>
-							<textarea
-								name="item_meta[28]"
-								id="field_u1ohh"
-								rows="7"
-								data-sectionid="22"
-								placeholder="Vehicle Information"
-								data-invmsg="Paragraph is invalid"
-								aria-invalid="false"></textarea>
-						</div>
-						<div
-							id="frm_field_27_container"
-							class="frm_form_field form-field frm_none_container vertical_radio"
-						>
-							<div
-								id="field_tn0xg_label"
-								class="frm_primary_label"
-							>
-								Vehicle is not listed in the dropdowns
-								<span class="frm_required" aria-hidden="true"
-								></span>
-							</div>
-							<div
-								class="frm_opt_container"
-								aria-labelledby="field_tn0xg_label"
-								role="group"
-							>
-								<div
-									class="frm_checkbox"
-									id="frm_checkbox_27-22-0"
-								>
-									<label for="field_tn0xg-0">
-										<input
-											type="checkbox"
-											name="item_meta[27][]"
-											id="field_tn0xg-0"
-											value="Yes"
-											data-sectionid="22"
-											data-invmsg="Vehicle is not listed in the dropdowns is invalid"
-										/> My vehicle is not listed.</label
-									>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div
-						id="frm_field_24_container"
-						class="frm_form_field frm_section_heading form-field frm4"
-					>
-						<h5 class="frm_pos_top frm_section_spacing">
-							Appointment Details
-						</h5>
+            <div id="frm_field_10_container" class="frm_form_field form-field frm_required_field frm_none_container frm12 frm_first">
+              <label for="field_2g0ta" id="field_2g0ta_label" class="frm_primary_label">
+                Your name <span class="frm_required" aria-hidden="true">*</span>
+              </label>
+              <input
+                type="text"
+                id="field_2g0ta"
+                name="item_meta[10]"
+                value=""
+                data-sectionid="20"
+                placeholder="Your name"
+                data-reqmsg="Your name cannot be blank."
+                data-invmsg="Text is invalid"
+                aria-invalid="false"
+              />
+            </div>
 
-						<div
-							id="frm_field_11_container"
-							class="frm_form_field form-field form-icon calendar-icon frm_required_field frm_none_container frm12 frm_first"
-						>
-							<label
-								for="field_fm2dt"
-								id="field_fm2dt_label"
-								class="frm_primary_label"
-								>Date
-								<span class="frm_required" aria-hidden="true"
-									>*</span
-								>
-							</label>
-							<input
-								type="text"
-								id="field_fm2dt"
-								name="item_meta[11]"
-								value=""
-								data-sectionid="24"
-								maxlength="10"
-								placeholder="Select appointment date"
-								data-reqmsg="Date cannot be blank."
-								data-invmsg="Date is invalid"
-								class="frm_date"
-								readonly="readonly"
-								aria-invalid="false"
-							/>
-						</div>
-						<div
-							id="frm_field_26_container"
-							class="frm_form_field form-field form-icon clock-icon frm_required_field frm_none_container"
-						>
-							<label
-								for="field_bk1vq"
-								id="field_bk1vq_label"
-								class="frm_primary_label"
-								>Appointment time
-								<span class="frm_required" aria-hidden="true"
-									>*</span
-								>
-							</label>
-							<select
-								name="item_meta[26]"
-								id="field_bk1vq"
-								data-sectionid="24"
-								data-frmval="Select appointment time"
-								data-reqmsg="Appointment time cannot be blank."
-								data-invmsg="Appointment time is invalid"
-								aria-invalid="false"
-							>
-								<option
-									value="Select appointment time"
-									selected="selected"
-									>Select appointment time</option
-								><option value="8:00am">8:00am</option><option
-									value="8:30am">8:30am</option
-								><option value="9:00am">9:00am</option><option
-									value="9:30am">9:30am</option
-								><option value="10:00am">10:00am</option><option
-									value="10:30am">10:30am</option
-								><option value="11:00am">11:00am</option><option
-									value="11:30am">11:30am</option
-								><option value="12:00pm">12:00pm</option><option
-									value="12:30pm">12:30pm</option
-								><option value="1:00pm">1:00pm</option><option
-									value="1:30pm">1:30pm</option
-								><option value="2:00pm">2:00pm</option><option
-									value="2:30pm">2:30pm</option
-								><option value="3:00pm">3:00pm</option><option
-									value="3:30pm">3:30pm</option
-								><option value="4:00pm">4:00pm</option><option
-									value="4:30pm">4:30pm</option
-								>
-							</select>
-						</div>
-						<div
-							id="frm_field_17_container"
-							class="frm_form_field form-field frm_none_container frm_compact"
-						>
-							<label
-								for="field_djuda"
-								id="field_djuda_label"
-								class="frm_primary_label"
-								>File Upload
-								<span class="frm_required" aria-hidden="true"
-								></span>
-							</label>
-							<input
-								type="hidden"
-								name="item_meta[17][]"
-								value=""
-								data-frmfile="17"
-							/>
+            <div id="frm_field_18_container" class="frm_form_field form-field frm_none_container frm12 frm_first">
+              <label for="field_ruisa" id="field_ruisa_label" class="frm_primary_label">Phone number</label>
+              <input
+                type="tel"
+                id="field_ruisa"
+                name="item_meta[18]"
+                value=""
+                data-sectionid="20"
+                data-frmmask="(999)-999-9999"
+                placeholder="Your phone number"
+                data-invmsg="Phone is invalid"
+                aria-invalid="false"
+                pattern="\(\d\d\d\)-\d\d\d-\d\d\d\d$"
+              />
+            </div>
 
-							<div
-								class="frm_dropzone frm_multi_upload frm_clearfix"
-								id="file17_dropzone"
-								role="group"
-							>
-								<div class="fallback">
-									<input
-										type="file"
-										name="file17[]"
-										id="field_djuda"
-										data-frmfile="17"
-										multiple="multiple"
-										data-sectionid="24"
-										data-invmsg="File Upload is invalid"
-										aria-invalid="false"
-									/>
-									<div class="frm_clearfix"></div>
-								</div>
-								<div class="dz-message needsclick">
-									<span class="frm_icon_font frm_upload_icon"
-									></span>
-									<span class="frm_upload_text"
-										><button type="button"
-											>Choose File</button
-										></span
-									>
-									<span class="frm_compact_text"
-										><button type="button"
-											>Choose File</button
-										></span
-									>
-									<div class="frm_small_text">
-										Maximum upload size: 67.11MB
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div
-						id="frm_field_96_container"
-						class="frm_form_field form-field frm_required_field frm_hidden_container"
-					>
-						<label
-							for="field_ir3uv"
-							id="field_ir3uv_label"
-							class="frm_primary_label"
-							>Services Requested
-							<span class="frm_required" aria-hidden="true"
-								>*</span
-							>
-						</label>
-						<textarea
-							name="item_meta[96]"
-							id="field_ir3uv"
-							rows="5"
-							placeholder="Services Requested"
-							data-reqmsg="Services Requested cannot be blank."
-							data-invmsg="Paragraph is invalid"
-							aria-invalid="false"></textarea>
-					</div>
-					<div
-						id="frm_field_98_container"
-						class="frm_form_field form-field frm_none_container"
-					>
-						<label
-							for="g-recaptcha-response"
-							id="field_vmjbl_label"
-							class="frm_primary_label"
-							>Captcha
-							<span class="frm_required" aria-hidden="true"
-							></span>
-						</label>
-						<div
-							id="field_vmjbl"
-							class="frm-g-recaptcha"
-							data-sitekey=""
-							data-size="invisible"
-							data-theme="light"
-						>
-						</div>
-					</div>
-					<div
-						id="frm_field_104_container"
-						class="frm_form_field form-field"
-					>
-						<div class="frm_submit frm_first frm_fourth">
-							<button
-								class="frm_button_submit frm_final_submit btn btn-border btn-invert"
-								type="submit"><span>Submit</span></button
-							>
-						</div>
-						<div class="frm_three_fourths">
-							<div class="notes-custom">
-								<p>
-									Please note that the date and time you
-									requested may not be available.
-								</p>
-							</div>
-						</div>
-					</div>
-					<input type="hidden" name="item_key" value="" />
-					<div id="frm_field_108_container">
-						<label for="field_294cv">
-							If you are human, leave this field blank.
-						</label>
-						<input
-							id="field_294cv"
-							type="text"
-							class="frm_form_field form-field frm_verify"
-							name="item_meta[108]"
-							value=""
-						/>
-					</div>
-					<input
-						name="frm_state"
-						type="hidden"
-						value="+dVHBR3AETpPd78HZJOMFqei9qSgpFCnNYZwzydmVr0="
-					/>
-				</div>
-			</fieldset>
-		</div>
-	</form>
+            <div id="frm_field_15_container" class="frm_form_field form-field frm_required_field frm_none_container frm12 frm_first">
+              <label for="field_sztql" id="field_sztql_label" class="frm_primary_label">
+                Email <span class="frm_required" aria-hidden="true">*</span>
+              </label>
+              <input
+                type="email"
+                id="field_sztql"
+                name="item_meta[15]"
+                value=""
+                data-sectionid="20"
+                placeholder="Your email"
+                data-reqmsg="Email cannot be blank."
+                data-invmsg="Email is invalid"
+                aria-invalid="false"
+              />
+            </div>
+          </div>
+
+          <div id="frm_field_22_container" class="frm_form_field frm_section_heading form-field frm4">
+            <h5 class="frm_pos_top frm_section_spacing">Car Detail</h5>
+
+            <div id="frm_field_9_container" class="frm_form_field form-field form-icon arrow-icon frm_none_container frm12 frm_first">
+              <label for="field_ospp1" id="field_ospp1_label" class="frm_primary_label">Select vehicle year</label>
+              <select
+                name="item_meta[9]"
+                id="field_ospp1"
+                data-sectionid="22"
+                data-placeholder="Select Vehicle Year"
+                placeholder="Select Vehicle Year"
+                data-invmsg="Select vehicle year is invalid"
+                aria-invalid="false"
+              >
+                <option value="">Select Vehicle Year</option>
+                <option value="1990">1990</option>
+                <option value="1991">1991</option>
+                <option value="1992">1992</option>
+                <option value="1993">1993</option>
+                <option value="1994">1994</option>
+                <option value="1995">1995</option>
+                <option value="1996">1996</option>
+                <option value="1997">1997</option>
+                <option value="1998">1998</option>
+                <option value="1999">1999</option>
+                <option value="2000">2000</option>
+                <option value="2001">2001</option>
+                <option value="2002">2002</option>
+                <option value="2003">2003</option>
+                <option value="2004">2004</option>
+                <option value="2005">2005</option>
+                <option value="2006">2006</option>
+                <option value="2007">2007</option>
+                <option value="2008">2008</option>
+                <option value="2009">2009</option>
+                <option value="2010">2010</option>
+                <option value="2011">2011</option>
+                <option value="2012">2012</option>
+                <option value="2013">2013</option>
+                <option value="2014">2014</option>
+                <option value="2015">2015</option>
+                <option value="2016">2016</option>
+                <option value="2017">2017</option>
+                <option value="2018">2018</option>
+                <option value="2019">2019</option>
+                <option value="2020">2020</option>
+                <option value="2021">2021</option>
+                <option value="2022">2022</option>
+                <option value="2023">2023</option>
+                <option value="2024">2024</option>
+              </select>
+            </div>
+
+            <div id="frm_field_13_container" class="frm_form_field form-field form-icon arrow-icon frm_none_container frm12 frm_first">
+              <label for="field_jr7jc" id="field_jr7jc_label" class="frm_primary_label">Select vehicle make</label>
+              <select
+                name="item_meta[13]"
+                id="field_jr7jc"
+                data-sectionid="22"
+                data-placeholder="Select vehicle make"
+                placeholder="Select vehicle make"
+                data-invmsg="Select vehicle make is invalid"
+                aria-invalid="false"
+              >
+                <option value="">Select vehicle make</option>
+              </select>
+            </div>
+
+            <div id="frm_field_16_container" class="frm_form_field form-field form-icon arrow-icon frm_none_container frm12 frm_first">
+              <label for="field_fwpmx" id="field_fwpmx_label" class="frm_primary_label">Select vehicle model</label>
+              <select
+                name="item_meta[16]"
+                id="field_fwpmx"
+                data-sectionid="22"
+                data-placeholder="Select vehicle model"
+                placeholder="Select vehicle model"
+                data-invmsg="Select vehicle model is invalid"
+                aria-invalid="false"
+              >
+                <option value="">Select vehicle model</option>
+              </select>
+            </div>
+
+            <div id="frm_field_28_container" class="frm_form_field form-field frm_none_container">
+              <label for="field_u1ohh" id="field_u1ohh_label" class="frm_primary_label">Vehicle is not listed information</label>
+              <textarea
+                name="item_meta[28]"
+                id="field_u1ohh"
+                rows="7"
+                data-sectionid="22"
+                placeholder="Vehicle Information"
+                data-invmsg="Paragraph is invalid"
+                aria-invalid="false"></textarea>
+            </div>
+
+            <div id="frm_field_27_container" class="frm_form_field form-field frm_none_container vertical_radio">
+              <div id="field_tn0xg_label" class="frm_primary_label">Vehicle is not listed in the dropdowns</div>
+              <div class="frm_opt_container" aria-labelledby="field_tn0xg_label" role="group">
+                <div class="frm_checkbox" id="frm_checkbox_27-22-0">
+                  <label for="field_tn0xg-0">
+                    <input
+                      type="checkbox"
+                      name="item_meta[27][]"
+                      id="field_tn0xg-0"
+                      value="Yes"
+                      data-sectionid="22"
+                      data-invmsg="Vehicle is not listed in the dropdowns is invalid"
+                    />
+                    My vehicle is not listed.
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="frm_field_24_container" class="frm_form_field frm_section_heading form-field frm4">
+            <h5 class="frm_pos_top frm_section_spacing">Appointment Details</h5>
+<div
+  id="frm_field_11_container"
+  class="frm_form_field form-field form-icon calendar-icon frm_required_field frm_none_container frm12 frm_first mm-date-wrap"
+>
+  <label for="field_fm2dt_proxy" id="field_fm2dt_label" class="frm_primary_label">
+    Date <span class="frm_required" aria-hidden="true">*</span>
+  </label>
+
+  <!-- VISIBLE field (always shows something) -->
+  <input
+    type="text"
+    id="field_fm2dt_proxy"
+    class="mm-date-proxy"
+    placeholder="Select date"
+    readonly
+    aria-hidden="false"
+  />
+
+  <!-- REAL field (used for submission + opens native picker) -->
+  <input
+    type="date"
+    id="field_fm2dt"
+    name="item_meta[11]"
+    data-sectionid="24"
+    data-reqmsg="Date cannot be blank."
+    data-invmsg="Date is invalid"
+    class="frm_date mm-date-real"
+    aria-invalid="false"
+  />
+</div>
+
+            <div id="frm_field_26_container" class="frm_form_field form-field form-icon clock-icon frm_required_field frm_none_container">
+              <label for="field_bk1vq" id="field_bk1vq_label" class="frm_primary_label">
+                Appointment time <span class="frm_required" aria-hidden="true">*</span>
+              </label>
+              <select
+                name="item_meta[26]"
+                id="field_bk1vq"
+                data-sectionid="24"
+                data-frmval="Select appointment time"
+                data-reqmsg="Appointment time cannot be blank."
+                data-invmsg="Appointment time is invalid"
+                aria-invalid="false"
+              >
+                <option value="Select appointment time" selected="selected">Select appointment time</option>
+                <option value="8:00am">8:00am</option>
+                <option value="8:30am">8:30am</option>
+                <option value="9:00am">9:00am</option>
+                <option value="9:30am">9:30am</option>
+                <option value="10:00am">10:00am</option>
+                <option value="10:30am">10:30am</option>
+                <option value="11:00am">11:00am</option>
+                <option value="11:30am">11:30am</option>
+                <option value="12:00pm">12:00pm</option>
+                <option value="12:30pm">12:30pm</option>
+                <option value="1:00pm">1:00pm</option>
+                <option value="1:30pm">1:30pm</option>
+                <option value="2:00pm">2:00pm</option>
+                <option value="2:30pm">2:30pm</option>
+                <option value="3:00pm">3:00pm</option>
+                <option value="3:30pm">3:30pm</option>
+                <option value="4:00pm">4:00pm</option>
+                <option value="4:30pm">4:30pm</option>
+              </select>
+            </div>
+
+            <div id="frm_field_17_container" class="frm_form_field form-field frm_none_container frm_compact">
+              <label for="field_djuda" id="field_djuda_label" class="frm_primary_label">File Upload</label>
+
+              <!-- REAL input (hidden) -->
+              <input
+                type="file"
+                id="field_djuda"
+                name="item_meta[17][]"
+                multiple
+                data-mm-files
+                data-max-bytes={MAX_UPLOAD_BYTES}
+                style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;"
+              />
+
+              <div class="frm_dropzone frm_multi_upload frm_clearfix" id="file17_dropzone" role="group" tabindex="0" >
+                <div class="dz-message needsclick" data-mm-file-btn></div>
+              </div>
+			   <div class="frm_small_text text-center">Maximum upload size: 20MB each</div>
+			  <div class="frm_small_text" id="appointment_files" aria-live="polite"></div>
+            </div>
+          </div>
+
+          <div id="frm_field_96_container" class="frm_form_field form-field frm_required_field frm_hidden_container">
+            <label for="field_ir3uv" id="field_ir3uv_label" class="frm_primary_label">
+              Services Requested <span class="frm_required" aria-hidden="true">*</span>
+            </label>
+            <textarea
+              name="item_meta[96]"
+              id="field_ir3uv"
+              rows="5"
+              placeholder="Services Requested"
+              data-reqmsg="Services Requested cannot be blank."
+              data-invmsg="Paragraph is invalid"
+              aria-invalid="false"></textarea>
+          </div>
+
+          <input type="hidden" name="recaptcha_token" value="" />
+
+          <div id="frm_field_104_container" class="frm_form_field form-field">
+            <div class="frm_submit frm_first frm_fourth">
+              <button class="frm_button_submit frm_final_submit btn btn-border btn-invert" type="submit"><span>Submit</span></button>
+            </div>
+
+            <div class="frm_three_fourths">
+              <div class="notes-custom">
+                <p>Please note that the date and time you requested may not be available.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-status" aria-live="polite" data-form-status style="display:none;"></div>
+
+          <input type="hidden" name="item_key" value="" />
+
+          <div id="frm_field_108_container">
+            <label for="field_294cv">If you are human, leave this field blank.</label>
+            <input id="field_294cv" type="text" class="frm_form_field form-field frm_verify" name="item_meta[108]" value="" />
+          </div>
+
+          <input name="frm_state" type="hidden" value="+dVHBR3AETpPd78HZJOMFqei9qSgpFCnNYZwzydmVr0=" />
+        </div>
+      </fieldset>
+    </div>
+  </form>
 </div>
 
 <style>
-	/* Suppress Formidable's global :invalid styling until the user actually tries to submit */
-	:global(
-		#form_appointmentform[data-validated="false"] .frm_form_field :invalid
-	),
-	:global(#form_appointmentform[data-validated="false"] input:invalid),
-	:global(#form_appointmentform[data-validated="false"] textarea:invalid),
-	:global(#form_appointmentform[data-validated="false"] select:invalid) {
-		border-color: inherit !important;
-		box-shadow: none !important;
-		outline: none !important;
-	}
+  /* Suppress Formidable's global :invalid styling until the user actually tries to submit */
+  :global(#form_appointmentform[data-validated="false"] .frm_form_field :invalid),
+  :global(#form_appointmentform[data-validated="false"] input:invalid),
+  :global(#form_appointmentform[data-validated="false"] textarea:invalid),
+  :global(#form_appointmentform[data-validated="false"] select:invalid) {
+    border-color: inherit !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+
+  /* Ensure date input has decent height on mobile Safari */
+  :global(#form_appointmentform input[type="date"]) {
+    min-height: 24px;
+    line-height: 24px;
+  }
+
+  #frm_field_17_container .frm_small_text {
+	font-size: 10px;
+  }
+
+  
+#file17_dropzone .dz-message {
+    font-size: 14px;
+    border: 0px solid #dfdfdf;
+    background: #f7f7f7;
+    display: inline-block;
+    border-radius: 4px;
+    padding: 0;
+    box-sizing: border-box;
+    box-shadow: 0 1px 1px #eeeeee;
+    vertical-align: middle;
+    margin: 0;
+    width: 100%;
+    height: 50px;
+    line-height: 50px;
+}
+
+/* Make the "Choose/Add files" row feel like Formidable */
+#file17_dropzone .dz-message .frm_upload_text,
+#file17_dropzone .dz-message .frm_compact_text {
+  display: inline-block;
+  line-height: normal;
+}
+
+/* Keep small helper text readable */
+#file17_dropzone .dz-message .frm_small_text {
+  display: block;
+  margin-top: 6px;
+  line-height: 1.35;
+}
+
+/* OPTIONAL (if you want Formidable-style “file tag” look closer)
+   Put in overrides.css (not required; only if you want it tighter) */
+
+#file17_dropzone .dz-message .mm-file-btn {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* File list container spacing */
+#appointment_files {
+  margin-top: 8px;
+}
+
+/* Formidable-like rows */
+#appointment_files .mm-file-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: rgba(255, 255, 255, 0.70);
+}
+
+  /* --- File list rows --- */
+  :global(#appointment_files) {
+    margin-top: 10px;
+  }
+  :global(#appointment_files .mm-file-row) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.10);
+    background: rgba(255, 255, 255, 0.70);
+  }
+  :global(#appointment_files .mm-file-name) {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 700;
+	font-size: 10px;
+  }
+  :global(#appointment_files .mm-file-size) {
+    font-size: 10px;
+    opacity: 0.75;
+    white-space: nowrap;
+  }
+  :global(#appointment_files .mm-file-remove) {
+    white-space: nowrap;
+    font-size: 12px;
+	padding: 0 5px !important;
+	border: none;
+	cursor: pointer
+  }
+
+  :global(#file17_dropzone .dz-message .mm-file-btn) {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+	border: none
+  }
+
+  /* If Formidable compact mode hides small text globally, force our list visible */
+  :global(.frm_compact #file17_dropzone #appointment_files),
+  :global(.frm_compact #file17_dropzone #appointment_files_remove_all) {
+    display: block !important;
+  }
+
+  :global(.mm-date-wrap) {
+  position: relative;
+}
+
+/* Visible proxy gets your normal styling */
+:global(.mm-date-proxy) {
+  width: 100%;
+}
+
+/* Real date sits on top, but invisible. Tap opens picker. */
+:global(.mm-date-real) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+:global(.form-status) { margin-top: 10px; padding: 10px; border-radius: 6px; }
+:global(.form-status--success) { border: 1px solid #2f7a3b; }
+:global(.form-status--error) { border: 1px solid #b33a3a; }
 </style>
 
 <script is:inline>
-	(() => {
-		const form = document.getElementById("form_appointmentform");
-		if (!form) return;
+  (() => {
+    const form = document.getElementById("form_appointmentform");
+    if (!form) return;
 
-		// Datepicker (native) for Formidable date fields (no WP datepicker).
-		const dateEl = form.querySelector("#field_fm2dt");
-		if (dateEl) {
-			// Remove Formidable readonly to allow interaction.
-			dateEl.removeAttribute("readonly");
-			// Switch to native date input where supported.
-			try {
-				dateEl.type = "date";
-			} catch (_) {}
+    const real = form.querySelector("#field_fm2dt");
+    const proxy = form.querySelector("#field_fm2dt_proxy");
+    if (!real || !proxy) return;
 
-			// Convert mm/dd/yyyy -> yyyy-mm-dd if needed
-			const toISO = (v) => {
-				const m = /^\s*(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})\s*$/.exec(
-					v || "",
-				);
-				if (!m) return v;
-				const mm = String(m[1]).padStart(2, "0");
-				const dd = String(m[2]).padStart(2, "0");
-				return `${m[3]}-${mm}-${dd}`;
-			};
-			if (dateEl.value && dateEl.value.includes("/")) {
-				dateEl.value = toISO(dateEl.value);
-			}
+    const isMobile =
+      window.matchMedia &&
+      window.matchMedia("(hover: none) and (pointer: coarse)").matches;
 
-			const openPicker = () => {
-				if (typeof dateEl.showPicker === "function") {
-					try {
-						dateEl.showPicker();
-					} catch (_) {}
-				}
-			};
-			dateEl.addEventListener("focus", openPicker);
-			dateEl.addEventListener("click", openPicker);
-		}
+    const isoToDisplay = (iso) => {
+      // iso: yyyy-mm-dd
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+      if (!m) return "";
+      const y = Number(m[1]);
+      const mo = Number(m[2]) - 1;
+      const d = Number(m[3]);
+      const dt = new Date(y, mo, d);
+      // This will display in user locale; if you want strict MM/DD/YYYY let me know.
+      return dt.toLocaleDateString();
+    };
 
-		const REQUIRED_SELECTOR = ".frm_form_field.frm_required_field";
-		const isVisible = (el) => {
-			if (!el) return false;
-			if (el.hasAttribute("hidden")) return false;
-			// hidden via display:none or ancestors
-			if (el.closest("[hidden]")) return false;
-			const cs = window.getComputedStyle(el);
-			if (cs.display === "none" || cs.visibility === "hidden")
-				return false;
-			return el.getClientRects().length > 0;
-		};
-		const requiredContainers = Array.from(
-			form.querySelectorAll(REQUIRED_SELECTOR),
-		).filter(isVisible);
+    const syncProxy = () => {
+      proxy.value = real.value ? isoToDisplay(real.value) : "";
+    };
 
-		const getField = (container) =>
-			container.querySelector("input, textarea, select");
-		const isEmpty = (el) => (el.value ?? "").trim() === "";
+    // Set today's date on mobile if empty (but do NOT override user)
+    const setTodayIfEmpty = () => {
+      if (!isMobile) return;
+      if (!real.value) {
+        real.value = new Date().toISOString().slice(0, 10);
+      }
+      syncProxy();
+    };
 
-		const validateContainer = (container) => {
-			if (!isVisible(container)) return true;
-			const el = getField(container);
-			if (!el) return true;
+    // Tap proxy opens picker via real input
+    proxy.addEventListener("click", () => real.showPicker?.() || real.click());
+    proxy.addEventListener("focus", () => real.showPicker?.() || real.click());
 
-			let valid = true;
+    real.addEventListener("change", syncProxy);
+    real.addEventListener("input", syncProxy);
 
-			if (el.type === "checkbox" || el.type === "radio") {
-				valid = !!form.querySelector(`[name="${el.name}"]:checked`);
-			} else if (el.type === "file") {
-				valid = el.files && el.files.length > 0;
-			} else {
-				valid = !isEmpty(el);
+    // If form is inside the bootstrap modal, run when it opens
+    document.addEventListener("shown.bs.modal", (e) => {
+      if (e?.target?.id === "appointmentForm") setTodayIfEmpty();
+    });
 
-				if (valid && el.type === "email") {
-					valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value.trim());
-				}
-
-				const pattern = el.getAttribute("pattern");
-				if (valid && pattern) {
-					try {
-						valid = new RegExp(`^${pattern}$`).test(el.value);
-					} catch (_) {}
-				}
-			}
-
-			container.classList.toggle("frm_blank_field", !valid);
-			el.setAttribute("aria-invalid", (!valid).toString());
-			return valid;
-		};
-
-		const validateForm = () => {
-			let ok = true;
-			requiredContainers.forEach((c) => {
-				if (!validateContainer(c)) ok = false;
-			});
-			return ok;
-		};
-
-		form.addEventListener(
-			"submit",
-			(e) => {
-				const ok = validateForm();
-				if (!ok) {
-					e.preventDefault();
-					e.stopPropagation();
-					const first = form.querySelector(".frm_blank_field");
-					if (first && first.scrollIntoView) {
-						first.scrollIntoView({
-							behavior: "smooth",
-							block: "center",
-						});
-					}
-				}
-			},
-			true,
-		);
-
-		requiredContainers.forEach((c) => {
-			const el = getField(c);
-			if (!el) return;
-			["input", "change", "blur"].forEach((evt) => {
-				el.addEventListener(
-					evt,
-					() => {
-						if (c.classList.contains("frm_blank_field"))
-							validateContainer(c);
-					},
-					{ passive: true },
-				);
-			});
-		});
-	})();
+    // Initial
+    setTodayIfEmpty();
+    syncProxy();
+  })();
 </script>
 
 <script is:inline>
-	(() => {
-		// Appointment form vehicle cascade + "vehicle not listed" toggle.
-		// Must NOT depend on WP/Formidable globals or admin-ajax.php.
-		// Must be resilient when the form lives inside a modal (DOM may be injected on open).
-		const FORM_ID = "form_appointmentform";
-		const MODAL_ID = "appointmentForm";
-		const INIT_FLAG = "mmInitVehicles";
+  (() => {
+    // Multi-file upload UX (Formidable-like list) — Safari-safe UI state.
+    const form = document.getElementById("form_appointmentform");
+    if (!form) return;
 
-		const init = (root) => {
-			const form = root?.getElementById
-				? root.getElementById(FORM_ID)
-				: document.getElementById(FORM_ID);
-			if (!form) return;
-			if (form.dataset[INIT_FLAG] === "1") return;
-			form.dataset[INIT_FLAG] = "1";
+    const dropzone = document.getElementById("file17_dropzone");
+    const input = document.getElementById("field_djuda");
+    const list = document.getElementById("appointment_files");
+    const removeAllBtn = document.getElementById("appointment_files_remove_all");
+    const statusEl = form.querySelector("[data-form-status]");
+    if (!dropzone || !input || !list) return;
 
-			const VEHICLES = (() => {
-				try {
-					return JSON.parse(
-						form.getAttribute("data-vehicles") || "{}",
-					);
-				} catch (_) {
-					return {};
-				}
-			})();
+    let selectedFiles = [];
 
-			// Correct Appointment field IDs (from the copied Formidable markup)
-			const yearEl = form.querySelector("#field_ospp1"); // item_meta[9]
-			const makeEl = form.querySelector("#field_jr7jc"); // item_meta[13]
-			const modelEl = form.querySelector("#field_fwpmx"); // item_meta[16]
+    const maxBytes =
+      Number(input.getAttribute("data-max-bytes") || "0") || 20 * 1024 * 1024;
 
-			const notListedEl = form.querySelector("#field_tn0xg-0"); // item_meta[27] checkbox
-			const manualWrap = form.querySelector("#frm_field_28_container"); // textarea container
-			const manualEl = form.querySelector("#field_u1ohh"); // item_meta[28] textarea
+    const showUploadError = (msg) => {
+      if (!statusEl) return;
+      statusEl.style.display = "block";
+      statusEl.className = "form-status form-status--error";
+      statusEl.textContent = msg;
+    };
 
-			const yearWrap = form.querySelector("#frm_field_9_container");
-			const makeWrap = form.querySelector("#frm_field_13_container");
-			const modelWrap = form.querySelector("#frm_field_16_container");
+    const clearStatus = () => {
+      if (!statusEl) return;
+      statusEl.style.display = "none";
+      statusEl.textContent = "";
+    };
 
-			if (
-				!yearEl ||
-				!makeEl ||
-				!modelEl ||
-				!notListedEl ||
-				!manualWrap ||
-				!yearWrap ||
-				!makeWrap ||
-				!modelWrap
-			)
-				return;
+    const formatBytes = (n) => {
+      const b = Number(n || 0);
+      if (b < 1024) return `${b} B`;
+      const kb = b / 1024;
+      if (kb < 1024) return `${kb.toFixed(1)} KB`;
+      const mb = kb / 1024;
+      return `${mb.toFixed(1)} MB`;
+    };
 
-			const resetSelect = (el, placeholder) => {
-				// Keep placeholder option first
-				el.innerHTML = "";
-				const opt = document.createElement("option");
-				opt.value = "";
-				opt.textContent = placeholder;
-				el.appendChild(opt);
-				el.value = "";
-			};
+    // ✅ Always keep the "truth" on the input for Safari-safe submit handling
+    const syncStore = () => {
+      // Global submit handler reads input._mmFiles
+      input._mmFiles = selectedFiles.slice();
+    };
 
-			// Populate years from vehicles.json (descending numeric)
-			const years = Object.keys(VEHICLES).sort(
-				(a, b) => Number(b) - Number(a),
-			);
-			resetSelect(yearEl, "Select Vehicle Year");
-			years.forEach((y) => {
-				const opt = document.createElement("option");
-				opt.value = y;
-				opt.textContent = y;
-				yearEl.appendChild(opt);
-			});
+    const syncToInput = () => {
+      // Always update Safari-safe store
+      syncStore();
 
-			resetSelect(makeEl, "Select Vehicle Make");
-			resetSelect(modelEl, "Select Vehicle Model");
+      // Best-effort: reflect into input.files (works in most browsers, may fail in Safari)
+      try {
+        const dt = new DataTransfer();
+        selectedFiles.forEach((f) => dt.items.add(f));
+        input.files = dt.files;
+      } catch (_) {
+        // Safari may block assigning to input.files — that's OK.
+      }
+    };
 
-			const populateMakes = (year) => {
-				resetSelect(makeEl, "Select Vehicle Make");
-				resetSelect(modelEl, "Select Vehicle Model");
-				if (!year || !VEHICLES[year]) return;
-				Object.keys(VEHICLES[year])
-					.sort()
-					.forEach((make) => {
-						const opt = document.createElement("option");
-						opt.value = make;
-						opt.textContent = make;
-						makeEl.appendChild(opt);
-					});
-			};
+    const dedupe = (files) => {
+      const map = new Map();
+      files.forEach((f) => {
+        const k = `${f.name}__${f.size}__${f.lastModified}`;
+        if (!map.has(k)) map.set(k, f);
+      });
+      return Array.from(map.values());
+    };
 
-			const populateModels = (year, make) => {
-				resetSelect(modelEl, "Select Vehicle Model");
-				const models = VEHICLES?.[year]?.[make];
-				if (!models || !Array.isArray(models)) return;
-				models
-					.slice()
-					.sort()
-					.forEach((model) => {
-						const opt = document.createElement("option");
-						opt.value = model;
-						opt.textContent = model;
-						modelEl.appendChild(opt);
-					});
-			};
+    const filterBySize = (files) => {
+      if (!maxBytes) return files;
+      let rejected = 0;
 
-			const setVehicleMode = () => {
-				const manual = !!notListedEl.checked;
-				yearWrap.hidden = manual;
-				makeWrap.hidden = manual;
-				modelWrap.hidden = manual;
-				manualWrap.hidden = !manual;
+      const ok = files.filter((f) => {
+        if (f.size > maxBytes) {
+          rejected += 1;
+          return false;
+        }
+        return true;
+      });
 
-				if (manual) {
-					yearEl.value = "";
-					makeEl.value = "";
-					modelEl.value = "";
-				} else if (manualEl) {
-					manualEl.value = "";
-				}
-			};
+      if (rejected) {
+        showUploadError(
+          `One or more files exceed the upload limit. Please keep each file under ${Math.round(
+            maxBytes / (1024 * 1024),
+          )}MB.`,
+        );
+      } else {
+        clearStatus();
+      }
 
-			// IMPORTANT: Formidable's leftover scripts may attach change handlers that call admin-ajax.php
-			// and can interfere with our cascade (and can also wipe out options after a failed request).
-			// We attach our handlers in CAPTURE phase and stop other handlers from running.
-			yearEl.addEventListener(
-				"change",
-				(e) => {
-					e.stopImmediatePropagation();
-					e.stopPropagation();
-					populateMakes(yearEl.value);
-				},
-				true,
-			);
+      return ok;
+    };
 
-			makeEl.addEventListener(
-				"change",
-				(e) => {
-					e.stopImmediatePropagation();
-					e.stopPropagation();
-					populateModels(yearEl.value, makeEl.value);
-				},
-				true,
-			);
-			notListedEl.addEventListener("change", setVehicleMode);
+    const setButtonLabel = () => {
+      const btns = dropzone.querySelectorAll("[data-mm-file-btn]");
+      const n = selectedFiles.length;
+      btns.forEach((b) => {
+        b.textContent = n ? `Add files (${n})` : "Choose File";
+      });
+    };
 
-			// Initial mode + initial cascade state
-			setVehicleMode();
-			populateMakes(yearEl.value);
-			populateModels(yearEl.value, makeEl.value);
-		};
+    const render = () => {
+      list.innerHTML = "";
+      setButtonLabel();
 
-		// Init now (if modal content already in DOM)
-		init(document);
+      if (!selectedFiles.length) {
+        if (removeAllBtn) removeAllBtn.style.display = "none";
+        return;
+      }
 
-		// Init again on modal open (Bootstrap event)
-		document.addEventListener("shown.bs.modal", (e) => {
-			const modal = e?.target;
-			if (modal && modal.id === MODAL_ID) init(document);
-		});
+      selectedFiles.forEach((f, i) => {
+        const row = document.createElement("div");
+        row.className = "mm-file-row";
 
-		// Fallback: observe modal subtree for injected form markup
-		const modalEl = document.getElementById(MODAL_ID);
-		if (modalEl && "MutationObserver" in window) {
-			const obs = new MutationObserver(() => init(document));
-			obs.observe(modalEl, { subtree: true, childList: true });
-		}
-	})();
+        const name = document.createElement("span");
+        name.className = "mm-file-name";
+        name.textContent = f.name;
+
+        const size = document.createElement("span");
+        size.className = "mm-file-size";
+        size.textContent = formatBytes(f.size);
+
+        // ✅ Use a real <button> for reliable taps/clicks on mobile
+        const btn = document.createElement("a");
+        btn.type = "button";
+        btn.className = "mm-file-remove";
+        btn.textContent = "Remove";
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          selectedFiles.splice(i, 1);
+          syncToInput();
+          render();
+        });
+
+        row.appendChild(name);
+        row.appendChild(size);
+        row.appendChild(btn);
+        list.appendChild(row);
+      });
+
+      if (removeAllBtn) removeAllBtn.style.display = "inline-block";
+    };
+
+    const addFiles = (incoming) => {
+      const add = Array.from(incoming || []);
+      if (!add.length) return;
+
+      selectedFiles = filterBySize(dedupe(selectedFiles.concat(add)));
+      syncToInput(); // updates input._mmFiles too
+      render();
+    };
+
+    const clearFiles = () => {
+      selectedFiles = [];
+      try {
+        input.value = "";
+      } catch (_) {}
+      syncToInput(); // clears input._mmFiles too
+      render();
+    };
+
+    const openPicker = (e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      input.click();
+    };
+
+    // Click any element marked as the "file button"
+    dropzone
+      .querySelectorAll("[data-mm-file-btn]")
+      .forEach((b) => b.addEventListener("click", openPicker));
+
+    // Keyboard accessibility
+    dropzone.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        const t = e.target;
+        if (t && t.closest && t.closest("button")) return;
+        openPicker(e);
+      }
+    });
+
+    // Input change
+    input.addEventListener("change", () => {
+      addFiles(input.files);
+      // Allow selecting the same file again to trigger change
+      try {
+        input.value = "";
+      } catch (_) {}
+    });
+
+    // Drag/drop
+    dropzone.addEventListener("dragover", (e) => e.preventDefault());
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
+    });
+
+    // Remove all
+    if (removeAllBtn) {
+      removeAllBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        clearFiles();
+      });
+    }
+
+    // Clear UI when global form script clears fields
+    form.addEventListener("mm:form:cleared", () => {
+      clearFiles();
+    });
+
+    // Initialize store (important if form submits without touching dropzone)
+    syncStore();
+    render();
+  })();
+</script>
+
+<script is:inline>
+  (() => {
+    // Vehicle cascade + "vehicle not listed" toggle.
+    const FORM_ID = "form_appointmentform";
+    const MODAL_ID = "appointmentForm";
+    const INIT_FLAG = "mmInitVehicles";
+
+    const init = (root) => {
+      const form = root?.getElementById ? root.getElementById(FORM_ID) : document.getElementById(FORM_ID);
+      if (!form) return;
+      if (form.dataset[INIT_FLAG] === "1") return;
+      form.dataset[INIT_FLAG] = "1";
+
+      const VEHICLES = (() => {
+        try { return JSON.parse(form.getAttribute("data-vehicles") || "{}"); }
+        catch (_) { return {}; }
+      })();
+
+      const yearEl = form.querySelector("#field_ospp1");
+      const makeEl = form.querySelector("#field_jr7jc");
+      const modelEl = form.querySelector("#field_fwpmx");
+
+      const notListedEl = form.querySelector("#field_tn0xg-0");
+      const manualWrap = form.querySelector("#frm_field_28_container");
+      const manualEl = form.querySelector("#field_u1ohh");
+
+      const yearWrap = form.querySelector("#frm_field_9_container");
+      const makeWrap = form.querySelector("#frm_field_13_container");
+      const modelWrap = form.querySelector("#frm_field_16_container");
+
+      if (!yearEl || !makeEl || !modelEl || !notListedEl || !manualWrap || !yearWrap || !makeWrap || !modelWrap) return;
+
+      const resetSelect = (el, placeholder) => {
+        el.innerHTML = "";
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = placeholder;
+        el.appendChild(opt);
+        el.value = "";
+      };
+
+      const years = Object.keys(VEHICLES).sort((a, b) => Number(b) - Number(a));
+      resetSelect(yearEl, "Select Vehicle Year");
+      years.forEach((y) => {
+        const opt = document.createElement("option");
+        opt.value = y;
+        opt.textContent = y;
+        yearEl.appendChild(opt);
+      });
+
+      resetSelect(makeEl, "Select Vehicle Make");
+      resetSelect(modelEl, "Select Vehicle Model");
+
+      const populateMakes = (year) => {
+        resetSelect(makeEl, "Select Vehicle Make");
+        resetSelect(modelEl, "Select Vehicle Model");
+        if (!year || !VEHICLES[year]) return;
+        Object.keys(VEHICLES[year]).sort().forEach((make) => {
+          const opt = document.createElement("option");
+          opt.value = make;
+          opt.textContent = make;
+          makeEl.appendChild(opt);
+        });
+      };
+
+      const populateModels = (year, make) => {
+        resetSelect(modelEl, "Select Vehicle Model");
+        const models = VEHICLES?.[year]?.[make];
+        if (!models || !Array.isArray(models)) return;
+        models.slice().sort().forEach((model) => {
+          const opt = document.createElement("option");
+          opt.value = model;
+          opt.textContent = model;
+          modelEl.appendChild(opt);
+        });
+      };
+
+      const setVehicleMode = () => {
+        const manual = !!notListedEl.checked;
+        yearWrap.hidden = manual;
+        makeWrap.hidden = manual;
+        modelWrap.hidden = manual;
+        manualWrap.hidden = !manual;
+
+        if (manual) {
+          yearEl.value = "";
+          makeEl.value = "";
+          modelEl.value = "";
+        } else if (manualEl) {
+          manualEl.value = "";
+        }
+      };
+
+      yearEl.addEventListener("change", (e) => {
+        e.stopImmediatePropagation();
+        e.stopPropagation();
+        populateMakes(yearEl.value);
+      }, true);
+
+      makeEl.addEventListener("change", (e) => {
+        e.stopImmediatePropagation();
+        e.stopPropagation();
+        populateModels(yearEl.value, makeEl.value);
+      }, true);
+
+      notListedEl.addEventListener("change", setVehicleMode);
+
+      setVehicleMode();
+      populateMakes(yearEl.value);
+      populateModels(yearEl.value, makeEl.value);
+    };
+
+    init(document);
+
+    document.addEventListener("shown.bs.modal", (e) => {
+      const modal = e?.target;
+      if (modal && modal.id === MODAL_ID) init(document);
+    });
+
+    const modalEl = document.getElementById(MODAL_ID);
+    if (modalEl && "MutationObserver" in window) {
+      const obs = new MutationObserver(() => init(document));
+      obs.observe(modalEl, { subtree: true, childList: true });
+    }
+  })();
 </script>

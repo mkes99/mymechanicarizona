@@ -1,81 +1,362 @@
 ---
-/**
- * ReviewsSlider.astro
- * - Wraps Trust.Reviews widget snippet as a reusable Astro component.
- * - Loads embed.min.js only once.
- * - Injects a style rule AFTER the widget script is present to hide branding link.
- *
- * Usage:
- *   <ReviewsSlider id="7915" view="list" lang="" />
- */
-
 const {
-  id = 7915,
-  view = "list",
-  lang = "",
+  apiPath = "/api/reviews",
+  max = 50,
+  limit = 24, // total cards to render in the slider (we will trim to a full "page")
+  autoplay = true,
+  autoplayMs = 5500,
+  writeReviewUrl = "https://search.google.com/local/writereview?placeid=ChIJIRIHWwp01oYRVv-SOeBXy5o",
+  title = "What our customers say",
 } = Astro.props;
 ---
 
-<div
-  class="tr-widget sliderReviews"
-  data-id={String(id)}
-  data-view={String(view)}
-  data-lang={String(lang)}
+<section
+  class="reviews-slider reviews-section"
+  data-reviews-slider
+  data-api={apiPath}
+  data-max={max}
+  data-limit={limit}
+  data-autoplay={autoplay ? "1" : "0"}
+  data-autoplay-ms={autoplayMs}
 >
-  <a href="https://trust.reviews/" class="trcr" target="_blank" rel="noopener noreferrer">
-    Powered by <span>Trust.Reviews</span>
-  </a>
-</div>
+  <div class="block-title">
+    <h2 class="block-title__title">{title}</h2>
+    <div class="block-title__description">Verified feedback and ratings from Google.</div>
+    <div class="title-separator"></div>
+  </div>
+
+  <div class="reviews-slider__status" data-status style="display:none;"></div>
+
+  <div class="reviews-slider__frame" data-frame>
+    <button
+      type="button"
+      class="reviews-slider__arrow reviews-slider__arrow--prev"
+      data-prev
+      aria-label="Previous reviews"
+    >
+      ‹
+    </button>
+
+    <div class="reviews-slider__viewport" data-viewport>
+      <div class="reviews-slider__track" data-track></div>
+    </div>
+
+    <button
+      type="button"
+      class="reviews-slider__arrow reviews-slider__arrow--next"
+      data-next
+      aria-label="Next reviews"
+    >
+      ›
+    </button>
+  </div>
+
+  <div class="btn-inline text-center" style="margin-top:50px">
+    <a class="btn btn-border btn" href={writeReviewUrl} target="_blank" rel="noopener">
+      <span>Write a Review</span>
+    </a>
+  </div>
+</section>
 
 <script is:inline>
-(function () {
-  try {
-    var SRC = "https://cdn.trust.reviews/widget/embed.min.js";
-    var STYLE_ID = "mm-hide-trust-reviews-branding";
+(() => {
+  const sliders = document.querySelectorAll('[data-reviews-slider]');
+  if (!sliders.length) return;
 
-    function injectHideStyle() {
-      if (document.getElementById(STYLE_ID)) return;
+  sliders.forEach((root) => {
+    const api = root.getAttribute('data-api') || '/api/reviews';
+    const max = Number(root.getAttribute('data-max') || '50');
+    const limit = Number(root.getAttribute('data-limit') || '24');
+    const autoplay = (root.getAttribute('data-autoplay') || '0') === '1';
+    const autoplayMs = Number(root.getAttribute('data-autoplay-ms') || '5500') || 5500;
 
-      var style = document.createElement("style");
-      style.id = STYLE_ID;
-      style.type = "text/css";
-      style.appendChild(
-        document.createTextNode(
-          "html body.page .rplg + a.trcr { display: none !important; }"
-        )
-      );
-      document.head.appendChild(style);
+    const status = root.querySelector('[data-status]');
+    const frame = root.querySelector('[data-frame]');
+    const viewport = root.querySelector('[data-viewport]');
+    const track = root.querySelector('[data-track]');
+    const prevBtn = root.querySelector('[data-prev]');
+    const nextBtn = root.querySelector('[data-next]');
+
+    if (!viewport || !track) return;
+
+    let items = [];
+    let timer = null;
+    let isHover = false;
+
+    // infinite state
+    let per = 4;
+    let currentIndex = 0;           // index in track.children (includes clones)
+    let offsets = [];               // offsetLeft list for track.children
+    let isCloned = false;
+
+    /* ---------------- helpers ---------------- */
+
+    function setStatus(type, msg) {
+      if (!status) return;
+      status.style.display = 'block';
+      status.textContent = msg;
+      status.className = `reviews-slider__status reviews-slider__status--${type}`;
     }
 
-    function ensureScript() {
-      var existing = document.querySelector('script[src="' + SRC + '"]');
-      if (existing || window.__TRUST_REVIEWS_EMBED_LOADED__ === true) {
-        injectHideStyle();
+    function hideStatus() {
+      if (!status) return;
+      status.style.display = 'none';
+      status.textContent = '';
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function renderStars(n) {
+      const s = Math.max(0, Math.min(5, Number(n) || 0));
+      return '★★★★★☆☆☆☆☆'.slice(5 - s, 10 - s);
+    }
+
+    function getCardsPerView() {
+      const w = window.innerWidth || 1200;
+      if (w <= 640) return 1;
+      if (w <= 900) return 2;
+      if (w <= 1200) return 3;
+      return 4;
+    }
+
+    function cardEl(r) {
+      const name = r.reviewer_name || r.author_name || r.name || 'Anonymous';
+      const text = r.review_text || r.text || r.content || '';
+      const rating = Number(r.rating || r.stars || 0);
+      const when = r.relative_time_description || r.relative_time || r.timeago || r.time_ago || '';
+
+      const googleUrl =
+        r.url ||
+        r.review_url ||
+        r.google_url ||
+        r.link ||
+        'https://www.google.com/maps?cid=11154105522663391062';
+
+      const div = document.createElement('div');
+      div.className = 'review-card review-card--slider';
+      div.innerHTML = `
+        <div class="review-card__meta">
+          <div class="review-card__name">${escapeHtml(name)}</div>
+          ${when ? `<div class="review-card__time">${escapeHtml(when)}</div>` : ''}
+          <div class="review-card__stars">${escapeHtml(renderStars(rating))}</div>
+        </div>
+
+        <div class="review-card__text review-card__text--scroll">
+          ${escapeHtml(text)}
+        </div>
+
+        <div class="review-card__footer">
+          <a class="review-card__google" href="${escapeHtml(googleUrl)}" target="_blank" rel="noopener">
+            View on Google
+          </a>
+        </div>
+      `;
+      return div;
+    }
+
+    function stopAuto() {
+      if (timer) clearInterval(timer);
+      timer = null;
+    }
+
+    function startAuto() {
+      stopAuto();
+      if (!autoplay) return;
+      timer = setInterval(() => {
+        if (isHover) return;
+        goPages(1, true);
+      }, autoplayMs);
+    }
+
+    /* ---------------- cloning ---------------- */
+
+    function clearClones() {
+      track.querySelectorAll('[data-clone]').forEach((n) => n.remove());
+      isCloned = false;
+    }
+
+    function rebuildOffsets() {
+      offsets = Array.from(track.children).map((el) => el.offsetLeft || 0);
+    }
+
+    function scrollToIndex(idx, smooth) {
+      if (!offsets.length) rebuildOffsets();
+      const left = offsets[idx] ?? 0;
+      viewport.scrollTo({ left, behavior: smooth ? 'smooth' : 'auto' });
+    }
+
+    function nearestIndexFromScroll() {
+      const x = viewport.scrollLeft;
+      // linear scan is fine for <= ~100 children
+      let best = 0;
+      let bestDist = Infinity;
+      for (let i = 0; i < offsets.length; i++) {
+        const d = Math.abs(offsets[i] - x);
+        if (d < bestDist) {
+          bestDist = d;
+          best = i;
+        }
+      }
+      return best;
+    }
+
+    function applyClones() {
+      clearClones();
+
+      per = getCardsPerView();
+      const cards = Array.from(track.children);
+      if (cards.length <= per) {
+        rebuildOffsets();
+        currentIndex = 0;
+        scrollToIndex(0, false);
         return;
       }
 
-      var s = document.createElement("script");
-      s.src = SRC;
-      s.type = "text/javascript";
-      s.defer = true;
-      s.onload = function () {
-        window.__TRUST_REVIEWS_EMBED_LOADED__ = true;
-        injectHideStyle();
-      };
-      document.head.appendChild(s);
+      const head = cards.slice(0, per);
+      const tail = cards.slice(-per);
+
+      // clone last page to front
+      tail.forEach((card) => {
+        const clone = card.cloneNode(true);
+        clone.setAttribute('data-clone', '1');
+        track.insertBefore(clone, track.firstChild);
+      });
+
+      // clone first page to end
+      head.forEach((card) => {
+        const clone = card.cloneNode(true);
+        clone.setAttribute('data-clone', '1');
+        track.appendChild(clone);
+      });
+
+      isCloned = true;
+
+      // start on the first real card (after the front clones)
+      rebuildOffsets();
+      currentIndex = per;
+      scrollToIndex(currentIndex, false);
     }
 
-    ensureScript();
+    function loopFix() {
+      if (!isCloned) return;
 
-    // Re-assert a few times in case widget re-renders itself
-    var tries = 0;
-    var iv = setInterval(function () {
-      injectHideStyle();
-      tries++;
-      if (tries > 10) clearInterval(iv);
-    }, 500);
-  } catch (e) {
-    // fail silently
-  }
+      // Real cards live in [per .. per + items.length - 1]
+      const realStart = per;
+      const realEnd = per + items.length - 1;
+
+      // If user lands in the front clones, jump forward by items.length
+      if (currentIndex < realStart) {
+        currentIndex = currentIndex + items.length;
+        scrollToIndex(currentIndex, false);
+        return;
+      }
+
+      // If user lands in the end clones, jump back by items.length
+      if (currentIndex > realEnd) {
+        currentIndex = currentIndex - items.length;
+        scrollToIndex(currentIndex, false);
+        return;
+      }
+    }
+
+    /* ---------------- paging (NO DRIFT) ---------------- */
+
+    function goPages(deltaPages, smooth) {
+      if (!track.children.length) return;
+
+      per = getCardsPerView();
+
+      // snap to nearest card index first
+      currentIndex = nearestIndexFromScroll();
+
+      // move by a full "page" worth of cards
+      currentIndex += deltaPages * per;
+
+      // clamp inside child range (loopFix will normalize if cloned)
+      if (currentIndex < 0) currentIndex = 0;
+      if (currentIndex > track.children.length - 1) currentIndex = track.children.length - 1;
+
+      scrollToIndex(currentIndex, smooth);
+      // after smooth scroll settles, the scroll handler will run loopFix
+    }
+
+    /* ---------------- init ---------------- */
+
+    async function init() {
+      try {
+        const res = await fetch(api, { headers: { Accept: 'application/json' } });
+        const data = await res.json().catch(() => null);
+        const reviews = data && Array.isArray(data.reviews) ? data.reviews : [];
+
+        per = getCardsPerView();
+
+        // Trim to a full page multiple (so the carousel always pages cleanly)
+        const raw = reviews.slice(0, Math.min(max, limit));
+        const fullPagesCount = Math.floor(raw.length / per);
+        items = fullPagesCount ? raw.slice(0, fullPagesCount * per) : raw;
+
+        if (!items.length) {
+          setStatus('empty', 'No reviews to display.');
+          return;
+        }
+
+        hideStatus();
+        track.innerHTML = '';
+        items.forEach((r) => track.appendChild(cardEl(r)));
+
+        // Build infinite clones + offsets
+        requestAnimationFrame(() => {
+          applyClones();
+          startAuto();
+        });
+
+        prevBtn?.addEventListener('click', () => {
+          stopAuto();
+          goPages(-1, true);
+          startAuto();
+        });
+
+        nextBtn?.addEventListener('click', () => {
+          stopAuto();
+          goPages(1, true);
+          startAuto();
+        });
+
+        frame?.addEventListener('mouseenter', () => (isHover = true));
+        frame?.addEventListener('mouseleave', () => (isHover = false));
+
+        // Keep currentIndex in sync and fix loop jumps
+        viewport.addEventListener(
+          'scroll',
+          () => {
+            requestAnimationFrame(() => {
+              currentIndex = nearestIndexFromScroll();
+              loopFix();
+            });
+          },
+          { passive: true },
+        );
+
+        window.addEventListener('resize', () => {
+          stopAuto();
+          requestAnimationFrame(() => {
+            applyClones();
+            startAuto();
+          });
+        });
+      } catch (e) {
+        setStatus('error', 'Reviews are temporarily unavailable.');
+      }
+    }
+
+    init();
+  });
 })();
 </script>

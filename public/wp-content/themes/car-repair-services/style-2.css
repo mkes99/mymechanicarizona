@@ -67,8 +67,8 @@ Nicolas Gallagher and Jonathan Neal http://necolas.github.io/normalize.css/
 /* Poppins SemiBold */
 @font-face {
     font-family: "Poppins";
-    src: url('https://mymechanicarizona.com/wp-content/themes/car-repair-services/css/fonts/Poppins-Regular.eot');
-    src: url('https://mymechanicarizona.com/wp-content/themes/car-repair-services/css/fonts/Poppins-Regular.eot?') format('embedded-opentype'),
+    src: url('https://wp-content/themes/car-repair-services/css/fonts/Poppins-Regular.eot');
+    src: url('https://wp-content/themes/car-repair-services/css/fonts/Poppins-Regular.eot?') format('embedded-opentype'),
         url('css/fonts/Poppins-Regular.woff2') format('woff2'),
         url('css/fonts/Poppins-Regular.woff') format('woff'),
         url('css/fonts/Poppins-Regular.ttf') format('truetype');
@@ -77,8 +77,8 @@ Nicolas Gallagher and Jonathan Neal http://necolas.github.io/normalize.css/
 }
 @font-face {
     font-family: "Poppins";
-    src: url('https://mymechanicarizona.com/wp-content/themes/car-repair-services/css/fonts/Poppins-Medium.eot');
-    src: url('https://mymechanicarizona.com/wp-content/themes/car-repair-services/css/fonts/Poppins-Medium.eot?') format('embedded-opentype'),
+    src: url('https://wp-content/themes/car-repair-services/css/fonts/Poppins-Medium.eot');
+    src: url('https://wp-content/themes/car-repair-services/css/fonts/Poppins-Medium.eot?') format('embedded-opentype'),
         url('css/fonts/Poppins-Medium.woff2') format('woff2'),
         url('css/fonts/Poppins-Medium.woff') format('woff'),
         url('css/fonts/Poppins-Medium.ttf') format('truetype');
@@ -87,8 +87,8 @@ Nicolas Gallagher and Jonathan Neal http://necolas.github.io/normalize.css/
 }
 @font-face {
     font-family: "Poppins";
-    src: url('https://mymechanicarizona.com/wp-content/themes/car-repair-services/css/fonts/Poppins-SemiBold.eot');
-    src: url('https://mymechanicarizona.com/wp-content/themes/car-repair-services/css/fonts/Poppins-SemiBold.eot?') format('embedded-opentype'),
+    src: url('https://wp-content/themes/car-repair-services/css/fonts/Poppins-SemiBold.eot');
+    src: url('https://wp-content/themes/car-repair-services/css/fonts/Poppins-SemiBold.eot?') format('embedded-opentype'),
         url('css/fonts/Poppins-Semibold.woff2') format('woff2'),
         url('css/fonts/Poppins-Semibold.woff') format('woff'),
         url('css/fonts/Poppins-SemiBold.ttf') format('truetype');
@@ -97,8 +97,8 @@ Nicolas Gallagher and Jonathan Neal http://necolas.github.io/normalize.css/
 }
 @font-face {
     font-family: "Poppins";
-    src: url('https://mymechanicarizona.com/wp-content/themes/car-repair-services/css/fonts/Poppins-Bold.eot');
-    src: url('https://mymechanicarizona.com/wp-content/themes/car-repair-services/css/fonts/Poppins-Bold.eot?') format('embedded-opentype'),
+    src: url('https://wp-content/themes/car-repair-services/css/fonts/Poppins-Bold.eot');
+    src: url('https://wp-content/themes/car-repair-services/css/fonts/Poppins-Bold.eot?') format('embedded-opentype'),
         url('css/fonts/Poppins-Bold.woff2') format('woff2'),
         url('css/fonts/Poppins-Bold.woff') format('woff'),
         url('css/fonts/Poppins-Bold.ttf') format('truetype');
@@ -107,8 +107,8 @@ Nicolas Gallagher and Jonathan Neal http://necolas.github.io/normalize.css/
 }
 @font-face {
     font-family: "Poppins";
-    src: url('https://mymechanicarizona.com/wp-content/themes/car-repair-services/css/fonts/Poppins-ExtraBold.eot');
-    src: url('https://mymechanicarizona.com/wp-content/themes/car-repair-services/css/fonts/Poppins-ExtraBold.eot?') format('embedded-opentype'),
+    src: url('https://wp-content/themes/car-repair-services/css/fonts/Poppins-ExtraBold.eot');
+    src: url('https://wp-content/themes/car-repair-services/css/fonts/Poppins-ExtraBold.eot?') format('embedded-opentype'),
         url('css/fonts/Poppins-ExtraBold.woff2') format('woff2'),
         url('css/fonts/Poppins-ExtraBold.woff') format('woff'),
         url('css/fonts/Poppins-ExtraBold.ttf') format('truetype');
@@ -118,8 +118,8 @@ Nicolas Gallagher and Jonathan Neal http://necolas.github.io/normalize.css/
 /* Roboto bold */
 @font-face {
     font-family: "Roboto";
-    src: url('https://mymechanicarizona.com/wp-content/themes/car-repair-services/css/fonts/Roboto-Thin.eot');
-    src: url('https://mymechanicarizona.com/wp-content/themes/car-repair-services/css/fonts/Roboto-Thin.eot?') format('embedded-opentype'),
+    src: url('https://wp-content/themes/car-repair-services/css/fonts/Roboto-Thin.eot');
+    src: url('https://wp-content/themes/car-repair-services/css/fonts/Roboto-Thin.eot?') format('embedded-opentype'),
          url('css/fonts/Roboto-Thin.woff2') format('woff2'),
          url('css/fonts/Roboto-Thin.woff') format('woff'),
          url('css/fonts/Roboto-Thin.ttf') format('truetype');
@@ -128,8 +128,8 @@ Nicolas Gallagher and Jonathan Neal http://necolas.github.io/normalize.css/
 }
 @font-face {
     font-family: "Roboto";
-    src: url('https://mymechanicarizona.com/wp-content/themes/car-repair-services/css/fonts/Roboto-Regular.eot');
-    src: url('https://mymechanicarizona.com/wp-content/themes/car-repair-services/css/fonts/Roboto-Regular.eot?') format('embedded-opentype'),
+    src: url('https://wp-content/themes/car-repair-services/css/fonts/Roboto-Regular.eot');
+    src: url('https://wp-content/themes/car-repair-services/css/fonts/Roboto-Regular.eot?') format('embedded-opentype'),
          url('css/fonts/Roboto-Regular.woff2') format('woff2'),
          url('css/fonts/Roboto-Regular.woff') format('woff'),
          url('css/fonts/Roboto-Regular.ttf') format('truetype');
@@ -138,8 +138,8 @@ Nicolas Gallagher and Jonathan Neal http://necolas.github.io/normalize.css/
 }
 @font-face {
     font-family: "Roboto";
-    src: url('https://mymechanicarizona.com/wp-content/themes/car-repair-services/css/fonts/Roboto-Medium.eot');
-    src: url('https://mymechanicarizona.com/wp-content/themes/car-repair-services/css/fonts/Roboto-Medium.eot?') format('embedded-opentype'),
+    src: url('https://wp-content/themes/car-repair-services/css/fonts/Roboto-Medium.eot');
+    src: url('https://wp-content/themes/car-repair-services/css/fonts/Roboto-Medium.eot?') format('embedded-opentype'),
          url('css/fonts/Roboto-Medium.woff2') format('woff2'),
          url('css/fonts/Roboto-Medium.woff') format('woff'),
          url('css/fonts/Roboto-Medium.ttf') format('truetype');
@@ -148,8 +148,8 @@ Nicolas Gallagher and Jonathan Neal http://necolas.github.io/normalize.css/
 }
 @font-face {
     font-family: "Roboto";
-    src: url('https://mymechanicarizona.com/wp-content/themes/car-repair-services/css/fonts/Roboto-Bold.eot');
-    src: url('https://mymechanicarizona.com/wp-content/themes/car-repair-services/css/fonts/Roboto-Bold.eot?') format('embedded-opentype'),
+    src: url('https://wp-content/themes/car-repair-services/css/fonts/Roboto-Bold.eot');
+    src: url('https://wp-content/themes/car-repair-services/css/fonts/Roboto-Bold.eot?') format('embedded-opentype'),
          url('css/fonts/Roboto-Bold.woff2') format('woff2'),
          url('css/fonts/Roboto-Bold.woff') format('woff'),
          url('css/fonts/Roboto-Bold.ttf') format('truetype');
@@ -1379,7 +1379,7 @@ input[type="datetime-local"],
 input[type="color"],
 textarea {
     appearance: none;
-    margin-bottom: 4px;
+    /* margin-bottom: 4px; */
     padding: 10px 15px;
     font-size: 18px;
     line-height: 24px;
@@ -3866,6 +3866,7 @@ body.slide-active .darkout-menu {
 
 #pageContent.slide-active {
     padding-top: 0;
+    z-index: 0;
 }
 
 .navbar-header {
@@ -3887,17 +3888,17 @@ body.slide-active .darkout-menu {
     position: relative;
 }
 
-.header-info-mobile.slide-active,
+/* .header-info-mobile.slide-active,
 #slidemenu.slide-active,
 #pageContent.slide-active,
 .page-footer.slide-active,
 .page-header-1 .header-row.slide-active {
     left: 270px;
-}
+} */
 
-.page-footer.slide-active {
+/* .page-footer.slide-active {
     z-index: 9999;
-}
+} */
 
 @media (max-width: 991px) {
     #slide-nav .container {
@@ -13799,7 +13800,7 @@ body.layout-3 .banner-free .banner-text-header {
 }
 
 body.layout-3 .block.bg-5 {
-    background: url(https://mymechanicarizona.com/wp-content/themes/car-repair-services/images/block-bg-5.jpg) no-repeat center center;
+    background: url(https://wp-content/themes/car-repair-services/images/block-bg-5.jpg) no-repeat center center;
     background-size: cover;
     padding: 75px 0 60px;
 }

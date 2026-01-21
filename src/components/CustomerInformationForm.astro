@@ -5,6 +5,12 @@
  * - Prevents "red border" invalid styling on initial render by deferring invalid styling
  *   until after first submit attempt.
  * - Uses native HTML5 constraint validation (required/type=email).
+ *
+ * UPDATE:
+ * - Applies the SAME "proxy date" pattern we used on AppointmentForm:
+ *   - visible readonly text input
+ *   - real native <input type="date"> sits on top (opacity 0) and submits
+ *   - proxy mirrors real value in user locale
  */
 const FORM_ID = "form_customerinformation";
 import vehiclesData from "../data/vehicles.json";
@@ -13,17 +19,18 @@ import vehiclesData from "../data/vehicles.json";
 <!-- Formidable wrapper -->
 <div
 	class="frm_forms with_frm_style frm_style_formidable-style"
-	data-token="6175db04c788b56068a0069e43debc77"
 	id="frm_form_4_container"
 >
 	<form
-		class="frm-show-form frm_pro_form"
-		data-token="6175db04c788b56068a0069e43debc77"
-		data-validated="false"
 		enctype="multipart/form-data"
 		id="form_customerinformation"
 		method="post"
 		action="/api/forms"
+		class="frm-show-form mm-form"
+		data-mm-form
+		data-form-name="Customer Information Form"
+		id={FORM_ID}
+		novalidate
 		data-vehicles={JSON.stringify(vehiclesData)}
 	>
 		<div class="frm_form_fields">
@@ -1483,18 +1490,22 @@ import vehiclesData from "../data/vehicles.json";
 								value=""
 							/>
 						</div>
-						<div
-							class="frm_form_field form-field frm_hidden_container frm6"
-							id="frm_field_77_container"
-						>
-							<label
-								class="frm_primary_label"
-								for="field_7qnzk"
-								id="field_7qnzk_label"
-								>Date
-								<span aria-hidden="true" class="frm_required"
-								></span>
+						<div class="frm_form_field form-field frm_hidden_container frm6" id="frm_field_77_container">
+							<label class="frm_primary_label" for="field_7qnzk_proxy" id="field_7qnzk_label">
+								Date <span aria-hidden="true" class="frm_required"></span>
 							</label>
+
+							<!-- ✅ Visible field (always shows something, even on mobile) -->
+							<input
+								type="text"
+								id="field_7qnzk_proxy"
+								class="mm-date-proxy"
+								value="01/06/2026"
+								placeholder="Select date"
+								readonly
+							/>
+
+							<!-- ✅ Real field (the one that submits) -->
 							<input
 								aria-invalid="false"
 								data-frmval="01/06/2026"
@@ -1502,9 +1513,9 @@ import vehiclesData from "../data/vehicles.json";
 								data-sectionid="72"
 								id="field_7qnzk"
 								name="item_meta[77]"
-								readonly="readonly"
-								type="text"
-								value="01/06/2026"
+								type="date"
+								class="mm-date-real"
+								value="2026-01-06"
 							/>
 						</div>
 					</div>
@@ -1522,7 +1533,7 @@ import vehiclesData from "../data/vehicles.json";
 						</label>
 						<div
 							class="frm-g-recaptcha"
-							data-sitekey=""
+							data-sitekey="6LeVPnMpAAAAAHPVd9LuF8-I8BfxrJSCeEs_Uv9q"
 							data-size="invisible"
 							data-theme="light"
 							id="field_6utph"
@@ -1541,6 +1552,8 @@ import vehiclesData from "../data/vehicles.json";
 							>
 						</div>
 					</div>
+					<!-- ✅ REQUIRED for global script statuses -->
+<div class="form-status" aria-live="polite" data-form-status style="display:none;"></div>
 					<input name="item_key" type="hidden" value="" />
 					<div id="frm_field_107_container">
 						<label for="field_rt1uv">
@@ -1565,372 +1578,347 @@ import vehiclesData from "../data/vehicles.json";
 	</form>
 </div>
 
+<style>
+	/* Suppress Formidable's global :invalid styling until the user actually tries to submit */
+	:global(#form_customerinformation[data-validated="false"] .frm_form_field :invalid),
+	:global(#form_customerinformation[data-validated="false"] input:invalid),
+	:global(#form_customerinformation[data-validated="false"] textarea:invalid),
+	:global(#form_customerinformation[data-validated="false"] select:invalid) {
+		border-color: inherit !important;
+		box-shadow: none !important;
+		outline: none !important;
+	}
+
+	/* Date proxy + real overlay (mobile-friendly) */
+	.mm-date-wrap,
+	#frm_field_77_container {
+	position: relative;
+	}
+
+	#frm_field_77_container .mm-date-proxy {
+	width: 100%;
+	}
+
+	#frm_field_77_container .mm-date-real {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	opacity: 0;
+	-webkit-appearance: none;
+	appearance: none;
+	border: 0;
+	background: transparent;
+	cursor: pointer;
+	}
+</style>
+
 <script is:inline>
-	(() => {
-		const form = document.getElementById("form_customerinformation");
-		if (!form) return;
+(() => {
+  const form = document.getElementById("form_customerinformation");
+  if (!form) return;
 
-		// Prevent double-binding if Astro rehydrates/re-renders
-		if (form.dataset.mmInitCustomerInfo === "1") return;
-		form.dataset.mmInitCustomerInfo = "1";
+  // Prevent double-binding if Astro rehydrates/re-renders
+  if (form.dataset.mmInitCustomerInfo === "1") return;
+  form.dataset.mmInitCustomerInfo = "1";
 
-		// Vehicles data (ONLY source of truth)
-		const VEHICLES = JSON.parse(form.dataset.vehicles || "{}");
+  // ----------------------------
+  // Helpers
+  // ----------------------------
+  const byId = (id) => document.getElementById(id);
+  const normalize = (s) => (s ?? "").toString().trim();
 
-		const $ = (sel) => form.querySelector(sel);
-		const byId = (id) => document.getElementById(id);
+  const statusEl = form.querySelector("[data-form-status]");
+  const submitBtn =
+    form.querySelector('button[type="submit"]') ||
+    form.querySelector('input[type="submit"]');
 
-		const isHiddenContainer = (container) => {
-			if (!container) return true;
-			// Hidden if any ancestor is display:none, or hidden attr, or aria-hidden
-			let el = container;
-			while (el && el !== document.body) {
-				if (el.hidden) return true;
-				const aria = el.getAttribute && el.getAttribute("aria-hidden");
-				if (aria === "true") return true;
-				const style = window.getComputedStyle(el);
-				if (style && style.display === "none") return true;
-				el = el.parentElement;
-			}
-			return false;
-		};
+  const showStatus = (ok, msg) => {
+    if (!statusEl) return;
+    statusEl.style.display = "block";
+    statusEl.className = ok
+      ? "form-status form-status--success"
+      : "form-status form-status--error";
+    statusEl.textContent =
+      msg || (ok ? "Thanks! We received your submission." : "Something went wrong.");
+  };
 
-		const getContainer = (el) =>
-			el?.closest?.(".frm_form_field") ||
-			el?.closest?.(".form-field") ||
-			el?.parentElement;
+  const clearStatus = () => {
+    if (!statusEl) return;
+    statusEl.style.display = "none";
+    statusEl.className = "form-status";
+    statusEl.textContent = "";
+  };
 
-		const setVisible = (container, show) => {
-			if (!container) return;
-			container.style.display = show ? "" : "none";
-			container.setAttribute("aria-hidden", show ? "false" : "true");
-			if (!show) clearInputs(container);
-		};
+  const setBusy = (busy) => {
+    if (!submitBtn) return;
+    submitBtn.disabled = !!busy;
+    if (busy) submitBtn.setAttribute("aria-busy", "true");
+    else submitBtn.removeAttribute("aria-busy");
+  };
 
-		const clearInputs = (root) => {
-			if (!root) return;
-			for (const el of root.querySelectorAll("input, textarea, select")) {
-				if (el instanceof HTMLInputElement) {
-					if (el.type === "checkbox" || el.type === "radio")
-						el.checked = false;
-					else if (el.type !== "hidden") el.value = "";
-				} else if (el instanceof HTMLTextAreaElement) {
-					el.value = "";
-				} else if (el instanceof HTMLSelectElement) {
-					// keep placeholder (index 0)
-					el.selectedIndex = 0;
-				}
-				el.classList.remove("frm_error");
-				getContainer(el)?.classList?.remove("frm_blank_field");
-				const err = getContainer(el)?.querySelector?.(
-					":scope > .frm_error",
-				);
-				if (err) err.textContent = "";
-			}
-		};
+  const isActuallyVisible = (el) => {
+    if (!el) return false;
+    if (el.hasAttribute("hidden")) return false;
+    if (el.closest("[hidden]")) return false;
 
-		// ----------------------------
-		// Vehicle cascade (Year → Make → Model)
-		// ----------------------------
-		const yearEl = byId("field_4564y");
-		const makeEl = byId("field_u64q9");
-		const modelEl = byId("field_zbjf4");
+    const cs = window.getComputedStyle(el);
+    if (!cs) return true;
+    if (cs.display === "none" || cs.visibility === "hidden") return false;
 
-		const normalize = (s) => (s ?? "").toString().trim();
+    return el.getClientRects().length > 0;
+  };
 
-		const setOptions = (select, values) => {
-			if (!select) return;
-			const placeholder = select.options[0]
-				? select.options[0].cloneNode(true)
-				: null;
-			select.innerHTML = "";
-			if (placeholder) select.appendChild(placeholder);
-			for (const v of values) {
-				const opt = document.createElement("option");
-				opt.value = v;
-				opt.textContent = v;
-				select.appendChild(opt);
-			}
-		};
+  const setVisible = (container, show) => {
+    if (!container) return;
+    container.style.display = show ? "" : "none";
+    container.setAttribute("aria-hidden", show ? "false" : "true");
+    if (!show) clearInputs(container);
+  };
 
-		const years = Object.keys(VEHICLES || {}).sort(
-			(a, b) => Number(b) - Number(a),
-		);
-		if (yearEl && years.length) {
-			const current = normalize(yearEl.value);
-			setOptions(yearEl, years);
-			if (current && years.includes(current)) yearEl.value = current;
-		}
+  const clearInputs = (root) => {
+    if (!root) return;
+    for (const el of root.querySelectorAll("input, textarea, select")) {
+      if (el instanceof HTMLInputElement) {
+        if (el.type === "checkbox" || el.type === "radio") el.checked = false;
+        else if (el.type !== "hidden") el.value = "";
+      } else if (el instanceof HTMLTextAreaElement) {
+        el.value = "";
+      } else if (el instanceof HTMLSelectElement) {
+        el.selectedIndex = 0;
+      }
+      el.classList.remove("frm_error");
+      const container = el.closest(".frm_form_field");
+      container?.classList?.remove("frm_blank_field");
+      el.setAttribute?.("aria-invalid", "false");
+    }
+  };
 
-		const updateMakes = () => {
-			if (!yearEl || !makeEl) return;
-			const y = normalize(yearEl.value);
-			const makes =
-				y && VEHICLES[y] ? Object.keys(VEHICLES[y]).sort() : [];
-			const current = normalize(makeEl.value);
-			setOptions(makeEl, makes);
-			makeEl.value = makes.includes(current)
-				? current
-				: (makeEl.options[0]?.value ?? "");
-			updateModels();
-		};
+  // ----------------------------
+  // ✅ Vehicle cascade (Year → Make → Model)
+  // ----------------------------
+  const VEHICLES = (() => {
+    try { return JSON.parse(form.dataset.vehicles || "{}"); }
+    catch (_) { return {}; }
+  })();
 
-		const updateModels = () => {
-			if (!yearEl || !makeEl || !modelEl) return;
-			const y = normalize(yearEl.value);
-			const mk = normalize(makeEl.value);
-			const models =
-				y && mk && VEHICLES[y] && Array.isArray(VEHICLES[y][mk])
-					? VEHICLES[y][mk]
-					: [];
-			const current = normalize(modelEl.value);
-			setOptions(modelEl, models);
-			modelEl.value = models.includes(current)
-				? current
-				: (modelEl.options[0]?.value ?? "");
-		};
+  const yearEl = byId("field_4564y");
+  const makeEl = byId("field_u64q9");
+  const modelEl = byId("field_zbjf4");
 
-		yearEl?.addEventListener("change", updateMakes, true);
-		makeEl?.addEventListener("change", updateModels, true);
+  const setOptions = (select, values) => {
+    if (!select) return;
+    const placeholder = select.options[0] ? select.options[0].cloneNode(true) : null;
+    select.innerHTML = "";
+    if (placeholder) select.appendChild(placeholder);
+    for (const v of values) {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      select.appendChild(opt);
+    }
+  };
 
-		// Initialize dependent dropdowns on load
-		updateMakes();
+  const years = Object.keys(VEHICLES || {}).sort((a, b) => Number(b) - Number(a));
+  if (yearEl && years.length) {
+    const current = normalize(yearEl.value);
+    setOptions(yearEl, years);
+    if (current && years.includes(current)) yearEl.value = current;
+  }
 
-		// Vehicle "not listed" (hide 3 selects, show textarea)
-		const vehicleNotListed = byId("field_crbon-0");
-		const cYear = byId("frm_field_44_container");
-		const cMake = byId("frm_field_45_container");
-		const cModel = byId("frm_field_46_container");
-		const cManual = byId("frm_field_48_container");
+  const updateMakes = () => {
+    if (!yearEl || !makeEl) return;
+    const y = normalize(yearEl.value);
+    const makes = y && VEHICLES[y] ? Object.keys(VEHICLES[y]).sort() : [];
+    const current = normalize(makeEl.value);
+    setOptions(makeEl, makes);
+    makeEl.value = makes.includes(current) ? current : (makeEl.options[0]?.value ?? "");
+    updateModels();
+  };
 
-		const applyVehicleNotListed = () => {
-			const checked = !!vehicleNotListed?.checked;
-			setVisible(cYear, !checked);
-			setVisible(cMake, !checked);
-			setVisible(cModel, !checked);
-			setVisible(cManual, checked);
-		};
+  const updateModels = () => {
+    if (!yearEl || !makeEl || !modelEl) return;
+    const y = normalize(yearEl.value);
+    const mk = normalize(makeEl.value);
+    const models = y && mk && VEHICLES[y] && Array.isArray(VEHICLES[y][mk]) ? VEHICLES[y][mk] : [];
+    const current = normalize(modelEl.value);
+    setOptions(modelEl, models);
+    modelEl.value = models.includes(current) ? current : (modelEl.options[0]?.value ?? "");
+  };
 
-		vehicleNotListed?.addEventListener(
-			"change",
-			applyVehicleNotListed,
-			true,
-		);
-		applyVehicleNotListed();
+  yearEl?.addEventListener("change", updateMakes, true);
+  makeEl?.addEventListener("change", updateModels, true);
+  updateMakes();
 
-		// ----------------------------
-		// Customer conditionals/toggles (existing fields)
-		// ----------------------------
-		const returningCustomer = byId("field_mv3sd-2");
-		const newInfoContainer = byId("frm_field_43_container");
-		const applyReturning = () =>
-			setVisible(newInfoContainer, !!returningCustomer?.checked);
-		returningCustomer?.addEventListener("change", applyReturning, true);
-		applyReturning();
+  // ----------------------------
+  // ✅ Vehicle "not listed" toggle
+  // ----------------------------
+  const vehicleNotListed = byId("field_crbon-0");
+  const cYear = byId("frm_field_44_container");
+  const cMake = byId("frm_field_45_container");
+  const cModel = byId("frm_field_46_container");
+  const cManual = byId("frm_field_48_container");
 
-		const referral = byId("field_87v3o");
-		const refCustomer = byId("frm_field_64_container");
-		const refBNI = byId("frm_field_63_container");
-		const refOther = byId("frm_field_66_container");
+  const applyVehicleNotListed = () => {
+    const checked = !!vehicleNotListed?.checked;
+    setVisible(cYear, !checked);
+    setVisible(cMake, !checked);
+    setVisible(cModel, !checked);
+    setVisible(cManual, checked);
+  };
 
-		const applyReferral = () => {
-			const v = normalize(referral?.value);
-			setVisible(refCustomer, v === "Customer");
-			setVisible(refBNI, v === "BNI");
-			setVisible(refOther, v === "Other");
-		};
-		referral?.addEventListener("change", applyReferral, true);
-		applyReferral();
+  vehicleNotListed?.addEventListener("change", applyVehicleNotListed, true);
+  applyVehicleNotListed();
 
-		const warningOther = byId("field_ki46-7");
-		const warningOtherContainer = byId("frm_field_67_container");
-		const applyWarningOther = () =>
-			setVisible(warningOtherContainer, !!warningOther?.checked);
-		warningOther?.addEventListener("change", applyWarningOther, true);
-		applyWarningOther();
+  // ----------------------------
+  // ✅ Conditionals/toggles
+  // ----------------------------
+  const returningCustomer = byId("field_mv3sd-2");
+  const newInfoContainer = byId("frm_field_43_container");
+  const applyReturning = () => setVisible(newInfoContainer, !!returningCustomer?.checked);
+  returningCustomer?.addEventListener("change", applyReturning, true);
+  applyReturning();
 
-		const concernOil = byId("field_1xcqj-2");
-		const concernOther = byId("field_1xcqj-15");
-		const oilPrefContainer = byId("frm_field_71_container");
-		const concernOtherContainer = byId("frm_field_69_container");
+  const referral = byId("field_87v3o");
+  const refCustomer = byId("frm_field_64_container");
+  const refBNI = byId("frm_field_63_container");
+  const refOther = byId("frm_field_66_container");
 
-		const applyConcerns = () => {
-			setVisible(oilPrefContainer, !!concernOil?.checked);
-			setVisible(concernOtherContainer, !!concernOther?.checked);
-		};
-		form.addEventListener(
-			"change",
-			(e) => {
-				// only react to changes inside this form
-				if (!(e.target instanceof HTMLElement)) return;
-				if (!form.contains(e.target)) return;
-				applyConcerns();
-			},
-			true,
-		);
-		applyConcerns();
+  const applyReferral = () => {
+    const v = normalize(referral?.value);
+    setVisible(refCustomer, v === "Customer");
+    setVisible(refBNI, v === "BNI");
+    setVisible(refOther, v === "Other");
+  };
+  referral?.addEventListener("change", applyReferral, true);
+  applyReferral();
 
-		// ----------------------------
-		// Date picker (end of form)
-		// ----------------------------
-		const dateEl = byId("field_7qnzk");
-		const mmddyyyyToIso = (val) => {
-			const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(val);
-			if (!m) return val;
-			const mm = m[1].padStart(2, "0");
-			const dd = m[2].padStart(2, "0");
-			return `${m[3]}-${mm}-${dd}`;
-		};
+  const warningOther = byId("field_ki46-7");
+  const warningOtherContainer = byId("frm_field_67_container");
+  const applyWarningOther = () => setVisible(warningOtherContainer, !!warningOther?.checked);
+  warningOther?.addEventListener("change", applyWarningOther, true);
+  applyWarningOther();
 
-		if (dateEl instanceof HTMLInputElement) {
-			dateEl.removeAttribute("readonly");
-			dateEl.type = "date";
-			if (dateEl.value) dateEl.value = mmddyyyyToIso(dateEl.value);
+  const concernOil = byId("field_1xcqj-2");
+  const concernOther = byId("field_1xcqj-15");
+  const oilPrefContainer = byId("frm_field_71_container");
+  const concernOtherContainer = byId("frm_field_69_container");
+  const applyConcerns = () => {
+    setVisible(oilPrefContainer, !!concernOil?.checked);
+    setVisible(concernOtherContainer, !!concernOther?.checked);
+  };
+  form.addEventListener("change", applyConcerns, true);
+  applyConcerns();
 
-			dateEl.addEventListener(
-				"click",
-				() => {
-					try {
-						dateEl.showPicker?.();
-					} catch {
-						// ignore (some browsers require stricter gestures)
-					}
-				},
-				true,
-			);
-		}
+  // ----------------------------
+  // ✅ Date proxy sync
+  // ----------------------------
+  const real = byId("field_7qnzk");       // your real input (may be readonly text)
+  const proxy = byId("field_7qnzk_proxy"); // your visible proxy
 
-		// ----------------------------
-		// Validation (custom; no HTML5)
-		// ----------------------------
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const mmddyyyyToIso = (val) => {
+    const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(val || "").trim());
+    if (!m) return String(val || "").trim();
+    const mm = m[1].padStart(2, "0");
+    const dd = m[2].padStart(2, "0");
+    return `${m[3]}-${mm}-${dd}`;
+  };
 
-		const ensureErrorEl = (container) => {
-			if (!container) return null;
-			let err = container.querySelector(":scope > .frm_error");
-			if (!err) {
-				err = document.createElement("div");
-				err.className = "frm_error";
-				container.appendChild(err);
-			}
-			return err;
-		};
+  const isoToDisplay = (iso) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || "").trim());
+    if (!m) return "";
+    const y = Number(m[1]);
+    const mo = Number(m[2]) - 1;
+    const d = Number(m[3]);
+    return new Date(y, mo, d).toLocaleDateString();
+  };
 
-		const markInvalid = (el, message) => {
-			const container = getContainer(el);
-			if (!container) return false;
-			container.classList.add("frm_blank_field");
-			el.classList.add("frm_error");
-			const err = ensureErrorEl(container);
-			if (err) err.textContent = message || "This field is required.";
-			return false;
-		};
+  const syncProxy = () => {
+    if (!real || !proxy) return;
+    proxy.value = real.value ? isoToDisplay(real.value) : "";
+  };
 
-		const clearInvalid = (el) => {
-			const container = getContainer(el);
-			container?.classList?.remove("frm_blank_field");
-			el.classList.remove("frm_error");
-			const err = container?.querySelector?.(":scope > .frm_error");
-			if (err) err.textContent = "";
-			return true;
-		};
+  if (real instanceof HTMLInputElement && proxy instanceof HTMLInputElement) {
+    if (real.value && /\//.test(real.value)) real.value = mmddyyyyToIso(real.value);
+    if (!real.value) {
+      const frmVal = real.getAttribute("data-frmval") || "";
+      if (frmVal) real.value = mmddyyyyToIso(frmVal);
+    }
 
-		const validateField = (el) => {
-			const container = getContainer(el);
-			if (!container || isHiddenContainer(container)) return true;
+    proxy.addEventListener("click", () => real.showPicker?.() || real.click());
+    proxy.addEventListener("focus", () => real.showPicker?.() || real.click());
+    real.addEventListener("change", syncProxy);
+    real.addEventListener("input", syncProxy);
+    syncProxy();
+  }
 
-			const isRequired =
-				container.classList.contains("frm_required_field") ||
-				el.getAttribute("aria-required") === "true" ||
-				el.required === true;
+  // ----------------------------
+  // ✅ Validation (match your working inline script behavior)
+  // ----------------------------
+  const requiredContainers = Array.from(
+    form.querySelectorAll(".frm_form_field.frm_required_field")
+  );
 
-			if (!isRequired) return clearInvalid(el);
+  const getField = (container) => container.querySelector("input, textarea, select");
 
-			// Handle checkbox/radio groups by name
-			if (
-				el instanceof HTMLInputElement &&
-				(el.type === "checkbox" || el.type === "radio")
-			) {
-				const name = el.name;
-				if (!name) return true;
-				const group = Array.from(
-					form.querySelectorAll(`input[name="${CSS.escape(name)}"]`),
-				);
-				const anyChecked = group.some((x) => x.checked);
-				if (!anyChecked)
-					return markInvalid(el, "This field is required.");
-				group.forEach(clearInvalid);
-				return true;
-			}
+  const validateContainer = (container) => {
+    // Skip hidden containers (your conditionals hide entire wrappers)
+    if (!isActuallyVisible(container)) return true;
 
-			const value = normalize(el.value);
-			if (!value) return markInvalid(el, "This field is required.");
+    const el = getField(container);
+    if (!el) return true;
 
-			// email format check
-			const id = (el.id || "").toLowerCase();
-			const name = (el.getAttribute("name") || "").toLowerCase();
-			if (
-				(id.includes("email") || name.includes("email")) &&
-				!emailRegex.test(value)
-			) {
-				return markInvalid(el, "Please enter a valid email.");
-			}
+    let valid = true;
 
-			return clearInvalid(el);
-		};
+    // Checkbox/radio group
+    if (el.type === "checkbox" || el.type === "radio") {
+      valid = !!form.querySelector(`[name="${el.name}"]:checked`);
+    }
+    // File
+    else if (el.type === "file") {
+      valid = !!(el.files && el.files.length > 0);
+    }
+    // Everything else
+    else {
+      valid = normalize(el.value) !== "";
 
-		form.addEventListener(
-			"submit",
-			(e) => {
-				let ok = true;
-				const fields = Array.from(
-					form.querySelectorAll("input, textarea, select"),
-				).filter((el) =>
-					getContainer(el)?.classList?.contains("frm_form_field"),
-				);
+      if (valid && el.type === "email") {
+        valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value.trim());
+      }
 
-				for (const el of fields) {
-					if (!validateField(el)) ok = false;
-				}
+      const pattern = el.getAttribute("pattern");
+      if (valid && pattern) {
+        try { valid = new RegExp(`^${pattern}$`).test(el.value); }
+        catch (_) {}
+      }
+    }
 
-				if (!ok) {
-					e.preventDefault();
-					e.stopPropagation();
-					const first = form.querySelector(".frm_blank_field");
-					first?.scrollIntoView({
-						behavior: "smooth",
-						block: "center",
-					});
-				}
-			},
-			true,
-		);
+    container.classList.toggle("frm_blank_field", !valid);
+    el.setAttribute("aria-invalid", (!valid).toString());
+    return valid;
+  };
 
-		form.addEventListener("input", (e) => {
-			const el = e.target;
-			if (
-				!(
-					el instanceof HTMLInputElement ||
-					el instanceof HTMLTextAreaElement
-				)
-			)
-				return;
-			const container = getContainer(el);
-			if (container?.classList?.contains("frm_blank_field"))
-				validateField(el);
-		});
-		form.addEventListener("change", (e) => {
-			const el = e.target;
-			if (
-				!(
-					el instanceof HTMLInputElement ||
-					el instanceof HTMLSelectElement
-				)
-			)
-				return;
-			const container = getContainer(el);
-			if (container?.classList?.contains("frm_blank_field"))
-				validateField(el);
-		});
-	})();
+  const validateForm = () => {
+    let ok = true;
+    requiredContainers.forEach((c) => {
+      if (!validateContainer(c)) ok = false;
+    });
+    return ok;
+  };
+
+  // Live re-check after user fixes a blank field
+  requiredContainers.forEach((c) => {
+    const el = getField(c);
+    if (!el) return;
+    ["input", "change", "blur"].forEach((evt) => {
+      el.addEventListener(
+        evt,
+        () => {
+          if (c.classList.contains("frm_blank_field")) validateContainer(c);
+        },
+        { passive: true }
+      );
+    });
+  });
+})();
 </script>

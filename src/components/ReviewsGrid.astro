@@ -1,90 +1,163 @@
 ---
-/**
- * ReviewsGrid
- * .astro
- * - Wraps Trust.Reviews embed snippet
- * - Loads embed.min.js only once
- *
- * Usage:
- *   <ReviewsGrid
- *  id="7916" />
- */
-
 const {
-  id = 7916,
-  view = "list",
-  lang = "",
-  showPoweredBy = true
+  apiPath = "/api/reviews",
+  max = 100,
+  initial = 20,
+  step = 20,
+  writeReviewUrl = "https://search.google.com/local/writereview?placeid=ChIJIRIHWwp01oYRVv-SOeBXy5o",
 } = Astro.props;
 ---
 
-<div
-  class="tr-widget"
-  data-id={String(id)}
-  data-view={String(view)}
-  data-lang={String(lang)}
+<section
+  class="reviews-grid reviews-section"
+  data-reviews-grid
+  data-api={apiPath}
+  data-max={max}
+  data-initial={initial}
+  data-step={step}
+  data-write-url={writeReviewUrl}
 >
-  {showPoweredBy && (
-    <a
-      href="https://trust.reviews/"
-      class="trcr"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      Powered by <span>Trust.Reviews</span>
-    </a>
-  )}
-</div>
+  <div class="reviews-grid__header">
+    <h2>Customer Reviews</h2>
+    <a class="btn btn-border btn-invert" href={writeReviewUrl} target="_blank" rel="noopener"><span>Write a Review</span></a>
+  </div>
+
+  <div class="reviews-grid__status" data-status style="display:none;"></div>
+
+  <div class="reviews-grid__masonry" data-list>
+    <!-- cards injected client-side -->
+  </div>
+
+  <div class="reviews-grid__actions btn-inline text-center">
+    <button type="button" class="btn btn-wide btn-border btn-invert" data-load-more style="display:none;"><span>Load more</span></button>
+  </div>
+</section>
 
 <script is:inline>
-(function () {
-  try {
-    var SRC = "https://cdn.trust.reviews/widget/embed.min.js";
-    var STYLE_ID = "mm-hide-trust-reviews-branding";
+(() => {
+  const root = document.querySelector('[data-reviews-grid]');
+  if (!root) return;
 
-    function injectHideStyle() {
-      if (document.getElementById(STYLE_ID)) return;
+  const api = root.getAttribute('data-api') || '/api/reviews';
+  const max = Number(root.getAttribute('data-max') || '100');
+  const initial = Number(root.getAttribute('data-initial') || '20');
+  const step = Number(root.getAttribute('data-step') || '20');
 
-      var style = document.createElement("style");
-      style.id = STYLE_ID;
-      style.type = "text/css";
-      style.appendChild(
-        document.createTextNode(
-          "html body.page .rplg + a.trcr { display: none !important; }"
-        )
-      );
-      document.head.appendChild(style);
-    }
+  const status = root.querySelector('[data-status]');
+  const list = root.querySelector('[data-list]');
+  const btn = root.querySelector('[data-load-more]');
 
-    function ensureScript() {
-      var existing = document.querySelector('script[src="' + SRC + '"]');
-      if (existing || window.__TRUST_REVIEWS_EMBED_LOADED__ === true) {
-        injectHideStyle();
+  let all = [];
+  let shown = 0;
+
+  function setStatus(type, msg) {
+    if (!status) return;
+    status.style.display = 'block';
+    status.className = `reviews-grid__status reviews-grid__status--${type}`;
+    status.textContent = msg;
+  }
+
+  function hideStatus() {
+    if (!status) return;
+    status.style.display = 'none';
+    status.textContent = '';
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'","&#039;");
+  }
+
+  function renderStars(n) {
+    const s = Math.max(0, Math.min(5, Number(n) || 0));
+    return '★★★★★☆☆☆☆☆'.slice(5 - s, 10 - s);
+  }
+
+  function getGoogleUrl(r) {
+    return (
+      r.url ||
+      r.review_url ||
+      r.google_url ||
+      r.link ||
+      'https://www.google.com/maps?cid=11154105522663391062'
+    );
+  }
+
+  function renderCard(r) {
+    const name = r.reviewer_name || r.author_name || r.name || 'Anonymous';
+    const text = r.review_text || r.text || r.content || '';
+    const rating = Number(r.rating || r.stars || 0);
+
+    const when =
+      r.relative_time_description ||
+      r.relative_time ||
+      r.timeago ||
+      r.time_ago ||
+      '';
+
+    const googleUrl = getGoogleUrl(r);
+
+    const div = document.createElement('div');
+    div.className = 'review-card';
+
+    div.innerHTML = `
+      <div class="review-card__header">
+        <div class="review-card__meta">
+          <div class="review-card__name">${escapeHtml(name)}</div>
+          ${when ? `<div class="review-card__time">${escapeHtml(when)}</div>` : ''}
+          <div class="review-card__stars">${escapeHtml(renderStars(rating))}</div>
+        </div>
+      </div>
+
+      <div class="review-card__text">${escapeHtml(text)}</div>
+
+      <div class="review-card__footer">
+        <a class="review-card__google" href="${escapeHtml(googleUrl)}" target="_blank" rel="noopener">
+          See review on Google
+        </a>
+      </div>
+    `;
+
+    return div;
+  }
+
+  function drawMore(count) {
+    if (!list) return;
+    const next = all.slice(shown, shown + count);
+    next.forEach((r) => list.appendChild(renderCard(r)));
+    shown += next.length;
+
+    if (btn) btn.style.display = shown < all.length ? 'inline-block' : 'none';
+  }
+
+  async function init() {
+    try {
+      const res = await fetch(api, { headers: { 'Accept': 'application/json' } });
+      const data = await res.json();
+
+      const reviews = Array.isArray(data.reviews) ? data.reviews : [];
+      all = reviews.slice(0, max);
+
+      if (!all.length) {
+        setStatus('empty', 'No reviews to display yet.');
+        if (btn) btn.style.display = 'none';
         return;
       }
 
-      var s = document.createElement("script");
-      s.src = SRC;
-      s.type = "text/javascript";
-      s.defer = true;
-      s.onload = function () {
-        window.__TRUST_REVIEWS_EMBED_LOADED__ = true;
-        injectHideStyle();
-      };
-      document.head.appendChild(s);
+      hideStatus();
+      drawMore(initial);
+
+      if (btn) btn.addEventListener('click', () => drawMore(step));
+    } catch (e) {
+      setStatus('error', 'Reviews are temporarily unavailable.');
+      if (btn) btn.style.display = 'none';
     }
-
-    ensureScript();
-
-    // Re-assert a few times in case widget re-renders itself
-    var tries = 0;
-    var iv = setInterval(function () {
-      injectHideStyle();
-      tries++;
-      if (tries > 10) clearInterval(iv);
-    }, 500);
-  } catch (e) {
-    // fail silently
   }
+
+  init();
 })();
 </script>

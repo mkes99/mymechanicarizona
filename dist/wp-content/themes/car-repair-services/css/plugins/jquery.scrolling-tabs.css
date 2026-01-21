@@ -1,0 +1,97 @@
+/**
+ * jquery-bootstrap-scrolling-tabs
+ * @version v2.4.0
+ * @link https://github.com/mikejacobson/jquery-bootstrap-scrolling-tabs
+ * @author Mike Jacobson <michaeljjacobson1@gmail.com>
+ * @license MIT License, http://www.opensource.org/licenses/MIT
+ */
+
+.scrtabs-tab-container * {
+	box-sizing: border-box;
+}
+.scrtabs-tab-container {
+	height: 92px;
+	position:  relative;
+}
+.scrtabs-tab-container .tab-content {
+	clear: left;
+}
+.scrtabs-tab-container.scrtabs-bootstrap4 .scrtabs-tabs-movable-container > .navbar-nav {
+	-ms-flex-direction: row;
+	flex-direction: row;
+}
+.scrtabs-tabs-fixed-container {
+	float: left;
+	height: 100%;
+	overflow: hidden;
+	width: 100% !important;
+}
+.scrtabs-tabs-movable-container {
+	position: relative;
+}
+.scrtabs-tabs-movable-container .tab-content {
+	display: none;
+}
+.scrtabs-tab-container.scrtabs-rtl .scrtabs-tabs-movable-container > ul.nav-tabs {
+	padding-right: 0;
+}
+.scrtabs-tab-scroll-arrow span:before {
+	font-family: 'auto';
+	content: '\e920';
+}
+.scrtabs-tab-scroll-arrow.scrtabs-tab-scroll-arrow-left span:before {
+	content: '\e91f';
+}
+.scrtabs-tab-scroll-arrow {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	z-index: 1;
+	color: #707070;
+	display: flex !important;
+	font-size: 17px;
+	height: 100%;
+	width: 35px;
+	align-items:  center;
+}
+.scrtabs-tab-scroll-arrow.scrtabs-tab-scroll-arrow-left {
+	left: 0;
+	background: rgba(255, 255, 255, 1);
+	background: -moz-linear-gradient(left, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 0) 100%);
+	background: -webkit-gradient(left top, right top, color-stop(0%, rgba(255, 255, 255, 1)), color-stop(50%, rgba(255, 255, 255, 1)), color-stop(100%, rgba(255, 255, 255, 0)));
+	background: -webkit-linear-gradient(left, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 0) 100%);
+	background: -o-linear-gradient(left, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 0) 100%);
+	background: -ms-linear-gradient(left, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 0) 100%);
+	background: linear-gradient(to right, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 0) 100%);
+}
+.scrtabs-tab-scroll-arrow.scrtabs-tab-scroll-arrow-right {
+	right: 0;
+	background: rgba(255, 255, 255, 0);
+	background: -moz-linear-gradient(left, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 1) 100%);
+	background: -webkit-gradient(left top, right top, color-stop(0%, rgba(255, 255, 255, 0)), color-stop(50%, rgba(255, 255, 255, 1)), color-stop(100%, rgba(255, 255, 255, 1)));
+	background: -webkit-linear-gradient(left, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 1) 100%);
+	background: -o-linear-gradient(left, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 1) 100%);
+	background: -ms-linear-gradient(left, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 1) 100%);
+	background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 1) 100%);
+}
+.scrtabs-tab-scroll-arrow,
+.scrtabs-tab-scroll-arrow .scrtabs-click-target {
+	cursor: pointer;
+}
+.scrtabs-tab-scroll-arrow.scrtabs-with-click-target {
+	cursor: default;
+}
+.scrtabs-tab-scroll-arrow.scrtabs-disable,
+.scrtabs-tab-scroll-arrow.scrtabs-disable .scrtabs-click-target {
+	color: #ddd;
+	cursor: default;
+}
+.scrtabs-tab-scroll-arrow.scrtabs-disable:hover {
+	background-color: initial;
+}
+.scrtabs-tabs-fixed-container ul.nav-tabs > li {
+	white-space: nowrap;
+}
+.scrtabs-disable {
+	display: none !important;
+}

@@ -14,8 +14,11 @@ const FORM_ID = "form_contact-form";
 		enctype="multipart/form-data"
 		method="post"
 		action="/api/forms"
-		class="frm-show-form frm_js_validate frm_ajax_submit frm_pro_form"
+		class="frm-show-form mm-form"
+		data-mm-form
+		data-form-name="Contact Form"
 		id={FORM_ID}
+		novalidate
 	>
 		<div class="frm_form_fields">
 			<fieldset>
@@ -92,18 +95,7 @@ const FORM_ID = "form_contact-form";
 						></textarea>
 					</div>
 
-					<div id="frm_field_97_container" class="frm_form_field form-field frm_none_container frm12 frm_first">
-						<label for="g-recaptcha-response" id="field_ik1p_label" class="frm_primary_label">
-							Captcha
-						</label>
-						<div
-							id="field_ik1p"
-							class="frm-g-recaptcha"
-							data-sitekey=""
-							data-size="invisible"
-							data-theme="light"
-						></div>
-					</div>
+					<!-- reCAPTCHA handled globally by /js/forms-recaptcha-v3.js -->
 
 					<div id="frm_field_102_container" class="frm_form_field form-field">
 						<div class="frm_submit">
@@ -112,7 +104,7 @@ const FORM_ID = "form_contact-form";
 							</button>
 						</div>
 					</div>
-
+					<div class="form-status" aria-live="polite" data-form-status style="display:none;"></div>
 					<input type="hidden" name="item_key" value="" />
 					<div id="frm_field_107_container">
 						<label for="field_pobhm">If you are human, leave this field blank.</label>

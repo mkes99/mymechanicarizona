@@ -1,0 +1,44 @@
+---
+import ReviewsSlider from "@/components/ReviewsSlider.astro";
+import ReviewsMasonry from "@/components/ReviewsMasonry.astro";
+
+type Feed = {
+  ok?: boolean;
+  status?: number;
+  error?: string;
+  bio?: any;
+  reviews?: any[];
+};
+
+const {
+  sliderMax = 50,
+  masonryMax = 50,
+  initial = 9,
+  step = 9,
+  showSlider = true,
+  showMasonry = true,
+} = Astro.props;
+
+const apiUrl = new URL("/api/reviews", Astro.url);
+
+let feed: Feed = { bio: null, reviews: [] };
+let feedError = false;
+
+try {
+  const res = await fetch(apiUrl.toString(), { headers: { Accept: "application/json" } });
+  if (!res.ok) throw new Error(String(res.status));
+
+  feed = (await res.json()) as Feed;
+
+  // if the endpoint soft-failed
+  if (feed && feed.ok === false) feedError = true;
+} catch {
+  feedError = true;
+  feed = { bio: null, reviews: [] };
+}
+---
+
+<section class="reviews-section">
+  {showSlider && <ReviewsSlider feed={feed} feedError={feedError} max={sliderMax} />}
+  {showMasonry && <ReviewsMasonry feed={feed} feedError={feedError} max={masonryMax} initial={initial} step={step} />}
+</section>

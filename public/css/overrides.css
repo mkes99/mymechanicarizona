@@ -1534,3 +1534,526 @@ div .faq-accordion .faq__item .faq__content {
         padding: 15px 25px
     }
 }
+
+  body .sk_branding {
+  visibility: hidden !important;
+  }
+
+  .form-status {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: #fff;
+  font-weight: 700;
+}
+.form-status--success { border-color: rgba(0,128,0,.25); }
+.form-status--error { border-color: rgba(220,0,0,.25); }
+.form-status--info { border-color: rgba(0,0,0,.18); }
+
+/* =========================================================
+   REVIEWS – SHARED TOKENS
+   ========================================================= */
+
+:root {
+  --review-radius: 18px;
+  --review-shadow-grid: 0 8px 22px rgba(0,0,0,.12);
+  --review-shadow-slider: 0 14px 34px rgba(0,0,0,.22);
+  --review-border: 1px solid rgba(0,0,0,.08);
+  --review-google-blue: #1a73e8;
+  --review-google-gold: #fbbc04;
+  --review-text: #374151;
+  --review-title: #1f2937;
+  --review-muted: #6b7280;
+
+  /* Slider tuning */
+  --reviews-slider-gap: 18px;
+  --reviews-slider-card-h: 230px;
+}
+
+/* =========================================================
+   REVIEWS GRID HEADER – title left, button right
+   ========================================================= */
+
+.reviews-grid__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+}
+
+.reviews-grid__header h2 {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .reviews-grid__header .btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* =========================================================
+   REVIEWS GRID – MASONRY LAYOUT
+   ========================================================= */
+
+.reviews-grid__masonry {
+  column-count: 3 !important;
+  column-gap: 18px !important;
+  display: block !important;
+}
+
+@media (max-width: 1100px) {
+  .reviews-grid__masonry { column-count: 2 !important; }
+}
+@media (max-width: 640px) {
+  .reviews-grid__masonry { column-count: 1 !important; }
+}
+
+/* =========================================================
+   REVIEWS SLIDER – header layout (title left, button right)
+   ========================================================= */
+
+.reviews-slider__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.reviews-slider__title {
+  margin: 0;
+}
+
+.reviews-slider__header .btn {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .reviews-slider__header .btn {
+    width: 100%;
+    text-align: center;
+    white-space: normal;
+  }
+}
+
+/* =========================================================
+   REVIEWS SLIDER – layout
+   (IMPORTANT: viewport is the scroll container; track is flex)
+   ========================================================= */
+
+.reviews-slider,
+.reviews-slider * {
+  box-sizing: border-box;
+}
+
+.reviews-slider__frame {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.reviews-slider__viewport {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+
+  /* DO NOT add padding/margins here; it breaks snap math */
+  padding: 0 !important;
+  margin: 0 !important;
+
+  /* hide scrollbars */
+  scrollbar-width: none;
+}
+.reviews-slider__viewport::-webkit-scrollbar { display: none; }
+
+.reviews-slider__track {
+  display: flex;
+  flex-wrap: nowrap !important;
+  gap: var(--reviews-slider-gap);
+}
+
+/* 4-up */
+.reviews-slider__track > .review-card--slider {
+  flex: 0 0 calc((100% - (var(--reviews-slider-gap) * 3)) / 4);
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+/* 3-up */
+@media (max-width: 1200px) {
+  .reviews-slider__track > .review-card--slider {
+    flex-basis: calc((100% - (var(--reviews-slider-gap) * 2)) / 3);
+  }
+}
+/* 2-up */
+@media (max-width: 900px) {
+  .reviews-slider__track > .review-card--slider {
+    flex-basis: calc((100% - (var(--reviews-slider-gap) * 1)) / 2);
+  }
+}
+/* 1-up */
+@media (max-width: 640px) {
+  .reviews-slider__track > .review-card--slider {
+    flex-basis: 100%;
+  }
+}
+
+/* =========================================================
+   REVIEWS SLIDER – white cards over image (NO avatar)
+   - equal height
+   - scroll review body if long
+   ========================================================= */
+
+.reviews-slider .review-card--slider {
+  background: #fff !important;
+  background-color: #fff !important;
+  border-radius: var(--review-radius);
+  padding: 16px 16px 12px;
+  border: 1px solid rgba(255,255,255,.70) !important;
+  box-shadow: var(--review-shadow-slider) !important;
+
+  height: var(--reviews-slider-card-h);
+  display: flex;
+  flex-direction: column;
+}
+
+/* meta */
+.reviews-slider .review-card--slider .review-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  margin-bottom: 8px;
+  flex: 0 0 auto;
+}
+
+/* scrollable body */
+.reviews-slider .review-card--slider .review-card__text--scroll {
+  flex: 1 1 auto;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 8px;
+  margin-top: 6px;
+  color: var(--review-text);
+  line-height: 1.55;
+}
+
+/* scrollbar (optional) */
+.reviews-slider .review-card--slider .review-card__text--scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.reviews-slider .review-card--slider .review-card__text--scroll::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,.18);
+  border-radius: 999px;
+}
+
+/* footer pinned bottom */
+.reviews-slider .review-card--slider .review-card__footer {
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,0,0,.08);
+  flex: 0 0 auto;
+}
+
+/* Google link */
+.reviews-slider .review-card--slider .review-card__google {
+  color: var(--review-google-blue) !important;
+  text-decoration: none;
+  font-weight: 700;
+}
+.reviews-slider .review-card--slider .review-card__google:hover {
+  text-decoration: underline;
+}
+
+/* =========================================================
+   SLIDER ARROWS – centered vertically, side buttons
+   ========================================================= */
+
+.reviews-slider__arrow {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.70);
+  background: #fff;
+  box-shadow: var(--review-shadow-slider);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  align-self: center;
+}
+
+.reviews-slider__arrow:disabled {
+  opacity: .45;
+  cursor: default;
+}
+
+/* Neutralize any theme absolute positioning */
+.reviews-slider__arrow,
+.reviews-slider__arrow:before,
+.reviews-slider__arrow:after {
+  position: static !important;
+  top: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
+}
+
+/* =========================================================
+   REVIEW CARD – SHARED INNER STYLES (GRID + SLIDER)
+   ========================================================= */
+
+.review-card__name {
+  font-weight: 700;
+  color: var(--review-title);
+  line-height: 1.2;
+}
+
+.review-card__time {
+  font-size: 13px;
+  color: var(--review-muted);
+}
+
+.review-card__stars {
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: var(--review-google-gold);
+}
+
+/* Status blocks */
+.reviews-grid__status,
+.reviews-slider__status {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: #fff;
+  font-weight: 800;
+}
+
+/* Optional: white text for the block title area when used over dark image */
+.reviews-section .block-title h2,
+.reviews-section .block-title .block-title__description {
+  color: #ffffff;
+}
+
+/* =========================================================
+   REVIEWS GRID – APPLY SLIDER CARD TREATMENT
+   (same visual language as slider cards)
+   ========================================================= */
+
+/* Make masonry cards use the slider look */
+.reviews-grid__masonry > .review-card {
+  background: #fff !important;
+  background-color: #fff !important;
+
+  border-radius: var(--review-radius) !important;
+  padding: 16px 16px 12px !important;
+
+  /* match slider look */
+  border: 1px solid rgba(255,255,255,.70) !important;
+  box-shadow: var(--review-shadow-slider) !important;
+
+  /* keep masonry behavior */
+  display: inline-block !important;
+  width: 100% !important;
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* Use the same internal layout (meta top, body grows, footer pinned) */
+.reviews-grid__masonry > .review-card {
+  display: flex !important;
+  flex-direction: column;
+}
+
+/* Meta spacing like slider */
+.reviews-grid__masonry > .review-card .review-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  margin-bottom: 8px;
+}
+
+/* If grid uses .review-card__text, make it scroll like slider (taller allowance) */
+.reviews-grid__masonry > .review-card .review-card__text {
+  flex: 1 1 auto;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+
+  /* grid can be taller than slider; show more before scroll */
+  max-height: 12.5em; /* ~8–9 lines; tweak if desired */
+  padding-right: 8px;
+
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--review-text);
+  margin-top: 6px;
+  padding-top: 10px;
+  padding-bottom: 12px;
+}
+
+/* Optional: nicer scrollbar */
+.reviews-grid__masonry > .review-card .review-card__text::-webkit-scrollbar {
+  width: 8px;
+}
+.reviews-grid__masonry > .review-card .review-card__text::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,.18);
+  border-radius: 999px;
+}
+
+/* Footer pinned & styled like slider */
+.reviews-grid__masonry > .review-card .review-card__footer {
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,0,0,.08);
+  flex: 0 0 auto;
+}
+
+/* Google link in grid: match slider */
+.reviews-grid__masonry > .review-card .review-card__google {
+  color: var(--review-google-blue) !important;
+  font-weight: 700;
+  text-decoration: none;
+}
+.reviews-grid__masonry > .review-card .review-card__google:hover {
+  text-decoration: underline;
+}
+
+
+/* =========================================================
+   REVIEWS GRID – SPACING + SHADOW FIXES
+   Paste at END of overrides.css
+   ========================================================= */
+
+/* Add breathing room above/below the grid section */
+.reviews-grid {
+  padding-top: 28px;
+  padding-bottom: 28px;
+}
+
+/* If your theme uses a generic section wrapper, this helps too */
+.reviews-grid__masonry {
+  margin-top: 8px;
+  margin-bottom: 10px;
+}
+
+/* Fix the “weird” shadow in masonry:
+   - multi-column + box-shadow can look harsh/aliased
+   - soften shadow and keep it consistent */
+.reviews-grid__masonry > .review-card {
+  box-shadow: 0 2px 2px rgba(0,0,0,.10) !important; /* softer than slider */
+  border: 1px solid rgba(0,0,0,.08) !important;       /* normal border (not white) */
+  background: #fff !important;
+
+  /* reduce visual “bulge” where shadow clips in columns */
+  overflow: hidden;          /* keeps rounded corners clean */
+  border-radius: var(--review-radius);
+  margin-bottom: 20px;
+}
+
+/* OPTIONAL: If you copied slider’s “white border”, remove it for grid cards */
+.reviews-grid__masonry > .review-card {
+  border-color: rgba(0,0,0,.08) !important;
+}
+
+/* If the section is touching adjacent content, force margin */
+.reviews-grid {
+  margin-top: 22px;
+  margin-bottom: 22px;
+}
+
+/* Mobile: slightly less padding so it doesn't feel huge */
+@media (max-width: 640px) {
+  .reviews-grid {
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+}
+
+/* =========================================================
+   MOBILE MENU: FORCE TRUE OFF-CANVAS OPEN/CLOSE
+   ========================================================= */
+@media (max-width: 991px) {
+    /* Put the menu above everything */
+    #slidemenu {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    width: min(86vw, 360px) !important;
+    z-index: 99999 !important;
+
+    /* CLOSED STATE (default) */
+    transform: translateX(-110%) !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+
+    transition: transform 280ms ease, visibility 0s linear 280ms !important;
+    }
+
+    /* OPEN STATE */
+    #slidemenu.slide-active {
+    transform: translateX(0) !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+
+    transition: transform 280ms ease !important;
+    }
+
+    /* Overlay must sit behind the menu, above the page */
+    .darkout-menu {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 99998 !important;
+
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+
+    transition: opacity 200ms ease, visibility 0s linear 200ms !important;
+    }
+
+    .darkout-menu.slide-active {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+
+    transition: opacity 200ms ease !important;
+    }
+
+    /* Optional: lock page scroll when menu open */
+    body.slide-active {
+    overflow: hidden !important;
+    }
+
+    .slide-active .mm-fullscreen-bg {
+        cursor: pointer;
+        background-color: rgba(0, 0, 0, 0.55);
+        position: fixed;
+        top: 0px;
+        left: 0px;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+}
+
