@@ -90,40 +90,6 @@ const ITEM_META_MAP: Record<string, Record<string, string>> = {
     "item_meta[96]": "Services Requested",
     "item_meta[17][]": "File Upload",
   },
-  "Customer Information": {
-    "item_meta[35][]": "Visit Type",
-    "item_meta[43][]": "New Contact Information",
-    "item_meta[36]": "Responsible Party Name",
-    "item_meta[37]": "Phone",
-    "item_meta[38]": "Preferred Contact Name",
-    "item_meta[39]": "Email",
-    "item_meta[40]": "Preferred Contact Method",
-    "item_meta[41][line1]": "Address Line 1",
-    "item_meta[41][line2]": "Address Line 2",
-    "item_meta[41][city]": "City",
-    "item_meta[41][state]": "State",
-    "item_meta[41][zip]": "Zip",
-    "item_meta[62]": "Who Referred You",
-    "item_meta[64]": "Customer Referral",
-    "item_meta[63]": "BNI Referral",
-    "item_meta[66]": "Other Referral",
-    "item_meta[44]": "Vehicle Year",
-    "item_meta[45]": "Vehicle Make",
-    "item_meta[46]": "Vehicle Model",
-    "item_meta[48]": "Vehicle Information",
-    "item_meta[47][]": "Vehicle Not Listed",
-    "item_meta[51][]": "Aware of Factory Scheduled Maintenance",
-    "item_meta[53][]": "Most Important Vehicle Benefits",
-    "item_meta[55][]": "Warning Lights On",
-    "item_meta[67]": "Other Warning Light Description",
-    "item_meta[58][]": "Services Needed",
-    "item_meta[71]": "Oil Preference",
-    "item_meta[69]": "Describe Areas of Concern",
-    "item_meta[59]": "Why You Brought Your Vehicle In",
-    "item_meta[75]": "Customer Name",
-    "item_meta[77]": "Date",
-  },
-  // Keep compatibility if some forms submit "Customer Information Form"
   "Customer Information Form": {
     "item_meta[35][]": "Visit Type",
     "item_meta[43][]": "New Contact Information",
@@ -157,6 +123,13 @@ const ITEM_META_MAP: Record<string, Record<string, string>> = {
     "item_meta[75]": "Customer Name",
     "item_meta[77]": "Date",
   },
+  "Join Form": {
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "phone": "Phone Number",
+    "email": "Email",
+    "resume": "Resume",
+  },
 };
 
 function prettyLabel(formName: string, key: string) {
@@ -167,6 +140,41 @@ function prettyLabel(formName: string, key: string) {
     .replace(/^item_meta\[(.+?)\]$/, "Field $1")
     .replace(/_/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function buildOrderedRows({
+  formName,
+  valuesByKey,
+}: {
+  formName: string;
+  valuesByKey: Map<string, string[]>;
+}): FieldRow[] {
+  const map = ITEM_META_MAP[formName] || null;
+  const rows: FieldRow[] = [];
+
+  // 1) In map order
+  if (map) {
+    for (const key of Object.keys(map)) {
+      const vals = valuesByKey.get(key);
+      if (!vals || !vals.length) continue;
+      rows.push({
+        label: map[key],
+        value: vals.length > 1 ? vals.join(", ") : vals[0],
+      });
+      valuesByKey.delete(key); // so we can append extras later
+    }
+  }
+
+  // 2) Append extras (unmapped keys), stable-ish order
+  for (const [key, vals] of valuesByKey.entries()) {
+    if (!vals || !vals.length) continue;
+    rows.push({
+      label: prettyLabel(formName, key),
+      value: vals.length > 1 ? vals.join(", ") : vals[0],
+    });
+  }
+
+  return rows;
 }
 
 function toText(rows: FieldRow[], meta: { referer: string; ip: string; userAgent: string }) {
@@ -341,23 +349,23 @@ if (!verify?.success || (typeof verify.score === "number" && verify.score < minS
     }
 
     // Collect fields (group repeated keys like checkbox arrays)
-    const grouped = new Map<string, string[]>();
-    for (const [key, value] of form.entries()) {
-      if (isNoiseKey(key)) continue;
-      if (value instanceof File) continue; // attachments handled below
+   // Collect fields by KEY (not by label) so ordering can follow ITEM_META_MAP keys
+const valuesByKey = new Map<string, string[]>();
 
-      const v = String(value ?? "").trim();
-      if (!v) continue;
+for (const [key, value] of form.entries()) {
+  if (isNoiseKey(key)) continue;
+  if (value instanceof File) continue; // attachments handled below
 
-      const label = prettyLabel(formName, key);
-      const arr = grouped.get(label) || [];
-      arr.push(v);
-      grouped.set(label, arr);
-    }
+  const v = String(value ?? "").trim();
+  if (!v) continue;
 
-    const rows: FieldRow[] = Array.from(grouped.entries())
-      .map(([label, values]) => ({ label, value: values.length > 1 ? values.join(", ") : values[0] }))
-      .sort((a, b) => a.label.localeCompare(b.label));
+  const arr = valuesByKey.get(key) || [];
+  arr.push(v);
+  valuesByKey.set(key, arr);
+}
+
+// ✅ Build rows in map order (no alpha sort)
+const rows: FieldRow[] = buildOrderedRows({ formName, valuesByKey });
 
     const referer = request.headers.get("referer") || "";
     const userAgent = request.headers.get("user-agent") || "";
