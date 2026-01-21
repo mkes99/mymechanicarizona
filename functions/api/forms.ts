@@ -171,7 +171,6 @@ function prettyLabel(formName: string, key: string) {
 
 function toText(rows: FieldRow[], meta: { referer: string; ip: string; userAgent: string }) {
   const lines = rows.map((r) => `${r.label}: ${r.value}`);
-  lines.push("", "----", `Page: ${meta.referer}`, `IP: ${meta.ip}`, `UA: ${meta.userAgent}`);
   return lines.join("\n");
 }
 
