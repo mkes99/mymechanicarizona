@@ -1551,6 +1551,8 @@ import vehiclesData from "../data/vehicles.json";
 							>
 						</div>
 					</div>
+					<!-- ✅ REQUIRED for global script statuses -->
+<div class="form-status" aria-live="polite" data-form-status style="display:none;"></div>
 					<input name="item_key" type="hidden" value="" />
 					<div id="frm_field_107_container">
 						<label for="field_rt1uv">
@@ -1973,7 +1975,7 @@ import vehiclesData from "../data/vehicles.json";
 	})();
 </script>
 
-<!-- <script is:inline>
+<script is:inline>
   (() => {
     const FORM_ID = "form_customerinformation";
     const form = document.getElementById(FORM_ID);
@@ -2056,4 +2058,4 @@ import vehiclesData from "../data/vehicles.json";
       true,
     );
   })();
-</script> -->
+</script>
