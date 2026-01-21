@@ -1971,3 +1971,88 @@ import vehiclesData from "../data/vehicles.json";
 		});
 	})();
 </script>
+
+<script is:inline>
+  (() => {
+    const FORM_ID = "form_customerinformation";
+    const form = document.getElementById(FORM_ID);
+    if (!form) return;
+
+    // Prevent double-binding
+    if (form.dataset.mmSubmitInit === "1") return;
+    form.dataset.mmSubmitInit = "1";
+
+    const statusEl = form.querySelector("[data-form-status]");
+    const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+
+    const setStatus = (ok, msg) => {
+      if (!statusEl) return;
+      statusEl.style.display = "block";
+      statusEl.className = ok
+        ? "form-status form-status--success"
+        : "form-status form-status--error";
+      statusEl.textContent = msg || (ok ? "Submitted successfully." : "Something went wrong.");
+    };
+
+    const clearStatus = () => {
+      if (!statusEl) return;
+      statusEl.style.display = "none";
+      statusEl.className = "form-status";
+      statusEl.textContent = "";
+    };
+
+    const setBusy = (busy) => {
+      if (!submitBtn) return;
+      submitBtn.disabled = !!busy;
+      if (busy) submitBtn.setAttribute("aria-busy", "true");
+      else submitBtn.removeAttribute("aria-busy");
+    };
+
+    form.addEventListener(
+      "submit",
+      async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // turn on validation styling after first attempt (matches your CSS gate)
+        form.dataset.validated = "true";
+
+        clearStatus();
+        setBusy(true);
+
+        try {
+          const action = form.getAttribute("action") || "/api/forms";
+          const method = (form.getAttribute("method") || "POST").toUpperCase();
+
+          const fd = new FormData(form);
+
+          // Ensure server gets a stable name for routing/label mapping
+          if (!fd.get("form_name")) {
+            fd.set("form_name", form.dataset.formName || "Customer Information Form");
+          }
+
+          const res = await fetch(action, { method, body: fd });
+          const data = await res.json().catch(() => ({}));
+
+          if (!res.ok || !data?.ok) {
+            setStatus(false, data?.error || `Submission failed (${res.status}).`);
+            return;
+          }
+
+          setStatus(true, data?.message || "Thanks! We received your submission.");
+
+          // Reset form to blank state (optional)
+          form.reset();
+
+          // If you rely on any conditional visibility logic, it may need re-apply here:
+          // form.dispatchEvent(new Event("change", { bubbles: true }));
+        } catch (err) {
+          setStatus(false, "Network/server error. Please try again.");
+        } finally {
+          setBusy(false);
+        }
+      },
+      true,
+    );
+  })();
+</script>

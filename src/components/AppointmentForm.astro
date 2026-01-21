@@ -499,6 +499,10 @@ import vehicles from "../data/vehicles.json";
   background: transparent;
   cursor: pointer;
 }
+
+:global(.form-status) { margin-top: 10px; padding: 10px; border-radius: 6px; }
+:global(.form-status--success) { border: 1px solid #2f7a3b; }
+:global(.form-status--error) { border: 1px solid #b33a3a; }
 </style>
 
 <script is:inline>
@@ -903,5 +907,108 @@ import vehicles from "../data/vehicles.json";
       const obs = new MutationObserver(() => init(document));
       obs.observe(modalEl, { subtree: true, childList: true });
     }
+  })();
+</script>
+
+<script is:inline>
+  (() => {
+    const FORM_ID = "form_appointmentform";
+
+    const form = document.getElementById(FORM_ID);
+    if (!form) return;
+
+    // Prevent double-binding
+    if (form.dataset.mmSubmitInit === "1") return;
+    form.dataset.mmSubmitInit = "1";
+
+    const statusEl = form.querySelector("[data-form-status]");
+    const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+
+    const setStatus = (ok, msg) => {
+      if (!statusEl) return;
+      statusEl.style.display = "block";
+      statusEl.className = ok
+        ? "form-status form-status--success"
+        : "form-status form-status--error";
+      statusEl.textContent = msg || (ok ? "Submitted successfully." : "Something went wrong.");
+    };
+
+    const clearStatus = () => {
+      if (!statusEl) return;
+      statusEl.style.display = "none";
+      statusEl.className = "form-status";
+      statusEl.textContent = "";
+    };
+
+    const setBusy = (busy) => {
+      if (!submitBtn) return;
+      submitBtn.disabled = !!busy;
+      if (busy) submitBtn.setAttribute("aria-busy", "true");
+      else submitBtn.removeAttribute("aria-busy");
+    };
+
+    form.addEventListener(
+      "submit",
+      async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        clearStatus();
+
+        // Let your CSS gating kick in after first submit attempt
+        form.dataset.validated = "true";
+
+        setBusy(true);
+
+        try {
+          const action = form.getAttribute("action") || "/api/forms";
+          const method = (form.getAttribute("method") || "POST").toUpperCase();
+
+          // Build FormData from current form fields
+          const fd = new FormData(form);
+
+          // Ensure form_name exists for your email routing/label mapping
+          if (!fd.get("form_name")) {
+            fd.set("form_name", form.dataset.formName || "Appointment Form");
+          }
+
+          // Safari-safe files: mirror input._mmFiles into the FormData key
+          // Appointment uses: <input type="file" name="item_meta[17][]" data-mm-files ...>
+          const fileInputs = form.querySelectorAll("input[type='file'][data-mm-files]");
+          for (const input of fileInputs) {
+            const name = input.getAttribute("name") || "";
+            if (!name) continue;
+
+            const mmFiles = input._mmFiles;
+            if (Array.isArray(mmFiles) && mmFiles.length) {
+              // remove whatever browser put in fd for this key, then append from _mmFiles
+              fd.delete?.(name);
+              for (const f of mmFiles) fd.append(name, f);
+            }
+          }
+
+          const res = await fetch(action, { method, body: fd });
+
+          // Try to parse JSON (your API returns JSON)
+          const data = await res.json().catch(() => ({}));
+
+          if (!res.ok || !data?.ok) {
+            setStatus(false, data?.error || `Submission failed (${res.status}).`);
+            return;
+          }
+
+          setStatus(true, data?.message || "Thanks! We received your submission.");
+
+          // Reset form + clear custom file UI
+          form.reset();
+          form.dispatchEvent(new CustomEvent("mm:form:cleared"));
+        } catch (err) {
+          setStatus(false, "Network/server error. Please try again.");
+        } finally {
+          setBusy(false);
+        }
+      },
+      true,
+    );
   })();
 </script>
