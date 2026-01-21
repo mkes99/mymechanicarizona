@@ -308,8 +308,8 @@
               return;
             }
 
-            showStatus(form, "success", data.message || "Thanks! We received your submission.");
             clearFormControls(form);
+            showStatus(form, "success", data.message || "Thanks! We received your submission.");
           } catch (err) {
             console.error("[forms] submit failed:", err);
             showStatus(form, "error", "Network error. Please try again.");
