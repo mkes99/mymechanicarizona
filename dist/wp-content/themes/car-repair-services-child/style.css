@@ -218,10 +218,10 @@ div #form_customerinformation .frm_opt_container:not(.small-checkbox) .frm_check
     transform: scale(1.5);
 }
 
-div #form_customerinformation .frm_radio input[type=radio]:before, 
+/* div #form_customerinformation .frm_radio input[type=radio]:before, 
 div #form_customerinformation .frm_opt_container:not(.small-checkbox) .frm_checkbox input[type=checkbox]:before {
     margin: 5px 0 0 5px;
-}
+} */
 
 div #form_customerinformation .frm_form_field:not(.customer-acknowledgment) .frm_html_container.form-field p {
     font-size: 18px;

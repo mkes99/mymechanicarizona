@@ -2057,3 +2057,7 @@ div .faq-accordion .faq__item .faq__content {
     }
 }
 
+
+.free-oil ul li{
+    list-style: none;
+}
