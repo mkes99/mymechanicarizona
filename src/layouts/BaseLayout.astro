@@ -2,7 +2,7 @@
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 
-const { title = "My Mechanic Arizona", description = "", canonical} = Astro.props;
+const { title = "My Mechanic Arizona", description, canonical, ogTitle, ogUrl } = Astro.props;
 
 const RECAPTCHA_SITEKEY = import.meta.env.PUBLIC_RECAPTCHA_SITEKEY ?? "";
 
@@ -21,21 +21,21 @@ const url = canonical ?? Astro.url.pathname;
 
 		<!-- All in One SEO 4.9.2 - aioseo.com -->
 		
-		<meta name="description" content="Honesty, Integrity And Transparency. Tucson based auto repair shop with over 25 years of experience. We offer full service auto repair & maintenance" /> 
+		{description ? <meta name="description" content={description} /> : <meta name="description" content="Honesty, Integrity And Transparency. Tucson based auto repair shop with over 25 years of experience. We offer full service auto repair & maintenance" />} 
 		<meta name="robots" content="max-image-preview:large" /> 
 		<link rel="canonical" href={url} /> 
 		<meta name="generator" content="All in One SEO (AIOSEO) 4.9.2" /> 
 		<meta property="og:locale" content="en_US" /> 
 		<meta property="og:site_name" content="My Mechanic - Tucson based auto repair shop with over 25 years of experience. Specializing in all types of auto repair and services" /> 
 		<meta property="og:type" content="website" /> 
-		<meta property="og:title" content="Home - My Mechanic" /> 
-		<meta property="og:description" content="Honesty, Integrity And Transparency. Tucson based auto repair shop with over 25 years of experience. We offer full service auto repair & maintenance" /> 
-		<meta property="og:url" content="/" /> 
+		<meta property="og:title" content={ogTitle ?? "Home - My Mechanic"} /> 
+		{description ? <meta property="og:description" content={description} /> : <meta property="og:description" content="Honesty, Integrity And Transparency. Tucson based auto repair shop with over 25 years of experience. We offer full service auto repair & maintenance" />} 
+		<meta property="og:url" content={ogUrl ?? "/"} /> 
 		<meta property="og:image" content="/wp-content/uploads/2023/03/logo.jpeg" /> 
 		<meta property="og:image:secure_url" content="/wp-content/uploads/2023/03/logo.jpeg" /> 
 		<meta name="twitter:card" content="summary_large_image" /> 
-		<meta name="twitter:title" content="Home - My Mechanic" /> 
-		<meta name="twitter:description" content="Honesty, Integrity And Transparency. Tucson based auto repair shop with over 25 years of experience. We offer full service auto repair & maintenance" /> 
+		<meta name="twitter:title" content={ogTitle ?? "Home - My Mechanic"} /> 
+		{description ? <meta name="twitter:description" content={description} /> : <meta name="twitter:description" content="Honesty, Integrity And Transparency. Tucson based auto repair shop with over 25 years of experience. We offer full service auto repair & maintenance" />} 
 		<meta name="twitter:image" content="/wp-content/uploads/2023/03/logo.jpeg" />
 		<script type="application/ld+json" class="aioseo-schema">
 			{
@@ -231,7 +231,6 @@ const url = canonical ?? Astro.url.pathname;
 		</script>
 
 		<title>{title}</title>
-		{description && <meta name="description" content={description} />}
 		<!-- Our recaptcha + form helper (safe no-op if sitekey missing) -->
 		<script src="/js/forms-recaptcha-v3.js" defer></script>
 	</head>
