@@ -1,0 +1,5 @@
+---
+import c from '../../data/redesign-content.json';
+const {compact=false}=Astro.props;
+---
+<a class:list={['google-rating',{compact}]} href={c.googleProfileUrl} target="_blank" rel="noopener" aria-label={`${c.rating} out of 5 from ${c.reviewCount} Google reviews`}><strong>{c.rating}</strong><span><span class="google-stars" aria-hidden="true">★★★★★</span><span class="google-review-count">{c.reviewCount} Google reviews </span></span></a>

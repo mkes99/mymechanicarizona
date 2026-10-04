@@ -1,0 +1,6 @@
+---
+import ResponsiveImage from './ResponsiveImage.astro';
+const {priority=false}=Astro.props;
+import m from '../../data/membership.json';
+---
+<ResponsiveImage priority={priority} class="oil-shop-photo" src={m.shopOilPhoto} alt="A technician pouring fresh engine oil into a vehicle" width="1200" height="800" loading="lazy"/>

@@ -1,0 +1,40 @@
+---
+import { Picture } from 'astro:assets';
+import image0 from '../../assets/redesign/appointment.jpg';
+import image1 from '../../assets/redesign/brakes.jpg';
+import image2 from '../../assets/redesign/cooling.jpg';
+import image3 from '../../assets/redesign/diagnostics.jpg';
+import image4 from '../../assets/redesign/engine.jpg';
+import image5 from '../../assets/redesign/inspection.jpg';
+import image6 from '../../assets/redesign/logo.png';
+import image7 from '../../assets/redesign/maintenance.jpg';
+import image8 from '../../assets/redesign/membership.jpg';
+import image9 from '../../assets/redesign/oil-service.jpg';
+import image10 from '../../assets/redesign/service-advice.jpg';
+import image11 from '../../assets/redesign/shop.jpeg';
+import image12 from '../../assets/redesign/IMG_1059-scaled-e1681152170569.jpeg';
+import image13 from '../../assets/redesign/promo_img01.jpg';
+const images = {
+  "/assets/redesign/appointment.jpg": image0,
+  "/assets/redesign/brakes.jpg": image1,
+  "/assets/redesign/cooling.jpg": image2,
+  "/assets/redesign/diagnostics.jpg": image3,
+  "/assets/redesign/engine.jpg": image4,
+  "/assets/redesign/inspection.jpg": image5,
+  "/assets/redesign/logo.png": image6,
+  "/assets/redesign/maintenance.jpg": image7,
+  "/assets/redesign/membership.jpg": image8,
+  "/assets/redesign/oil-service.jpg": image9,
+  "/assets/redesign/service-advice.jpg": image10,
+  "/assets/redesign/shop.jpeg": image11,
+  "/wp-content/uploads/2020/03/IMG_1059-scaled-e1681152170569.jpeg": image12,
+  "/wp-content/uploads/2020/03/promo_img01.jpg": image13
+};
+const {src, alt, priority=false, sizes:requestedSizes, width:_width, height:_height, loading:_loading, fetchpriority:_fetchpriority, ...attributes}=Astro.props;
+const image=images[src as keyof typeof images];
+if (!image) throw new Error(`Missing redesign image: ${src}`);
+const logo=src.endsWith('logo.png');
+const widths=(logo?[132,205,264,410]:[360,640,960,1280,1920,2560]).filter(w=>w<=image.width);
+const sizes=requestedSizes ?? (logo?'(max-width: 1250px) 140px, (max-width: 1864px) 11vw, 205px':priority?'100vw':'(max-width: 800px) 100vw, 50vw');
+---
+<Picture src={image} alt={alt} formats={['avif','webp']} widths={widths} sizes={sizes} width={logo?410:Math.min(image.width,1280)} loading={priority?'eager':_loading??'lazy'} fetchpriority={priority?'high':undefined} pictureAttributes={{class:'responsive-picture'}} {...attributes}/>

@@ -1,0 +1,6 @@
+---
+import m from '../../data/membership.json';
+import OilPhoto from './OilPhoto.astro';
+const price=Math.min(...m.plans.map(p=>p.price));
+---
+<section class="membership-band"><div class="container membership-grid"><div><p class="eyebrow">LIFETIME OIL CHANGES</p><h2>Get free oil changes <br/><em>for life?</em></h2><p>Buy the package and never pay for another oil change again!</p><ul class="membership-includes"><li>Oil &amp; filter change</li><li>Inspection</li><li>Tire rotation</li></ul><a class="button" href="/redesign/appointments/?service=membership">Request Lifetime Oil Changes</a><a class="membership-details" href="/redesign/want-free-oil-changes-for-life/">Explore free oil changes for life </a></div><div class="membership-feature"><OilPhoto/><div class="member-card"><div class="member-numbers"><div><strong>{m.annualChanges}</strong><span>OIL CHANGES <br/>PER YEAR</span></div><div><span>PACKAGES FROM</span><strong>${price}</strong></div></div><p class="member-fee">Plus ${m.serviceFee.toFixed(2)} per service. <a class="terms-link" href="/redesign/want-free-oil-changes-for-life/#package-terms">See full terms</a></p></div></div></div></section>

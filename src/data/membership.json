@@ -1,0 +1,76 @@
+{
+  "title": "Lifetime Oil Changes",
+  "annualChanges": 3,
+  "serviceFee": 13.99,
+  "plans": [
+    {
+      "name": "Semi-synthetic",
+      "price": 399
+    },
+    {
+      "name": "Full synthetic · Amsoil",
+      "price": 599
+    },
+    {
+      "name": "European Cars",
+      "price": 699
+    },
+    {
+      "name": "Diesels",
+      "price": 999
+    }
+  ],
+  "extras": "BG Oil & Fuel Additives: $299. Specialty Cars: please inquire.",
+  "terms": [
+    "Each package includes 3 oil changes per year. If you require more oil changes per year, you may purchase subsequent oil changes. An appointment is required to redeem benefits of this program. The only thing you’ll pay for each oil service is a $13.99 service charge to cover tax, disposal, etc. Give us a call today!"
+  ],
+  "shopOilPhoto": "/assets/redesign/oil-service.jpg",
+  "highlights": [
+    "Never buy another oil change for the life of the vehicle",
+    "Free full-vehicle inspections, keeping you safe on the road",
+    "Discounts & incentives for family & friend enrollment"
+  ],
+  "benefits": [
+    [
+      "Oil and filter changes",
+      "Oil and filter changes using top-tier, OEM-quality products on your vehicle at our recommended service intervals, which are typically half the manufacturer’s scheduled service intervals."
+    ],
+    [
+      "Fight inflation",
+      "As prices for oil, filters, and labor increase, your cost will stay the same forever."
+    ],
+    [
+      "Free local pickup & delivery",
+      "Let us pick up your vehicle from your home or office for service, FREE!"
+    ],
+    [
+      "Free loaner car",
+      "Free loaner car while your car is in for service. Never be without transportation, we’ve got you covered."
+    ],
+    [
+      "Refer 5 friends",
+      "Refer 5 friends for a lifetime oil service and we’ll give you your money back!"
+    ]
+  ],
+  "faqs": [
+    [
+      "What happens if I move away before I’m able to see the value in the service?",
+      "No problem. Either party can terminate this agreement at any time. We’ll apply the service we’ve done at retail pricing towards the total you paid for the program and refund the difference."
+    ],
+    [
+      "What about other cars in your family?",
+      "If you have multiple vehicles in your household, we will give you 20% off the price of every Lifetime Oil Change Package you purchase after your first."
+    ],
+    [
+      "What if I sell my car?",
+      "Add value to the sale price and transfer the plan! When transferred to a new vehicle owner, the first oil change is billed at full price, we’ll take care of the rest."
+    ],
+    [
+      "What if I get a new car?",
+      "If you get rid of a vehicle that you purchased a Lifetime Oil Change Package for, we will give you 20% off the price of a package for your next vehicle."
+    ]
+  ],
+  "footnote": "All services include inspection and tire rotations at no charge. You pay $13.99 to cover tax and disposal fees. All packages are custom built per vehicle. For more information please contact us today.",
+  "sourceUrl": "https://www.mymechanicarizona.com/want-free-oil-changes-for-life/",
+  "sourceVerifiedAt": "2026-09-27"
+}

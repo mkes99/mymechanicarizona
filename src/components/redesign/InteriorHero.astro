@@ -1,0 +1,6 @@
+---
+import ResponsiveImage from './ResponsiveImage.astro';
+const {image='',alt='My Mechanic on North Romero Road in Tucson',label='TUCSON, ARIZONA',compact=false}=Astro.props;
+const hasPhoto=Boolean(image)||Astro.slots.has('photo');
+---
+<section class:list={['interior-hero',{compact,'without-photo':!hasPhoto}]}><div class="container interior-hero-grid"><div class="interior-hero-copy"><slot/></div>{hasPhoto && <div class="interior-hero-photo"><slot name="photo"><ResponsiveImage src={image} alt={alt} width="1200" height="850" priority/></slot><span>{label}</span></div>}</div></section>

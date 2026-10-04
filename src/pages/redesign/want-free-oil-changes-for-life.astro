@@ -1,0 +1,27 @@
+---
+import ResponsiveImage from '../../components/redesign/ResponsiveImage.astro';
+import InteriorHero from '../../components/redesign/InteriorHero.astro';
+import Layout from '../../layouts/RedesignLayout.astro';
+import ContactBand from '../../components/redesign/ContactBand.astro';
+import OilPhoto from '../../components/redesign/OilPhoto.astro';
+import m from '../../data/membership.json';
+---
+<Layout title="Free Oil Changes for Life in Tucson" active="want-free-oil-changes-for-life" description="Want Free Oil Changes for Life? At My Mechanic Arizona, we're excited to offer you an exclusive opportunity to enjoy free oil changes for life.">
+<InteriorHero label="OIL &amp; FILTER · INSPECTION · TIRE ROTATION">
+  <OilPhoto priority slot="photo"/>
+  <h1>Get free oil changes <em>for life?</em></h1>
+  <p>Learn About Our Free Oil Changes For Life</p>
+  <p>Want free oil changes for life? At My Mechanic Arizona, we’re excited to offer you an exclusive opportunity to enjoy free oil changes for life. Our special program ensures that you’ll never have to worry about paying for oil changes again—just reliable, high-quality auto care for your vehicle in Tucson. Discover how easy it is to take advantage of this unbeatable offer today!</p>
+  <div class="membership-hero-stat"><strong>{m.annualChanges}</strong><span>OIL CHANGES <br/>PER YEAR</span><div>PACKAGES FROM<b>${Math.min(...m.plans.map(p=>p.price))}</b></div></div>
+  <div class="fee-note">You pay <strong>${m.serviceFee.toFixed(2)} per service</strong> to cover tax and disposal fees. Appointments required.</div>
+</InteriorHero>
+<section class="container section">
+  <div class="membership-explainer"><div><p class="eyebrow">LIFETIME OIL CHANGES</p><h2>Never buy another oil change <br/>for the life of the vehicle.</h2></div><div><p>Lifetime oil change membership includes up to 3 oil changes per year, forever. Buy the package and never pay for another oil change again!</p><ul>{m.highlights.map(text=><li>{text}</li>)}</ul><a class="text-link" href="#package-terms">See full terms </a></div></div>
+  <div class="section-heading"><h2>You pick the package that works for you.</h2></div>
+  <div class="plans">{m.plans.map(plan=><article><p>{plan.name}</p><strong>${plan.price}</strong><p>Up to {m.annualChanges} oil changes per year. <br/>Plus ${m.serviceFee.toFixed(2)} per service.</p><a class="button" href="/redesign/appointments/?service=membership">Ask about this package</a></article>)}</div>
+  <p class="helper">{m.extras}</p><p class="helper">{m.footnote}</p>
+</section>
+<section class="container section oil-perks"><div class="oil-perks-intro"><div><p class="eyebrow">MORE PERKS &amp; INCENTIVES</p><h2>What do lifetime oil service packages include?</h2></div><div><p>Our standard: To provide a level of customer service and repair that consistently exceeds our customers’ expectations.</p><p>Honesty, integrity and transparency. <br/>The little stuff is just as important as the big stuff.</p></div></div><div class="oil-perks-list">{m.benefits.map(([title,text])=><article><h3>{title}</h3><p>{text}</p></article>)}</div></section>
+<section class="terms-section" id="package-terms"><div class="container detail-layout"><div><p class="eyebrow">TERMS</p><h2>Lifetime oil changes.</h2>{m.terms.map(term=><p>{term}</p>)}<p>{m.footnote}</p><a class="text-link" href="tel:5209048551">Call (520) 904-8551</a><ResponsiveImage class="terms-photo" src="/assets/redesign/oil-service.jpg" alt="A technician pouring fresh motor oil into a vehicle engine" width="1200" height="800" loading="lazy"/></div><div class="terms-list"><h2>Frequently asked questions.</h2>{m.faqs.map(([question,answer],i)=><details open={i===0}><summary>{question}</summary><p>{answer}</p></details>)}</div></div></section>
+<ContactBand/>
+</Layout>

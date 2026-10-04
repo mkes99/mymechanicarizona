@@ -1,0 +1,18 @@
+---
+const {name='arrow',size=32}=Astro.props;
+const paths:Record<string,string[]>={
+ arrow:['M5 12h14M13 6l6 6-6 6'],
+ oil:['M3 9h11l4 4 3-2v7h-3l-4-3H7l-4-6Z','M8 9V5m-3 0h6','M3 12 1 13v4h4'],
+ engine:['M5 8h3V5h6v3h4l2 3h2v7h-4l-2 2H7l-3-3V9H1v6','M10 2h6M13 2v3'],
+ wheel:['M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z','M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z','M12 5v1m0 12v1M5 12h1m12 0h1'],
+ snow:['M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7','m9 4 3 3 3-3m-6 16 3-3 3 3M4 10l4-1-1-4m10 14-1-4 4-1M4 14l4 1-1 4m10-14-1 4 4 1'],
+ check:['M8 5H5v17h14V5h-3','M9 2h6v5H9z','m8 13 3 3 5-6'],
+ shield:['m12 2 8 3v6c0 5-4 8-8 11-4-3-8-6-8-11V5l8-3Z','m8 12 3 3 5-6'],
+ van:['M2 7h13l6 6v6H2Z','M15 7v7h6','M6 16a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm11 0a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z'],
+ lock:['M5 10h14v12H5z','M8 10V6a4 4 0 0 1 8 0v4M12 14v4'],
+ pin:['M12 22S4 13 4 9a8 8 0 0 1 16 0c0 4-8 13-8 13Z','M12 6a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z'],
+ clock:['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z','M12 6v6l4 2'],
+ phone:['m5 2 4 5-3 3c2 4 4 6 8 8l3-3 5 4c-1 3-3 4-5 3C8 20 3 15 1 6 0 4 2 2 5 2Z']
+};
+---
+<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{(paths[name]||paths.arrow).map(d=><path d={d}/>)}</svg>

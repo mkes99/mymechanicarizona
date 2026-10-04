@@ -1,0 +1,5 @@
+<script>
+for (const form of document.querySelectorAll<HTMLFormElement>('form[data-local-preview]')) {
+ form.addEventListener('submit',e=>{e.preventDefault();const status=form.querySelector<HTMLElement>('[data-preview-status]');if(status){status.hidden=false;status.textContent='Preview complete. No information was sent or saved.';status.focus();}});
+}
+</script>

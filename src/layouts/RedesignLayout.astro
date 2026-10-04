@@ -1,0 +1,35 @@
+---
+import ResponsiveImage from '../components/redesign/ResponsiveImage.astro';
+import '../styles/redesign.css';
+import metadata from '../data/redesign-meta.json';
+import Icon from '../components/redesign/Icon.astro';
+const pageKey=Astro.url.pathname.replace(/^\/redesign\/?/, '').replace(/\/$/,'');
+const pageMeta=metadata[pageKey as keyof typeof metadata];
+const {active=''}=Astro.props;
+const title=pageMeta?.[0] ?? Astro.props.title;
+const description=pageMeta?.[1] ?? Astro.props.description;
+const base='/redesign';
+const links=[['Services','services'],['Lifetime Oil Changes','want-free-oil-changes-for-life'],['Our Shop','our-shop'],['Financing','financing'],['FAQs','faq'],['Contact','contact']];
+---
+<!doctype html><html lang="en" data-recaptcha-sitekey={import.meta.env.PUBLIC_RECAPTCHA_SITEKEY ?? ""}><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><meta name="description" content={description}/><title>{title} | My Mechanic</title></head><body class:list={[active ? `page-${active}` : 'page-home']}>
+<a class="skip" href="#main">Skip to content</a>
+
+<div class="utility"><div class="container"><span><Icon name="pin" size={15}/>4039 N Romero Rd, Tucson, Arizona</span><span><Icon name="clock" size={15}/>Mon–Fri 8am–5pm <a href="tel:5209048551"><Icon name="phone" size={15}/>(520) 904-8551</a></span></div></div>
+<header class="site-header container"><a href={`${base}/`} class="brand" aria-label="My Mechanic home"><ResponsiveImage loading="eager" src="/assets/redesign/logo.png" alt="My Mechanic Maintenance & Repair — Tucson, Arizona" width="600" height="350"/></a><nav class="desktop-nav" aria-label="Main navigation">{links.map(([label,path])=><a href={`${base}/${path}/`} aria-current={active===path?'page':undefined}>{label}</a>)}</nav><a class="button header-book" href={`${base}/appointments/`}>Request Appointment</a><button class="menu-button" aria-controls="mobile-navigation" aria-expanded="false">Menu <span aria-hidden="true">☰</span></button></header>
+<nav class="mobile-navigation container" id="mobile-navigation" hidden aria-label="Mobile navigation"><a href={`${base}/`}>Home</a>{links.map(([label,path])=><a href={`${base}/${path}/`} aria-current={active===path?'page':undefined}>{label}</a>)}<a href={`${base}/customer-information/`}>Customer Information</a><a href={`${base}/careers/`}>Careers</a><a href={`${base}/appointments/`}>Request Appointment</a></nav>
+<main id="main"><slot/></main>
+<footer class="redesign-footer"><div class="container footer-main"><div class="footer-identity"><a class="brand" href={`${base}/`}><ResponsiveImage src="/assets/redesign/logo.png" alt="My Mechanic" width="600" height="350"/></a><p>Good people. Honest repairs.</p><a class="footer-phone" href="tel:5209048551">(520) 904-8551</a><p>Monday–Friday · 8am–5pm</p></div><nav aria-label="Service links"><h2>Your vehicle</h2><a href={`${base}/services/`}>Auto repair &amp; services</a><a href={`${base}/want-free-oil-changes-for-life/`}>Lifetime Oil Changes</a><a href={`${base}/financing/`}>Financing options</a><a href={`${base}/appointments/`}>Request an appointment</a></nav><nav aria-label="Shop links"><h2>Your shop</h2><a href={`${base}/our-shop/`}>Our Shop</a><a href={`${base}/faq/`}>FAQs</a><a href={`${base}/customer-information/`}>Customer information</a><a href={`${base}/careers/`}>Careers</a><a href={`${base}/contact/`}>Contact</a></nav><div class="footer-visit"><h2>Find us in Tucson</h2><a href="https://www.google.com/maps/dir/?api=1&amp;destination=4039+N+Romero+Rd+Tucson+AZ+85705">4039 N Romero Rd <br/>Tucson, AZ 85705</a><a href="mailto:support@mymechanicarizona.com">support@mymechanicarizona.com</a><a class="button" href={`${base}/contact/`}>Contact the Shop</a></div></div><div class="container footer-small"><span>© {new Date().getFullYear()} My Mechanic Maintenance &amp; Repair</span><span>Tucson, Arizona</span></div></footer>
+<div class:list={["mobile-actions",{"call-only":active==='appointments'}]}><a data-cta="call" href="tel:5209048551"><Icon name="phone" size={19}/>Call</a>{active!=='appointments'&&<a data-cta="book" href={`${base}/appointments/`}>Book </a>}</div>
+<script>const toggle=document.querySelector<HTMLButtonElement>('.menu-button')!;const nav=document.querySelector<HTMLElement>('#mobile-navigation')!;toggle.addEventListener('click',()=>{const open=toggle.getAttribute('aria-expanded')!=='true';toggle.setAttribute('aria-expanded',String(open));nav.hidden=!open;});
+const motion=window.matchMedia('(prefers-reduced-motion: reduce)');
+let observer: IntersectionObserver | undefined;
+function setupReveals(){
+ observer?.disconnect();
+ document.querySelectorAll('.reveal-pending').forEach(el=>el.classList.remove('reveal-pending'));
+ if(motion.matches || !('IntersectionObserver' in window)) return;
+ observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.remove('reveal-pending');observer?.unobserve(entry.target);}}),{threshold:0,rootMargin:'0px 0px -24px 0px'});
+ document.querySelectorAll('main > section:not(.hero):not(.interior-hero):not(.booking-wrap)').forEach(el=>{if(el.getBoundingClientRect().top>window.innerHeight){el.classList.add('scroll-reveal','reveal-pending');observer?.observe(el);}});
+}
+setupReveals();motion.addEventListener('change',setupReveals);
+</script>
+<script is:inline src="/assets/redesign/forms.js" defer></script></body></html>

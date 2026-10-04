@@ -1,0 +1,25 @@
+{
+  "rating": 4.9,
+  "reviewCount": 558,
+  "googleProfileUrl": "https://www.google.com/maps?cid=11154105522663391062",
+  "reviews": [
+    {
+      "firstName": "Kevin Taylor",
+      "quote": "Just nice, professional and honest guys who know their stuff and want to take good care of their customers. It's my 5th visit now and I am definitely a permanent customer!",
+      "date": ""
+    },
+    {
+      "firstName": "Winston Chandler",
+      "quote": "From the staff to the owners they are a great company. I recommend them to everyone i can",
+      "date": ""
+    },
+    {
+      "firstName": "jacqueline landry",
+      "quote": "Great job, super nice guys and reasonably priced! I would definitely recommend My Mechanic!",
+      "date": ""
+    }
+  ],
+  "ratingCheckedAt": "2026-09-26",
+  "ratingSource": "https://www.google.com/maps?cid=11154105522663391062",
+  "reviewsSource": "https://www.mymechanicarizona.com/reviews/"
+}

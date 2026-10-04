@@ -1,0 +1,7 @@
+---
+import Layout from '../../layouts/RedesignLayout.astro';
+import InteriorHero from '../../components/redesign/InteriorHero.astro';
+import ContactBand from '../../components/redesign/ContactBand.astro';
+import faqs from '../../data/redesign-faq.json';
+---
+<Layout title="Frequently Asked Questions" active="faq"><InteriorHero image="/assets/redesign/service-advice.jpg" alt="A technician working under a vehicle hood"><p class="eyebrow">FAQ</p><h1>Have a car <br/><em>repair question?</em></h1><p>Get your automotive-related questions answered by a mechanic.</p><a class="button" href="tel:5209048551">Call the Shop</a></InteriorHero><section class="section container faq-directory"><div><h2>Frequently asked questions</h2><a class="text-link" href="/redesign/contact/">Ask a question </a><a class="text-link" href="/redesign/want-free-oil-changes-for-life/#package-terms">Lifetime Oil Changes terms </a></div><div class="terms-list">{faqs.map(({question,answer},i)=><details open={i===0}><summary>{question}</summary><p>{answer}</p></details>)}</div></section><ContactBand/></Layout>

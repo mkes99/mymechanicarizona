@@ -1,0 +1,50 @@
+[
+  {
+    "answer": "We try to complete most repairs the same day. If this is not possible, we will provide you with special transportation arrangements.",
+    "question": "How long will it take to complete the repairs"
+  },
+  {
+    "answer": "Yes, we offer a 36 month or 36000 mile nationwide warranty through Technet.",
+    "question": "Do you offer warranties for your work"
+  },
+  {
+    "answer": "A car running rough can be caused by several factors such as a vacuum leak, bad fuel injectors, EGR valves, low compression, or misfires from a bad spark plug or coil. A tune-up can help improve your car’s performance and fuel efficiency by replacing worn-out parts such as spark plugs, air filters, and fuel filters. However, it may not always be necessary to get a tune-up if your car is running rough.",
+    "question": "My car is running rough. Do I need a tune-up"
+  },
+  {
+    "answer": "Yes, My Mechanic is dedicated to following green practices and protecting our planet. Tucson is a beautiful place to live in, and we want to protect our lovely landscapes. To do this, we are committed to going green. What does this mean? During the car repair and auto service process, we will recycle all used oils, used coolant, scrap metal, and even tires. We also have converted all lighting to energy-efficient fluorescent fixtures, and are a fully digital shop.",
+    "question": "Are you a green shop"
+  },
+  {
+    "answer": "No appointments are not necessary, but are recommended.",
+    "question": "Do I need an appointment for a repair"
+  },
+  {
+    "answer": "Cash, Credit Cards and we also offer financing options.",
+    "question": "What forms of payment do you take"
+  },
+  {
+    "answer": "Regular maintenance of your vehicle protects your investment, helps to prevent breakdowns, and will save you on the cost of repairs in the future.",
+    "question": "Why does my car need maintenance if it's running fine"
+  },
+  {
+    "answer": "The consequences of not repairing your car depend on the type of repair needed and the severity of the problem. If you don't fix your car, it could lead to more serious problems down the road",
+    "question": "What will happen if I don't have the repairs done right now"
+  },
+  {
+    "answer": "There are many sensors and computerized components that manage your vehicle’s engine performance and emissions. When one of these fails, the “check engine” light is illuminated. Although your car may seem to run fine, it is important to have the issue addressed to prevent long-term problems or failure of emission tests.",
+    "question": "What Should I Do When My Check Engine Lights Come On"
+  },
+  {
+    "answer": "As a good rule of thumb, you should aim to get your brakes inspected every six months. However, how often you should have your brakes checked will depend on a few factors, including how often you use your car, the type of driving you do, and the condition of your brakes. The general rule of thumb is to have your brakes checked every 12,000 miles or so. If you cannot recall the last time a professional examined your braking system, you should arrange an appointment as soon as possible. While there isn’t a hard and fast rule for the proper interval between brake services, most professionals recommend you get yours inspected regularly (annually, if possible) or when you get your tires rotated (every 5,000 miles).",
+    "question": "How Often Should I Have My Brakes Checked"
+  },
+  {
+    "answer": "This is a very serious problem – if your car overheats for too long, you can damage your engine. As soon as possible, find a safe place to pull off the road and shut off the engine! Do not attempt to check the fluid level in the radiator as it can burn you. The best thing to do is have your car towed to a repair shop.",
+    "question": "What should I do if my car starts to overheat"
+  },
+  {
+    "answer": "Battery cables and terminals should be cleaned and inspected to make sure they provide a good electrical connection.",
+    "question": "Does my car battery have a good electrical connection"
+  }
+]
