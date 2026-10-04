@@ -1,57 +1,9 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
-import ServiceCards from "../../components/ServiceCards.astro";
+import ResponsiveImage from '../../components/redesign/ResponsiveImage.astro';
+import InteriorHero from '../../components/redesign/InteriorHero.astro';
+import Layout from '../../layouts/RedesignLayout.astro';
+import Icon from '../../components/redesign/Icon.astro';
+import ContactBand from '../../components/redesign/ContactBand.astro';
+import {services} from '../../data/redesign-services';
 ---
-
-<BaseLayout title="Services">
-	<div id="pageTitle" class="">
-		<div class="container">
-			<h1>Services</h1>
-			<div class="breadcrumbs">
-				<div class="breadcrumb">
-					<div class="breadcrumbs">
-						<div class="breadcrumb"></div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<div id="pageContent" class="content-area">
-		<div id="primary" class="container">
-			<div id="post-3787" class="post-3787 page type-page status-publish hentry">
-				<!-- Block -->
-				<div class="offset-sm">
-					<div data-elementor-type="wp-page" data-elementor-id="3787" class="elementor elementor-3787">
-						<section
-							class="elementor-section elementor-top-section elementor-element elementor-element-afd3010 elementor-section-boxed elementor-section-height-default elementor-section-height-default"
-							data-id="afd3010"
-							data-element_type="section"
-						>
-							<div class="elementor-container elementor-column-gap-default">
-								<div
-									class="elementor-column elementor-col-100 elementor-top-column elementor-element elementor-element-9fa7c53"
-									data-id="9fa7c53"
-									data-element_type="column"
-								>
-									<div class="elementor-widget-wrap elementor-element-populated">
-										<div
-											class="elementor-element elementor-element-ab078b6 elementor-widget elementor-widget-services"
-											data-id="ab078b6"
-											data-element_type="widget"
-											data-widget_type="services.default"
-										>
-											<div class="elementor-widget-container">
-												<ServiceCards />
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</section>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-</BaseLayout>
+<Layout title="Auto Repair Services" active="services"><InteriorHero image="/wp-content/uploads/2020/03/promo_img01.jpg" alt="Automotive repair work beneath a raised vehicle" label="MAINTENANCE · DIAGNOSTICS · REPAIR"><p class="eyebrow">CARE FOR EVERY MILE</p><h1>Whatever your car needs, <br/><em>start with a conversation.</em></h1><p>From everyday maintenance to bigger repairs, find the service you need—or tell us what doesn’t feel right.</p></InteriorHero><section class="container section services-directory">{services.map(s=><a href={`/services/${s.slug}/`} class="directory-card"><ResponsiveImage sizes="(max-width: 800px) 100vw, 33vw" class="directory-photo" src={s.image} alt={s.imageAlt} width="1200" height="800" loading="lazy"/><h2>{s.title}</h2><p>{s.intro}</p><ul>{s.items.map(item=><li>{item}</li>)}</ul><span class="text-link">Explore {s.title.toLowerCase()} </span></a>)}</section><div class="container unsure"><ResponsiveImage src="/assets/redesign/service-advice.jpg" alt="A technician checking a vehicle beneath its open hood" width="1200" height="800" loading="lazy"/><div><h2>Not sure what to ask for?</h2><p>A noise, a warning light, a change in how it drives—describe it in your own words. You don’t need a diagnosis to request a visit.</p><a class="button" href="/appointments/?service=Something%20else%20%2F%20not%20sure">Tell us what’s happening</a><p class="helper">Helpful details: when it started, when it happens, and any warning lights you see.</p></div></div><ContactBand/></Layout>

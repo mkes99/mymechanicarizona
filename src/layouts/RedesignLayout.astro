@@ -3,12 +3,12 @@ import ResponsiveImage from '../components/redesign/ResponsiveImage.astro';
 import '../styles/redesign.css';
 import metadata from '../data/redesign-meta.json';
 import Icon from '../components/redesign/Icon.astro';
-const pageKey=Astro.url.pathname.replace(/^\/redesign\/?/, '').replace(/\/$/,'');
+const pageKey=Astro.url.pathname.replace(/^\//, '').replace(/\/$/,'');
 const pageMeta=metadata[pageKey as keyof typeof metadata];
 const {active=''}=Astro.props;
 const title=pageMeta?.[0] ?? Astro.props.title;
 const description=pageMeta?.[1] ?? Astro.props.description;
-const base='/redesign';
+const base='';
 const links=[['Services','services'],['Lifetime Oil Changes','want-free-oil-changes-for-life'],['Our Shop','our-shop'],['Financing','financing'],['FAQs','faq'],['Contact','contact']];
 ---
 <!doctype html><html lang="en" data-recaptcha-sitekey={import.meta.env.PUBLIC_RECAPTCHA_SITEKEY ?? ""}><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><meta name="description" content={description}/><title>{title} | My Mechanic</title></head><body class:list={[active ? `page-${active}` : 'page-home']}>
