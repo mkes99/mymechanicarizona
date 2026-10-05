@@ -173,10 +173,10 @@ a,button{transition:color .2s ease,background-color .2s ease,border-color .2s ea
 /* Interim photo treatment: preserve color outside the readable text area. */
 .hero-photo img,.interior-hero-photo img{filter:sepia(.2) saturate(1.4) contrast(1.14) brightness(1.12)}
 .hero-copy{max-width:680px}
-.hero:after{background:linear-gradient(90deg,rgba(15,17,13,.78) 0%,rgba(15,17,13,.70) calc(var(--gutter) + 610px),rgba(15,17,13,.12) 82%,transparent 100%)}
-.interior-hero:after{background:linear-gradient(90deg,rgba(15,17,13,.8) 0%,rgba(15,17,13,.72) min(72%,950px),rgba(15,17,13,.06) 100%)}
+.hero:after{background:radial-gradient(ellipse 115% 150% at 0% 45%,rgba(15,17,13,.82) 0%,rgba(15,17,13,.72) 38%,rgba(15,17,13,.42) 75%,rgba(15,17,13,.12) 100%)}
+.interior-hero:after{background:radial-gradient(ellipse 115% 150% at 0% 45%,rgba(15,17,13,.84) 0%,rgba(15,17,13,.74) 38%,rgba(15,17,13,.44) 75%,rgba(15,17,13,.14) 100%)}
 @media(max-width:800px){
-.hero:after,.interior-hero:after{background:linear-gradient(180deg,rgba(15,17,13,.72) 0%,rgba(15,17,13,.72) 74%,rgba(15,17,13,.28) 100%)}
+.hero:after,.interior-hero:after{background:linear-gradient(180deg,rgba(15,17,13,.74) 0%,rgba(15,17,13,.70) 65%,rgba(15,17,13,.48) 100%)}
 }
 
 /* Give the original black logo artwork an intentional badge edge. */
